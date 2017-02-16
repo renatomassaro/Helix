@@ -12,9 +12,6 @@ defmodule Helix.Account.Controller.AccountService do
 
   @spec start_link() :: GenServer.on_start
   def start_link do
-    Router.register("account.create", "account:create")
-    Router.register("account.login", "account:login")
-
     GenServer.start_link(__MODULE__, [], name: :account_service)
   end
 
