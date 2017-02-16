@@ -14,8 +14,8 @@ defmodule Helix.Account.App do
       raise RuntimeError, message: "Guardian secret_key not set"
     end
 
-    Router.register("account.create", "account:create", [:email, :password, :password_confirmation])
-    Router.register("account.login", "account:login", [:email, :password])
+    Router.register("account.create", "account.create", [:email, :password, :password_confirmation])
+    Router.register("account.login", "account.login", [:email, :password])
 
     children = [
       worker(AccountService, []),
