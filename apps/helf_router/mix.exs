@@ -30,8 +30,7 @@ defmodule Helix.HELFRouter.Mixfile do
 
   defp deps do
     [
-#      {:helf, git: "ssh://git@git.hackerexperience.com/diffusion/HELF/helf.git", ref: "dev_tester"},
-      {:helf, path: "/home/renato/helf"},
+      {:helf, git: "ssh://git@git.hackerexperience.com/diffusion/HELF/helf.git", ref: "dev"},
       {:cowboy,"~> 1.0"}
     ]
   end

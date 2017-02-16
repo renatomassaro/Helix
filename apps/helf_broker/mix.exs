@@ -31,8 +31,7 @@ defmodule Helix.HELFBroker.Mixfile do
 
   defp deps do
     [
-#      {:helf, git: "ssh://git@git.hackerexperience.com/diffusion/HELF/helf.git", ref: "dev_tester"},
-	{:helf, path: "/home/renato/helf"},
+      {:helf, git: "ssh://git@git.hackerexperience.com/diffusion/HELF/helf.git", ref: "dev"},
       {:hebroker, git: "ssh://git@git.hackerexperience.com/diffusion/BROKER/HEBroker.git", ref: "v0.1"}
     ]
   end
