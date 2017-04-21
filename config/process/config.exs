@@ -7,4 +7,7 @@ config :helix, Helix.Process.Repo,
   username: System.get_env("HELIX_DB_USER") || "postgres",
   password: System.get_env("HELIX_DB_PASS") || "postgres",
   hostname: System.get_env("HELIX_DB_HOST") || "localhost",
-  types: HELL.PostgrexTypes
+  types: HELL.PostgrexTypes,
+  after_connect: {
+    Helix.Process.Repo, :set_schema, ["helix"]
+  }
