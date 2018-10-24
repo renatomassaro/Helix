@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.Firewall do
 
-  import Helix.Event
+  import Hevent
 
   event Started do
 

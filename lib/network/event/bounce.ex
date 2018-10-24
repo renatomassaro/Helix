@@ -1,6 +1,6 @@
 defmodule Helix.Network.Event.Bounce do
 
-  import Helix.Event
+  import Hevent
 
   event Created do
     @moduledoc """
@@ -29,15 +29,17 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that a new bounce was created, so the client-side
       data may be updated.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Client.Renderer, as: ClientRenderer
 
-      @event :bounce_created
+      event_name :bounce_created
 
       def generate_payload(event, _socket) do
         data = ClientRenderer.render_bounce(event.bounce)
@@ -75,13 +77,15 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the client that the bounce creation attempt has failed, so
       the client who made the request can describe the failure to the player.
       """
 
-      @event :bounce_create_failed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :bounce_create_failed
 
       def generate_payload(event, _socket) do
         data = %{reason: to_string(event.reason)}
@@ -121,14 +125,16 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the client that the bounce was updated.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Client.Renderer, as: ClientRenderer
 
-      @event :bounce_updated
+      event_name :bounce_updated
 
       def generate_payload(event, _socket) do
         data = ClientRenderer.render_bounce(event.bounce)
@@ -166,13 +172,15 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the client that the bounce update attempt has failed, so the
       client who made the request can describe the failure to the player.
       """
 
-      @event :bounce_update_failed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :bounce_update_failed
 
       def generate_payload(event, _socket) do
         data = %{reason: to_string(event.reason)}
@@ -211,12 +219,14 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the client that the bounce was removed.
       """
 
-      @event :bounce_removed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :bounce_removed
 
       def generate_payload(event, _socket) do
         data = %{bounce_id: to_string(event.bounce_id)}
@@ -254,13 +264,15 @@ defmodule Helix.Network.Event.Bounce do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that the bounce removal attempt has failed, so the
       Client who made the request can describe the failure to the player.
       """
 
-      @event :bounce_remove_failed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :bounce_remove_failed
 
       def generate_payload(event, _socket) do
         data = %{reason: to_string(event.reason)}

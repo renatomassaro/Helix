@@ -1,6 +1,6 @@
 defmodule Helix.Server.Event.Server do
 
-  import Helix.Event
+  import Hevent
 
   event Joined do
     @moduledoc """
@@ -37,13 +37,10 @@ defmodule Helix.Server.Event.Server do
       }
     end
 
-    loggable do
+    trigger Loggable do
 
-      @doc """
-        localhost logged in
-      """
-      log(event = %__MODULE__{join_type: :local}) do
-        log_map %{
+      def log_map(event = %_{join_type: :local}) do
+        %{
           event: event,
           server_id: event.server_id,
           entity_id: event.entity_id,
@@ -54,9 +51,10 @@ defmodule Helix.Server.Event.Server do
 
       # Does nothing on `remote` join, since that log is managed by the tunnel
       # being created during the join operation.
-      log(%_{join_type: :remote}) do
-        empty_log()
+      def log_map(%_{join_type: :remote}) do
+        %{}
       end
+
     end
   end
 end

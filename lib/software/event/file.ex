@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.File do
 
-  import Helix.Event
+  import Hevent
 
   event Added do
     @moduledoc """
@@ -28,14 +28,16 @@ defmodule Helix.Software.Event.File do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes the event to the Client, so it can display the new file.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Software.Public.Index, as: SoftwareIndex
 
-      @event :file_added
+      event_name :file_added
 
       def generate_payload(event, _socket) do
         data = %{
@@ -76,12 +78,14 @@ defmodule Helix.Software.Event.File do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes the event to the Client, so it can remove the deleted file.
       """
 
-      @event :file_deleted
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :file_deleted
 
       def generate_payload(event, _socket) do
         data = %{
@@ -95,10 +99,11 @@ defmodule Helix.Software.Event.File do
         do: %{server: [event.server_id]}
     end
 
-    listenable do
-      listen(event) do
-        [event.file_id]
-      end
+    trigger Listenable do
+
+      @doc false
+      def get_objects(event),
+        do: [event.file_id]
     end
   end
 
@@ -158,14 +163,16 @@ defmodule Helix.Software.Event.File do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that a file has been downloaded.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Software.Public.Index, as: SoftwareIndex
 
-      @event :file_downloaded
+      event_name :file_downloaded
 
       def generate_payload(event, _socket) do
         data = %{
@@ -182,7 +189,9 @@ defmodule Helix.Software.Event.File do
         do: %{server: event.to_server_id}
     end
 
-    loggable do
+    trigger Loggable do
+
+      alias Helix.Event.Loggable.Utils, as: LoggableUtils
 
       @doc """
       Generates a log entry when a File has been downloaded from a Public FTP
@@ -195,10 +204,10 @@ defmodule Helix.Software.Event.File do
       On the other hand, the host server IP address is not censored, and will be
       saved fully on the downloader's server.
       """
-      log(event = %{connection_type: :public_ftp}) do
-        file = get_file_name(event.file)
+      def log_map(event = %{connection_type: :public_ftp}) do
+        file = LoggableUtils.get_file_name(event.file)
 
-        log_map %{
+        %{
           event: event,
           entity_id: event.entity_id,
           gateway_id: event.to_server_id,
@@ -219,10 +228,10 @@ defmodule Helix.Software.Event.File do
         Gateway: "localhost downloaded file $file_name from $first_ip"
         Endpoint: "$last_ip downloaded file $file_name from localhost"
       """
-      log(event = %{connection_type: :ftp}) do
-        file_name = get_file_name(event.file)
+      def log_map(event = %{connection_type: :ftp}) do
+        file_name = LoggableUtils.get_file_name(event.file)
 
-        log_map %{
+        %{
           event: event,
           entity_id: event.entity_id,
           gateway_id: event.to_server_id,
@@ -237,8 +246,7 @@ defmodule Helix.Software.Event.File do
       end
     end
 
-    notification do
-
+    trigger Notificable do
       @moduledoc """
       # TODO: Move documentation below to somewhere else.
       # Mirrored Notifications
@@ -261,6 +269,8 @@ defmodule Helix.Software.Event.File do
       of `FileDownloadedNotification`: `FileUploadedNotification`.
       """
 
+      use Helix.Event.Trigger.Notificable.Macros
+
       @class :server
       @code :file_downloaded
 
@@ -268,10 +278,11 @@ defmodule Helix.Software.Event.File do
         do: %{account_id: event.entity_id, server_id: event.to_server_id}
     end
 
-    listenable do
-      listen(event) do
-        [event.source_file_id]
-      end
+    trigger Listenable do
+
+      @doc false
+      def get_objects(event),
+        do: [event.source_file_id]
     end
   end
 
@@ -379,14 +390,16 @@ defmodule Helix.Software.Event.File do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that a file has been uploaded.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Software.Public.Index, as: SoftwareIndex
 
-      @event :file_uploaded
+      event_name :file_uploaded
 
       def generate_payload(event, _socket) do
         data = %{
@@ -403,17 +416,20 @@ defmodule Helix.Software.Event.File do
         do: %{server: event.from_server_id}
     end
 
-    loggable do
+    trigger Loggable do
       @doc """
       Generates a log entry when a File has been uploaded to a server.
 
         Gateway: "localhost uploaded file $file_name to $first_ip"
         Endpoint: "$last_ip uploaded file $file_name to localhost"
       """
-      log(event) do
-        file_name = get_file_name(event.file)
 
-        log_map %{
+      alias Helix.Event.Loggable.Utils, as: LoggableUtils
+
+      def log_map(event) do
+        file_name = LoggableUtils.get_file_name(event.file)
+
+        %{
           event: event,
           entity_id: event.entity_id,
           gateway_id: event.from_server_id,

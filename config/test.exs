@@ -22,3 +22,6 @@ config :helf,
 config :logger,
   backends: [:console],
   level: :warn
+
+config :hevent, :opts,
+  async: false

@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Event.Handler.Decryptor do
+defmodule Helix.Software.Event.Handler.Decryptor do
 
 #   alias Helix.Event
 #   alias Helix.Software.Model.SoftwareType.Decryptor.ProcessConclusionEvent
@@ -34,4 +34,4 @@
 
 #     {:ok, _} = Repo.transaction(transaction)
 #   end
-# end
+end

@@ -11,10 +11,6 @@ defmodule HELL.Hack.Experience do
   defmacro protocolols do
 
     protocols = [
-      Helix.Event.Listenable,
-      Helix.Event.Loggable,
-      Helix.Event.Notificable,
-      Helix.Event.Publishable,
       Helix.Websocket.Requestable,
       Helix.Websocket.Joinable,
       Helix.Cache.Model.Cacheable,
@@ -25,16 +21,6 @@ defmodule HELL.Hack.Experience do
 
     methods = %{
       "Elixir.Helix.Cache.Model.Cacheable" => [{:format_output, 1}],
-      "Elixir.Helix.Event.Publishable" => [
-        {:whom_to_publish, 1},
-        {:generate_payload, 2},
-        {:get_event_name, 1}
-      ],
-      "Elixir.Helix.Event.Notificable" => [
-        {:whom_to_notify, 1},
-        {:get_notification_info, 1},
-        {:extra_params, 1}
-      ],
       "Elixir.Helix.Websocket.Requestable" => [
         {:check_params, 2},
         {:check_permissions, 2},
@@ -73,12 +59,6 @@ defmodule HELL.Hack.Experience do
         {:get_emails, 1},
         {:get_replies_of, 2},
         {:format_meta, 1},
-      ],
-      "Elixir.Helix.Event.Listenable" => [
-        {:get_objects, 1}
-      ],
-      "Elixir.Helix.Event.Loggable" => [
-        {:generate, 1}
       ]
     }
 

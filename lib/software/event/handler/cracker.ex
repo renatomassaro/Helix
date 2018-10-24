@@ -1,5 +1,7 @@
 defmodule Helix.Software.Event.Handler.Cracker do
 
+  use Hevent.Handler
+
   import HELF.Flow
   import HELL.Macros
 
@@ -21,10 +23,6 @@ defmodule Helix.Software.Event.Handler.Cracker do
   alias Helix.Software.Event.Cracker.Overflow.Processed,
     as: OverflowProcessedEvent
 
-  @spec bruteforce_conclusion(BruteforceProcessedEvent.t) ::
-    {:ok, Server.password}
-    | {:error, {:nip, :notfound}}
-    | {:error, :internal}
   @doc """
   Callback executed when a bruteforce process is completed. It will attempt to
   retrieve the target server password, an in case of success will emit a new
@@ -32,7 +30,7 @@ defmodule Helix.Software.Event.Handler.Cracker do
 
   Emits: ServerPasswordAcquiredEvent | CrackerBruteforceFailedEvent
   """
-  def bruteforce_conclusion(event = %BruteforceProcessedEvent{}) do
+  handle BruteforceProcessedEvent do
     flowing do
       with \
         {:ok, password, events} <-
@@ -53,8 +51,6 @@ defmodule Helix.Software.Event.Handler.Cracker do
     end
   end
 
-  @spec overflow_conclusion(OverflowProcessedEvent.t) ::
-    term
   @doc """
   Top-level handler of buffer overflow process conclusion. An overflow attack
   may target a process or a connection.
@@ -67,8 +63,8 @@ defmodule Helix.Software.Event.Handler.Cracker do
   publication of the overflow result to the user is done on more specific
   events, e.g. the `BankTokenAcquiredEvent`.
   """
-  def overflow_conclusion(
-    event = %OverflowProcessedEvent{target_connection_id: nil})
+  handle OverflowProcessedEvent,
+    on: %OverflowProcessedEvent{target_connection_id: nil}
   do
     process = ProcessQuery.fetch(event.target_process_id)
 
@@ -78,8 +74,8 @@ defmodule Helix.Software.Event.Handler.Cracker do
     end
   end
 
-  def overflow_conclusion(
-    event = %OverflowProcessedEvent{target_process_id: nil})
+  handle OverflowProcessedEvent,
+    on: %OverflowProcessedEvent{target_process_id: nil}
   do
     connection = TunnelQuery.fetch_connection(event.target_connection_id)
 
@@ -149,7 +145,7 @@ defmodule Helix.Software.Event.Handler.Cracker do
   end
 
   # TODO: Waiting merge of PR 249 in order to implement OverflowFlow
-  def bank_transfer_aborted(event = %BankTransferAbortedEvent{}) do
+  handle BankTransferAbortedEvent do
     ProcessQuery.get_processes_originated_on_connection(event.connection_id)
   end
 end

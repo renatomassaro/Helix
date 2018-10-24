@@ -1,6 +1,6 @@
 defmodule Helix.Entity.Event.Entity do
 
-  import Helix.Event
+  import Hevent
 
   event Created do
     @moduledoc """

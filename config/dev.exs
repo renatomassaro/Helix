@@ -29,3 +29,6 @@ config :logger, :debug,
 # Enable Timber logging on `dev` simply by setting the env var below
 config :timber,
   api_key: {:system, "TIMBER_API_KEY"}
+
+config :hevent, :opts,
+  async: true

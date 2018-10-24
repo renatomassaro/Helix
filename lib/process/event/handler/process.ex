@@ -1,5 +1,7 @@
 defmodule Helix.Process.Event.Handler.Process do
 
+  use Hevent.Handler
+
   alias Helix.Event
   alias Helix.Process.Action.Process, as: ProcessAction
   alias Helix.Process.Model.Process
@@ -14,7 +16,7 @@ defmodule Helix.Process.Event.Handler.Process do
   `Processable` callback. This action is handled and executed here. Well,
   actually at `action_handler/3`.
   """
-  def signal_handler(event = %ProcessSignaledEvent{}) do
+  handle ProcessSignaledEvent do
     event.action
     |> action_handler(event.process, event.params)
     |> Enum.map(&(Event.set_process_id(&1, event.process.process_id)))

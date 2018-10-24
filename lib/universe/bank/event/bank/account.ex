@@ -1,6 +1,6 @@
 defmodule Helix.Universe.Bank.Event.Bank.Account do
 
-  import Helix.Event
+  import Hevent
 
   event Updated do
     @moduledoc """
@@ -30,13 +30,15 @@ defmodule Helix.Universe.Bank.Event.Bank.Account do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that the bank account has updated, so it can
       properly update the local data.
       """
 
-      @event :bank_account_updated
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :bank_account_updated
 
       @doc false
       def generate_payload(event, _socket) do

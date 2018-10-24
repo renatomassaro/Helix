@@ -1,29 +1,43 @@
-defmodule Helix.Event.PublicationHandler do
+defmodule Helix.Event.Trigger.Publishable do
 
-  import HELL.Macros
+  import HELL.Macros.Docp
+
+  alias Hevent.Trigger
 
   alias HELL.Utils
-  alias Helix.Event.Publishable
+  alias Helix.Event
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
   alias Helix.Server.Model.Server
   alias Helix.Server.State.Websocket.Channel, as: ServerWebsocketChannelState
 
-  @type channel_account_id :: Account.id | Entity.id
+  @trigger Publishable
 
-  @doc """
-  Handler responsible for guiding the event through the Publishable flow. It
-  will query `Publishable.whom_to_publish` to know which channels should receive
-  the event. Then, this event is broadcasted to each channel.
-  """
-  def publication_handler(event) do
-    if Publishable.impl_for(event) do
-      event = Publishable.Flow.add_event_identifier(event)
+  # Entrypoint for Hevent's trigger handler
+  def flow(event) do
+    event = add_event_identifier(event)
 
-      event
-      |> Publishable.whom_to_publish()
-      |> channel_mapper()
-      |> Enum.each(&(Helix.Endpoint.broadcast(&1, "event", event)))
+    event
+    |> Trigger.get_data(:whom_to_publish, @trigger)
+    |> channel_mapper()
+    |> Enum.each(&(Helix.Endpoint.broadcast(&1, "event", event)))
+  end
+
+  # Entrypoint for socket's `handle_event`
+  def generate_event(event, socket) do
+    case Trigger.get_data([event, socket], :generate_payload, @trigger) do
+      {:ok, data} ->
+        payload =
+          %{
+            data: data,
+            event: Trigger.get_data(event, :event_name, @trigger),
+            meta: Event.Meta.render(event)
+          }
+
+        {:ok, payload}
+
+      noreply ->
+        noreply
     end
   end
 
@@ -31,8 +45,8 @@ defmodule Helix.Event.PublicationHandler do
   Interprets the return `Publishable.whom_to_publish/1` format, returning a list
   of valid channel topics/names.
   """
-  @spec channel_mapper(Publishable.whom_to_publish) ::
-    channels :: [String.t]
+  # @spec channel_mapper(Publishable.whom_to_publish) ::
+  #   channels :: [String.t]
   defp channel_mapper(whom_to_publish, acc \\ [])
   defp channel_mapper(publish = %{server: servers}, acc) do
     acc =
@@ -87,8 +101,8 @@ defmodule Helix.Event.PublicationHandler do
     nips ++ ["server:" <> to_string(server_id)]
   end
 
-  @spec get_account_channels([channel_account_id] | channel_account_id) ::
-    channels :: [String.t]
+  # @spec get_account_channels([channel_account_id] | channel_account_id) ::
+  #   channels :: [String.t]
   defp get_account_channels(accounts) when is_list(accounts),
     do: Enum.map(accounts, &get_account_channels/1)
   defp get_account_channels(account_id),
@@ -96,4 +110,24 @@ defmodule Helix.Event.PublicationHandler do
 
   defp concat(a, b),
     do: a <> to_string(b)
+
+  @spec add_event_identifier(struct) ::
+    struct
+  docp """
+  Adds the event unique identifier.
+
+  Keep in mind that this unique identifier is for the *event*, i.e. the fact
+  that something happened. If this event gets broadcasted to multiple players,
+  each one of them will share the same event identifier.
+  """
+  defp add_event_identifier(event),
+    do: Event.set_event_id(event, generate_event_uuid())
+
+  # @spec generate_event_uuid ::
+  #   event_id
+  docp """
+  Returns a valid UUIDv4 used as event identifier.
+  """
+  defp generate_event_uuid,
+    do: Ecto.UUID.generate()
 end

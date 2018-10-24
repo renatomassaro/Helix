@@ -4,7 +4,7 @@ defmodule Helix.Websocket do
   use Helix.Logger
 
   alias Phoenix.Socket
-  alias Helix.Event.Publishable
+  alias Helix.Event.Trigger.Publishable, as: PublishableTrigger
   alias Helix.Account.Model.AccountSession
   alias Helix.Account.Action.Session, as: SessionAction
   alias Helix.Client.Model.Client
@@ -185,7 +185,7 @@ defmodule Helix.Websocket do
   function pointing to the Channel's `push` method, passed as argument.
   """
   def handle_event(event, socket, channel_push) do
-    case Publishable.Flow.generate_event(event, socket) do
+    case PublishableTrigger.generate_event(event, socket) do
       {:ok, payload} ->
         channel_push.(socket, "event", payload)
 

@@ -1,6 +1,6 @@
 defmodule Helix.Server.Event.Server.Password do
 
-  import Helix.Event
+  import Hevent
 
   event Acquired do
     @moduledoc """
@@ -41,9 +41,11 @@ defmodule Helix.Server.Event.Server.Password do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :server_password_acquired
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :server_password_acquired
 
       def generate_payload(event, _socket) do
         data = %{
@@ -63,7 +65,9 @@ defmodule Helix.Server.Event.Server.Password do
         do: %{account: event.entity_id}
     end
 
-    notification do
+    trigger Notificable do
+
+      use Helix.Event.Trigger.Notificable.Macros
 
       @class :account
       @code :server_password_acquired
@@ -73,10 +77,11 @@ defmodule Helix.Server.Event.Server.Password do
       end
     end
 
-    listenable do
-      listen(event) do
-        [event.server_id]
-      end
+    trigger Listenable do
+
+      @doc false
+      def get_objects(event),
+        do: [event.server_id]
     end
   end
 end

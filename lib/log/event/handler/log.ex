@@ -1,8 +1,9 @@
 defmodule Helix.Log.Event.Handler.Log do
   @moduledoc false
 
+  use Hevent.Handler
+
   alias Helix.Event
-  alias Helix.Event.Loggable
   alias Helix.Process.Action.Flow.Process, as: ProcessFlow
   alias Helix.Log.Action.Log, as: LogAction
   alias Helix.Log.Model.Log
@@ -12,28 +13,12 @@ defmodule Helix.Log.Event.Handler.Log do
   alias Helix.Log.Event.Recover.Processed, as: LogRecoverProcessedEvent
 
   @doc """
-  Generic event handler for all Helix events. If the event implement the
-  Loggable protocol, it will guide it through the LoggableFlow, making sure
-  the relevant log entries are generated and saved
-
-  Emits `LogCreatedEvent`
-  """
-  def handle_event(event) do
-    if Loggable.impl_for(event) do
-      event
-      |> Loggable.generate()
-      |> Loggable.Flow.save()
-      |> Event.emit(from: event)
-    end
-  end
-
-  @doc """
   Handler called right after a `LogForgeProcess` has completed. It will then
   either create a new log out of thin air, or edit an existing log.
 
   Emits: `LogCreatedEvent`, `LogRevisedEvent`
   """
-  def forge_processed(event = %LogForgeProcessedEvent{action: :create}) do
+  handle LogForgeProcessedEvent, on: %LogForgeProcessedEvent{action: :create} do
     # `action` is `:create`, so we'll create a new log out of thin air!
     result =
       LogAction.create(
@@ -45,7 +30,7 @@ defmodule Helix.Log.Event.Handler.Log do
     end
   end
 
-  def forge_processed(event = %LogForgeProcessedEvent{action: :edit}) do
+  handle LogForgeProcessedEvent, on: %LogForgeProcessedEvent{action: :edit} do
     # `action` is `:edit`, so we'll stack up a revision on an existing log
     revise = fn log ->
       LogAction.revise(
@@ -72,9 +57,13 @@ defmodule Helix.Log.Event.Handler.Log do
 
   Otherwise, we pop the revision out and send the SIG_RETARGET signal.
   """
-  def recover_processed(event = %LogRecoverProcessedEvent{target_log_id: nil}),
-    do: sigretarget(event)
-  def recover_processed(event = %LogRecoverProcessedEvent{target_log_id: _}) do
+  handle LogRecoverProcessedEvent,
+    on: %LogRecoverProcessedEvent{target_log_id: nil}
+  do
+    sigretarget(event)
+  end
+
+  handle LogRecoverProcessedEvent do
     with \
       log = %Log{} <- LogQuery.fetch(event.target_log_id),
       {:ok, _, events} <- LogAction.recover(log, event.entity_id)

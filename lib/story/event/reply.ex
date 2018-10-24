@@ -1,6 +1,6 @@
 defmodule Helix.Story.Event.Reply do
 
-  import Helix.Event
+  import Hevent
 
   event Sent do
     @moduledoc """
@@ -33,12 +33,14 @@ defmodule Helix.Story.Event.Reply do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc false
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias HELL.ClientUtils
 
-      @event :story_reply_sent
+      event_name :story_reply_sent
 
       def generate_payload(event, _socket) do
         contact_id = Step.get_contact(event.step) |> to_string()

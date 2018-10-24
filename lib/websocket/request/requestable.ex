@@ -43,7 +43,7 @@ defprotocol Helix.Websocket.Requestable do
 
   @spec check_params(Request.t, Websocket.t) ::
     {:ok, Request.t}
-    | {:error, term}
+    | {:error, term, Request.t}
   @doc """
   Method meant to validate the given params in a request. The original params
   are stored on the `unsafe` entry of the Request.t struct.
@@ -60,7 +60,7 @@ defprotocol Helix.Websocket.Requestable do
 
   @spec check_permissions(Request.t, Websocket.t) ::
     {:ok, Request.t}
-    | {:error, term}
+    | {:error, term, Request.t}
   @doc """
   Method focused on validating and verifying the user has the permissions to
   perform that action.
@@ -78,7 +78,7 @@ defprotocol Helix.Websocket.Requestable do
 
   @spec handle_request(Request.t, Websocket.t) ::
     {:ok, Request.t}
-    | {:error, term}
+    | {:error, term, Request.t}
   @doc """
   Method responsible for actual processing of the event, routing it to the
   corresponding Public.
@@ -96,7 +96,7 @@ defprotocol Helix.Websocket.Requestable do
 
   @spec reply(Request.t, Websocket.t) ::
     {:ok, reply :: map | list}
-    | {:error, reply :: map | list}
+    | {:error, reply :: map | list, Request.t}
     | {:stop, reason :: term}
     | :noreply
   @doc """

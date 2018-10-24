@@ -1,32 +1,29 @@
-defmodule Helix.Core.Listener.Event.Handler.Listener do
-  @moduledoc """
-  Listens to all events, verifying whether any of them is of interest to other
-  services, and executes the callback if so.
-  """
+defmodule Helix.Event.Trigger.Listenable do
+
+  alias Hevent.Trigger
 
   alias Helix.Event
-  alias Helix.Event.Listenable
   alias Helix.Core.Listener.Model.Listener
   alias Helix.Core.Listener.Query.Listener, as: ListenerQuery
 
-  @spec listener_handler(Event.t) ::
+  @trigger Listenable
+
+  @spec flow(Event.t) ::
     term
   @doc """
-  `listener_handler/1` is responsible for listening to all events and, in case
-  it implements the `Listenable` protocol, it will check if there are any
-  services subscribed to that specific event under that specific object ID.
+  `flow/1` is responsible for listening to all events and that implement the
+  `Listenable` trigger, and it will check if there are any services subscribed
+  to that specific event under that specific object ID.
   """
-  def listener_handler(event) do
+  def flow(event) do
     # OPTIMIZE: There's room for optimization on this function. Some events may
     # return several objects on `Listenable.get_objects/0`, and currently we
     # perform a separate query for each one. Instead, fetching all matching
     # objects with `IN`, and filtering by `event.__struct__` within the
     # application would yield a faster operation.
-    if Listenable.impl_for(event) do
-      event
-      |> Listenable.get_objects()
-      |> Enum.each(fn object_id -> find_listeners(object_id, event) end)
-    end
+    event
+    |> Trigger.get_data(:get_objects, @trigger)
+    |> Enum.each(fn object_id -> find_listeners(object_id, event) end)
   end
 
   @spec find_listeners(Listener.object_id, Event.t) ::
@@ -44,11 +41,11 @@ defmodule Helix.Core.Listener.Event.Handler.Listener do
     method = String.to_atom(method)
 
     params =
-      if meta do
-        [event, meta]
-      else
-        [event]
-      end
+    if meta do
+      [event, meta]
+    else
+      [event]
+    end
 
     {:ok, events} = apply(module, method, params)
 

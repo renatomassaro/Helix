@@ -217,8 +217,9 @@ defmodule Helix.Software.Model.File do
     path_size = (byte_size(path) - 1) * 8
 
     case path do
-      <<path::bits-size(path_size)>> <> "/" ->
-        <<path::bits-size(path_size)>>
+      # TODO
+      # <<path::bits-size(path_size)>> <> "/" ->
+      #   <<path::bits-size(path_size)>>
       path ->
         path
     end

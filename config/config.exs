@@ -32,6 +32,7 @@ config :helix, :migration_token, "defaultMigrationToken"
 config :distillery, no_warn_missing: [:burette, :elixir_make]
 
 import_config "#{Mix.env}.exs"
+import_config "hevent.exs"
 import_config "*/config.exs"
 import_config "*/#{Mix.env}.exs"
 

@@ -1,5 +1,5 @@
 # TODO: Superseded by Process.Executable. Rewrite. Use Bruteforce as example.
-# defmodule Helix.Software.Action.Flow.Software.Firewall do
+defmodule Helix.Software.Action.Flow.Software.Firewall do
 
 #   import HELF.Flow
 
@@ -44,4 +44,4 @@
 #       end
 #     end
 #   end
-# end
+end

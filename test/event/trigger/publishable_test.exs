@@ -1,4 +1,4 @@
-defmodule Helix.Event.PublicationHandlerTest do
+defmodule Helix.Event.Trigger.PublishableTest do
 
   use Helix.Test.Case.Integration
 

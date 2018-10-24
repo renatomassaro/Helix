@@ -1,6 +1,6 @@
 defmodule Helix.Universe.Bank.Event.Bank.Account.Token do
 
-  import Helix.Event
+  import Hevent
 
   event Acquired do
     @moduledoc """

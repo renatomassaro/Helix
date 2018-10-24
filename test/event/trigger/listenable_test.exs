@@ -1,4 +1,4 @@
-defmodule Helix.Core.ListenerTest do
+defmodule Helix.Event.Trigger.ListenableTest do
 
   use Helix.Test.Case.Integration
 

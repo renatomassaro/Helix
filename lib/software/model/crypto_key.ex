@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Model.CryptoKey do
+defmodule Helix.Software.Model.CryptoKey do
 
 #   use Ecto.Schema
 
@@ -100,4 +100,4 @@
 #     def target_file(query \\ CryptoKey, id),
 #       do: where(query, [k], k.target_file_id == ^id)
 #   end
-# end
+end

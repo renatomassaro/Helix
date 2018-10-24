@@ -1,6 +1,6 @@
 defmodule Helix.Story.Event.Email do
 
-  import Helix.Event
+  import Hevent
 
   event Sent do
     @moduledoc """
@@ -31,15 +31,17 @@ defmodule Helix.Story.Event.Email do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Logic of the event that will be published to the client once the event
       `StoryEmailSentEvent` is fired.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias HELL.ClientUtils
 
-      @event :story_email_sent
+      event_name :story_email_sent
 
       def generate_payload(event, _socket) do
         contact_id = Step.get_contact(event.step) |> to_string()

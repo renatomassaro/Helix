@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.File.Install do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """
@@ -12,6 +12,7 @@ defmodule Helix.Software.Event.File.Install do
     react accordingly.
     """
 
+    alias Helix.Event
     alias Helix.Entity.Model.Entity
     alias Helix.Process.Model.Process
     alias Helix.Software.Model.File
@@ -36,11 +37,11 @@ defmodule Helix.Software.Event.File.Install do
         backend: backend
       }
       # Persist bounce data used by Loggable for proper logging
-      |> put_bounce(process.bounce_id)
+      |> Event.set_bounce_id(process.bounce_id)
 
       # `FileInstallProcessedEvent` may be relayed to different backends, each
       # with their own internals. It may be overkill but here, have this process
-      |> put_process(process)
+      |> Event.set_process(process)
     end
   end
 end

@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Model.Software.Decryptor.ProcessType do
+defmodule Helix.Software.Model.Software.Decryptor.ProcessType do
 
 #   @enforce_keys [:storage_id, :target_file_id, :scope, :software_version]
 #   defstruct [:storage_id, :target_file_id, :scope, :software_version]
@@ -90,4 +90,4 @@
 #     defp take_data_from_process(process, scope),
 #       do: ProcessViewHelper.default_process_render(process, scope)
 #   end
-# end
+end

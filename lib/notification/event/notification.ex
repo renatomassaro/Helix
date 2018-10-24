@@ -1,6 +1,6 @@
 defmodule Helix.Notification.Event.Notification do
 
-  import Helix.Event
+  import Hevent
 
   alias Helix.Notification.Model.Notification
   alias Helix.Notification.Model.Code, as: NotificationCode
@@ -26,14 +26,16 @@ defmodule Helix.Notification.Event.Notification do
       }
     end
 
-    publish do
+    trigger Publishable do
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias HELL.Utils
       alias Helix.Account.Model.Account
       alias Helix.Cache.Query.Cache, as: CacheQuery
       alias Helix.Entity.Query.Entity, as: EntityQuery
 
-      @event :notification_added
+      event_name :notification_added
 
       def generate_payload(event, _socket) do
         class = Notification.get_class(event.notification)
@@ -146,9 +148,11 @@ defmodule Helix.Notification.Event.Notification do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :notification_read
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :notification_read
 
       def generate_payload(event, _socket) do
         notification_id =

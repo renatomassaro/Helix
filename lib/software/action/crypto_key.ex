@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Action.CryptoKey do
+defmodule Helix.Software.Action.CryptoKey do
 
 #   alias Helix.Event
 #   alias Helix.Server.Model.Server
@@ -17,4 +17,4 @@
 #     [Event.t]
 #   defdelegate invalidate_keys_for_file(file),
 #     to: CryptoKeyInternal
-# end
+end

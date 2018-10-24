@@ -1,9 +1,6 @@
 defmodule Helix.Event.Meta do
-  @moduledoc """
-  Utils, getters and setters for `Helix.Event` metadata.
-  """
 
-  import HELL.Macros
+  import HELL.Macros.Docp
 
   alias HELL.HETypes
   alias HELL.Utils
@@ -28,7 +25,6 @@ defmodule Helix.Event.Meta do
 
   @meta_key :__meta__
   @meta_fields [
-
     # The `event_id` field is an unique identifier *per event*, used by the
     # Client to identify whether that specific event has already been received
     # by the player (may happen if there are multiple subscribers (channels) to
@@ -54,11 +50,24 @@ defmodule Helix.Event.Meta do
     # event. Subsequent events will carry on (relay) this request_id as well.
     :request_id,
 
-    # The `bounce` field is used to relay bounce information on the event, being
-    # notably important for the Loggable protocol, which will rely on the data
-    # (or lack thereof) to properly log intermediary hops
-    :bounce
+    # The `bounce_id` field is used to relay bounce information on the event,
+    # being notably important for the Loggable protocol, which will rely on the
+    # data (or lack thereof) to properly log intermediary hops
+    :bounce_id
   ]
+
+  # Generates getters and setters (java feelings)
+  for field <- @meta_fields do
+
+    @doc false
+    def unquote(:"get_#{field}")(event),
+      do: Hevent.get_meta(event, unquote(field))
+
+    @doc false
+    def unquote(:"set_#{field}")(event, value) do
+      Hevent.set_meta(event, unquote(field), value)
+    end
+  end
 
   @doc """
   Returns the key name for the `meta` map.
@@ -85,34 +94,4 @@ defmodule Helix.Event.Meta do
     }
   end
 
-  # Generates getters and setters (java feelings)
-  for field <- @meta_fields do
-
-    @doc false
-    def unquote(:"get_#{field}")(event),
-      do: Map.get(event.__meta__ || %{}, unquote(field), nil)
-
-    @doc false
-    def unquote(:"set_#{field}")(event, value) do
-      opts = [{unquote(field), value}]
-      set_meta(event, opts)
-    end
-  end
-
-  @spec set_meta(Event.t, [{field :: atom, value :: term}]) ::
-    Event.t
-  docp """
-  Generic method to update the event meta, returning the event with the updated
-  meta.
-  """
-  defp set_meta(event, opts) do
-    original_meta = event.__meta__ || %{}
-
-    meta =
-      Enum.reduce(opts, original_meta, fn {key, val}, acc ->
-        Map.put(acc, key, val)
-      end)
-
-    %{event| __meta__: meta}
-  end
 end

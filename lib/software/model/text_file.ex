@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Model.TextFile do
+defmodule Helix.Software.Model.TextFile do
 
 #   use Ecto.Schema
 
@@ -82,4 +82,4 @@
 #     def by_file(query \\ TextFile, id),
 #       do: where(query, [ft], ft.file_id == ^id)
 #   end
-# end
+end

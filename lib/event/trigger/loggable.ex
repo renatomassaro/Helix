@@ -1,26 +1,9 @@
-defmodule Helix.Event.Loggable.Flow do
-  @moduledoc """
-  LoggableFlow is responsible for guiding all events through the Loggable steps,
-  as well as implementing helper methods to aid a smooth Log support.
+defmodule Helix.Event.Trigger.Loggable do
 
-  The main components are the `loggable` and `log` macros, which remove the
-  boilerplate of the Loggable protocol implementation.
+  import HELL.Macros.Docp
 
-  The flow is quite simple: first, a log entry is generated. This log entry
-  contains the `server_id` which that log should be saved at, the `entity_id`
-  which generated the log, and the log `message` itself.
+  alias Hevent.Trigger
 
-  This entry is generated at each Loggable event, using the Loggable protocol.
-  Finally, guided through the LogEventHandler, the `save/1` function is called,
-  which will persist the entries on the database and emit the corresponding
-  `LogCreatedEvent` for each inserted log.
-
-  For an implementation example, see `lib/software/event/file.ex`.
-  """
-
-  import HELL.Macros
-
-  alias HELL.Macros.Utils, as: MacroUtils
   alias Helix.Event
   alias Helix.Event.Loggable.Utils, as: LoggableUtils
   alias Helix.Entity.Model.Entity
@@ -36,74 +19,31 @@ defmodule Helix.Event.Loggable.Flow do
   @type log_entry ::
     {Server.id, Entity.id, Log.info}
 
+  @trigger Loggable
+
   @doc """
-  Top-level macro for events wanting to implement the Loggable protocol.
+  Handler for all events that implement the Loggable trigger.
   """
-  defmacro loggable(do: block) do
-    quote do
-
-      defimpl Helix.Event.Loggable do
-        @moduledoc false
-
-        unquote(block)
-
-        # Declaring the typespec for `generate/1` here, since the Event may
-        # implement multiple `log/2` patterns, but they all share the same
-        # signature
-        @spec generate(unquote(__CALLER__.module).t) ::
-          [Helix.Event.Loggable.Flow.log_entry]
-
-        # Fallback
-        def generate(_),
-          do: []
-      end
-
-    end
+  def flow(event) do
+    event
+    |> Trigger.get_data(:log_map, @trigger)
+    |> handle_map()
+    |> generate_entries()
+    |> save()
+    |> Event.emit(from: event)
   end
 
-  @doc """
-  Returns the `log_map`, data structure used by `handle_generated/1`.
-  """
-  defmacro log_map(map) do
-    quote do
-      unquote(map)
+  @doc false
+  def handle_map(empty_map) when map_size(empty_map) == 0,
+    do: empty_map
+  def handle_map(log_map) do
+    log_map
 
-      # Put default values (if not specified)
-      |> Map.put_new(:network_id, nil)
-      |> Map.put_new(:endpoint_id, nil)
-      |> Map.put_new(:data_both, %{})
-      |> Map.put_new(:opts, %{})
-    end
-  end
-
-  @doc """
-  Returns the `log_map` equivalent of an empty log (i.e. noop)
-  """
-  defmacro empty_log do
-    quote do
-      %{}
-    end
-  end
-
-  @doc """
-  Inserts the Loggable's `generate` functions. Multiple `log` macros may be
-  defined, in which case the event will be pattern-matched against them.
-
-  The top-level `log` macro only needs to receive a declaration of how the log
-  is supposed to behave (through a valid `log_map`). After this, we delegate the
-  actual log entry generation logic to the `handle_generated` algorithms below.
-  """
-  defmacro log(query, do: block) do
-    query = replace_module(query, __CALLER__.module)
-
-    quote do
-
-        def generate(unquote(query)) do
-          unquote(block)
-          |> handle_generated()
-        end
-
-    end
+    # Put default values (when not specified)
+    |> Map.put_new(:network_id, nil)
+    |> Map.put_new(:endpoint_id, nil)
+    |> Map.put_new(:data_both, %{})
+    |> Map.put_new(:opts, %{})
   end
 
   @doc """
@@ -111,7 +51,7 @@ defmodule Helix.Event.Loggable.Flow do
   created on both `gateway` and `endpoint`, as well as all servers between them,
   as defined on the bounce (inherited from `event`).
   """
-  def handle_generated(
+  def generate_entries(
     %{
       event: event,
       entity_id: entity_id,
@@ -128,7 +68,13 @@ defmodule Helix.Event.Loggable.Flow do
   do
     skip_bounce? = Map.get(opts, :skip_bounce, false)
 
-    bounce = Event.get_bounce(event)
+    bounce_id = Event.get_bounce_id(event)
+    bounce =
+      if bounce_id do
+        BounceQuery.fetch(bounce_id)
+      else
+        nil
+      end
 
     gateway_ip = get_ip(gateway_id, network_id)
     endpoint_ip = get_ip(endpoint_id, network_id)
@@ -186,7 +132,7 @@ defmodule Helix.Event.Loggable.Flow do
   influence whatsoever from a remote endpoint, a bounce, a network etc. It's an
   "offline" log.
   """
-  def handle_generated(
+  def generate_entries(
     %{
       event: _,
       server_id: server_id,
@@ -203,55 +149,8 @@ defmodule Helix.Event.Loggable.Flow do
   @doc """
   Fallback (empty log)
   """
-  def handle_generated(empty_map) when map_size(empty_map) == 0,
+  def generate_entries(empty_map) when map_size(empty_map) == 0,
     do: []
-
-  docp """
-  This is probably my greatest gambiarra ("creative implementation") so far.
-
-  It verifies if the caller used the %__MODULE__{} expression on the event being
-  pattern-matched, and replaces it with the proper alias. The reason for this is
-  that the generated macro won't play nicely with `__MODULE__`.
-
-  If no event is being pattern-matched, or it isn't using `__MODULE__`, the
-  query remains unchanged.
-
-  This is the classic DO NOT TOUCH function. The good news is, if you do touch
-  and mess everything up, Helix won't compile.
-  """
-  defp replace_module(query, caller) do
-    caller = MacroUtils.remove_protocol_namespace(caller, Helix.Event.Loggable)
-
-    {a, s, t} = query
-
-    # Verifies whether it's a pattern match (`var = :something`)
-    if a == := do
-      try do
-
-        # If the pattern below is valid, we are trying to match a named struct,
-        # either with `var = %__MODULE__{}` or `var = %ModuleName{}`. If it's
-        # the former, we "migrate" to the later format, using the `caller` name
-        [e, {p1, p2, [r = {pattern, c, _}, p3]}] = t
-
-        r =
-          if pattern == :__MODULE__ do
-            {:__aliases__, c, [caller]}
-          else
-            r
-          end
-
-        {a, s, [e, {p1, p2, [r, p3]}]}
-
-      # Rescuing means the pattern being matched is something else, maybe a
-      # plain map (`var = %{foo: :bar}`)
-      rescue
-        MatchError ->
-          query
-      end
-    else
-      query
-    end
-  end
 
   defdelegate get_file_name(file),
     to: LoggableUtils
@@ -336,7 +235,7 @@ defmodule Helix.Event.Loggable.Flow do
     [Event.t]
   @doc """
   Receives the list of generated entries, which is returned by each event that
-  implements the Loggable protocol, and inserts them into the game database.
+  implements the Loggable trigger, and inserts them into the game database.
   Accumulates the corresponding `LogCreatedEvent`s, which shall be emitted by
   the caller.
   """

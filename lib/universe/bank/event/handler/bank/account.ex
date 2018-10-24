@@ -1,5 +1,7 @@
 defmodule Helix.Universe.Bank.Event.Handler.Bank.Account do
 
+  use Hevent.Handler
+
   import HELF.Flow
 
   alias Helix.Event
@@ -19,7 +21,7 @@ defmodule Helix.Universe.Bank.Event.Handler.Bank.Account do
 
   Emits: `BankAccountPasswordRevealedEvent`
   """
-  def password_reveal_processed(event = %RevealPasswordProcessedEvent{}) do
+  handle RevealPasswordProcessedEvent do
     flowing do
       with \
         revealed_by = %{} <- EntityQuery.fetch_by_server(event.gateway_id),
@@ -43,9 +45,11 @@ defmodule Helix.Universe.Bank.Event.Handler.Bank.Account do
 
   Emits: `BankAccountUpdatedEvent`
   """
-  def virus_collected(%VirusCollectedEvent{bank_account: nil}),
-    do: :noop
-  def virus_collected(event = %VirusCollectedEvent{}) do
+  handle VirusCollectedEvent, on: %VirusCollectedEvent{bank_account: nil} do
+    :noop
+  end
+
+  handle VirusCollectedEvent do
     flowing do
       with \
         {:ok, _bank_account, events} <-

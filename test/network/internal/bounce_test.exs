@@ -38,8 +38,10 @@ defmodule Helix.Network.Internal.BounceTest do
         )
 
       # There are two ongoing bounces on server `b1e1.server_id`
-      assert [entry1, entry2] =
-        BounceInternal.get_entries_on_server(b1e1.server_id)
+      entries = [_, _] = BounceInternal.get_entries_on_server(b1e1.server_id)
+
+      entry1 = Enum.find(entries, &(&1.bounce_id == bounce1.bounce_id))
+      entry2 = Enum.find(entries, &(&1.bounce_id == bounce2.bounce_id))
 
       # See? Same link on different bounces
       assert entry1.bounce_id == bounce1.bounce_id

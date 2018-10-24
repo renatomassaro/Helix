@@ -1,84 +1,13 @@
 defmodule Helix.Event do
-  @moduledoc """
-  `Helix.Event` serves two purposes:
 
-  1. Define and declare an event, as well as how it's supposed to behave.
-  2. Dispatch an event to `Helix.Event.Dispatcher` through `emit/1` or `emit/2`.
-  """
+  import HELL.Macros.Docp
 
-  import HELL.Macros
-
-  use Helix.Logger
-
+  alias Hevent
   alias Helix.Websocket.Request.Relay, as: RequestRelay
-  alias Helix.Process.Model.Process
-  alias Helix.Event.Dispatcher, as: HelixDispatcher
   alias Helix.Event.Meta, as: EventMeta
   alias Helix.Event.State.Timer, as: EventTimer
 
-  @type t :: HELF.Event.t
-  @type source :: t | RequestRelay.t
-  @type relay :: source | nil
-
-  @doc """
-  Top-level macro for an event.
-
-  It automatically imports common Flows.
-  """
-  defmacro event(name, do: block) do
-    quote do
-
-      defmodule unquote(name) do
-
-        import Helix.Event
-        import Helix.Event.Utils
-        import Helix.Event.Listenable.Flow
-        import Helix.Event.Loggable.Flow
-        import Helix.Event.Notificable.Flow
-        import Helix.Event.Publishable.Flow
-
-        unquote(block)
-      end
-
-    end
-  end
-
-  @doc """
-  Specifies the event struct with the given keys plus the meta ones.
-
-  By default it enforces all keys to be set.
-  """
-  defmacro event_struct(keys) do
-    meta_keys = [EventMeta.meta_key()]
-    quote do
-
-      @enforce_keys unquote(keys)
-      defstruct unquote(keys) ++ unquote(meta_keys)
-
-    end
-  end
-
-  # Delegates the `get_{field}` and `set_{field}` to Helix.Meta
-  for field <- EventMeta.meta_fields() do
-    defdelegate unquote(:"get_#{field}")(event),
-      to: EventMeta
-    defdelegate unquote(:"set_#{field}")(event, arg),
-      to: EventMeta
-  end
-
-  @doc """
-  This is pure syntactic sugar for: set_{field}(event, get_{field}(source))
-
-  I.e. we get {field} from `source` and assign it to `event`.
-  """
-  defmacro relay(event, field, source) do
-    quote do
-      event = unquote(event)
-      source = unquote(source)
-
-      unquote(:"set_#{field}")(event, unquote(:"get_#{field}")(source))
-    end
-  end
+  @type t :: term
 
   @spec emit([t] | t, from: t) ::
     term
@@ -95,7 +24,7 @@ defmodule Helix.Event do
     |> inherit(source_event)
     |> emit()
 
-    log_event(event)
+    # log_event(event)
   end
 
   @spec emit([t] | t) ::
@@ -108,9 +37,9 @@ defmodule Helix.Event do
   def emit(events = [_|_]),
     do: Enum.each(events, &emit/1)
   def emit(event) do
-    HelixDispatcher.emit(event)
+    Hevent.emit(event)
 
-    log_event(event)
+    #log_event(event)
   end
 
   @spec emit_after([t] | t, interval :: float | non_neg_integer, from: t) ::
@@ -130,7 +59,7 @@ defmodule Helix.Event do
     |> emit_after(interval)
   end
 
-  @spec emit_after([t] | t, interval :: float | non_neg_integer) ::
+@spec emit_after([t] | t, interval :: float | non_neg_integer) ::
     term
   @doc """
   Emits the given event(s) after `interval` milliseconds have passed.
@@ -142,8 +71,8 @@ defmodule Helix.Event do
   def emit_after(event, interval),
     do: EventTimer.emit_after(event, interval)
 
-  @spec inherit(t, source) ::
-    t
+  # @spec inherit(t, source) ::
+  #   t
   docp """
   The application wants to emit `event`, which is coming from `source`. On this
   case, `event` will inherit the source's metadata according to the logic below.
@@ -161,10 +90,10 @@ defmodule Helix.Event do
     # Relay the `process_id`
     event =
       case get_process_id(source) do
-        process_id = %Process.ID{} ->
-          set_process_id(event, process_id)
         nil ->
           event
+        process_id ->
+          set_process_id(event, process_id)
       end
 
     # Accumulate source event on the stacktrace, and save it on the next event
@@ -172,28 +101,23 @@ defmodule Helix.Event do
     event = set_stack(event, stack ++ [source.__struct__])
 
     # Relay the request_id information
-    event = relay(event, :request_id, source)
+    event = set_request_id(event, get_request_id(source))
 
     # Relay the bounce information
-    event = relay(event, :bounce, source)
+    event = set_bounce_id(event, get_bounce_id(source))
 
     # Relay the process information
-    event = relay(event, :process, source)
+    event = set_process(event, get_process(source))
 
     # Everything has been inherited, we are ready to emit/1 the event.
     event
   end
 
-  @spec log_event(t) ::
-    term
-  docp """
-  Registers the information that an event has been sent.
-  """
-  defp log_event(event) do
-    log :event, event.__struct__,
-      data: %{
-        event: event.__struct__,
-        request_id: get_request_id(event)
-      }
+  # Delegates the `get_{field}` and `set_{field}` to Helix.Meta
+  for field <- EventMeta.meta_fields() do
+    defdelegate unquote(:"get_#{field}")(event),
+      to: EventMeta
+    defdelegate unquote(:"set_#{field}")(event, value),
+      to: EventMeta
   end
 end

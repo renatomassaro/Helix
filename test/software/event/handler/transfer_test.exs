@@ -15,7 +15,7 @@ defmodule Helix.Software.Event.Handler.File.TransferTest do
 
       {_, [event]} = TOPHelper.soft_complete(process)
 
-      assert {:ok, new_file} = FileTransferHandler.complete(event)
+      assert {:ok, new_file} = FileTransferHandler.handle_event(event)
 
       # Downloaded file has been saved on the database
       new_file = FileQuery.fetch(new_file.file_id)
@@ -32,7 +32,7 @@ defmodule Helix.Software.Event.Handler.File.TransferTest do
 
       {_, [event]} = TOPHelper.soft_complete(process)
 
-      assert {:ok, new_file} = FileTransferHandler.complete(event)
+      assert {:ok, new_file} = FileTransferHandler.handle_event(event)
 
       # Uploaded file has been saved on the database
       new_file = FileQuery.fetch(new_file.file_id)
@@ -49,7 +49,7 @@ defmodule Helix.Software.Event.Handler.File.TransferTest do
 
       {_, [event]} = TOPHelper.soft_complete(process)
 
-      assert {:ok, new_file} = FileTransferHandler.complete(event)
+      assert {:ok, new_file} = FileTransferHandler.handle_event(event)
 
       # Downloaded file has been saved on the database
       new_file = FileQuery.fetch(new_file.file_id)

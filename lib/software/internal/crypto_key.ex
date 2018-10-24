@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Internal.CryptoKey do
+defmodule Helix.Software.Internal.CryptoKey do
 
 #   import Ecto.Query, only: [select: 3]
 
@@ -71,4 +71,4 @@
 #     |> elem(1) # First element on tuple is the amount of affected records
 #     |> Enum.map(&CryptoKey.InvalidatedEvent.event/1)
 #   end
-# end
+end

@@ -1,6 +1,6 @@
 defmodule Helix.Log.Event.Log do
 
-  import Helix.Event
+  import Hevent
 
   event Created do
     @moduledoc """
@@ -29,11 +29,13 @@ defmodule Helix.Log.Event.Log do
       }
     end
 
-    publish do
+    trigger Publishable do
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias Helix.Log.Public.Index, as: LogIndex
 
-      @event :log_created
+      event_name :log_created
 
       def generate_payload(event, _socket) do
         data = LogIndex.render_log(event.log)
@@ -45,10 +47,12 @@ defmodule Helix.Log.Event.Log do
         do: %{server: event.log.server_id}
     end
 
-    notification do
+    trigger Notificable do
       @moduledoc """
       When the created log is artificial a notification is sent to the player.
       """
+
+      use Helix.Event.Trigger.Notificable.Macros
 
       @class :server
       @code :log_created
@@ -88,11 +92,13 @@ defmodule Helix.Log.Event.Log do
       }
     end
 
-    publish do
+    trigger Publishable do
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias Helix.Log.Public.Index, as: LogIndex
 
-      @event :log_revised
+      event_name :log_revised
 
       def generate_payload(event, _socket) do
         data = LogIndex.render_log(event.log)
@@ -104,10 +110,12 @@ defmodule Helix.Log.Event.Log do
         do: %{server: event.log.server_id}
     end
 
-    notification do
+    trigger Notificable do
       @moduledoc """
       When the created log is artificial a notification is sent to the player.
       """
+
+      use Helix.Event.Trigger.Notificable.Macros
 
       @class :server
       @code :log_revised
@@ -143,11 +151,13 @@ defmodule Helix.Log.Event.Log do
       }
     end
 
-    publish do
+    trigger Publishable do
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias Helix.Log.Public.Index, as: LogIndex
 
-      @event :log_recovered
+      event_name :log_recovered
 
       def generate_payload(event, _socket) do
         data = LogIndex.render_log(event.log)
@@ -159,10 +169,12 @@ defmodule Helix.Log.Event.Log do
         do: %{server: event.log.server_id}
     end
 
-    notification do
+    trigger Notificable do
       @moduledoc """
       Notify the user when the process finishes and the log got recovered.
       """
+
+      use Helix.Event.Trigger.Notificable.Macros
 
       @class :server
       @code :log_recovered
@@ -198,9 +210,11 @@ defmodule Helix.Log.Event.Log do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :log_destroyed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :log_destroyed
 
       def generate_payload(event, _socket) do
         data = %{
@@ -214,11 +228,13 @@ defmodule Helix.Log.Event.Log do
         do: %{server: event.log.server_id}
     end
 
-    notification do
+    trigger Notificable do
       @moduledoc """
       Notify the user when the process finishes and the artificial log is
       destroyed.
       """
+
+      use Helix.Event.Trigger.Notificable.Macros
 
       @class :server
       @code :log_destroyed

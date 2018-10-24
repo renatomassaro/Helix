@@ -9,6 +9,8 @@ defmodule Helix.Story.Event.Handler.Story do
   by ignoring it, completing the step or restarting it.
   """
 
+  use Hevent.Handler
+
   import HELF.Flow
   import HELL.Macros
 
@@ -19,9 +21,41 @@ defmodule Helix.Story.Event.Handler.Story do
   alias Helix.Story.Model.Story
   alias Helix.Story.Query.Story, as: StoryQuery
 
+  alias Helix.Client.Event.Action.Performed, as: ClientPerformedActionEvent
+  alias Helix.Process.Event.Process.Created, as: ProcessCreatedEvent
+  alias Helix.Story.Event.Email.Sent, as: EmailSentEvent
+  alias Helix.Story.Event.Reply.Sent, as: ReplySentEvent
   alias Helix.Story.Event.Step.ActionRequested, as: StepActionRequestedEvent
 
+  handle ClientPerformedActionEvent do
+    generic_event_handler(event)
+  end
+  handle EmailSentEvent do
+    generic_event_handler(event)
+  end
+  handle ReplySentEvent do
+    generic_event_handler(event)
+  end
+  handle ProcessCreatedEvent do
+    generic_event_handler(event)
+  end
+
   @doc """
+  Handler for `StepActionRequestedEvent`, directly relaying the requested action
+  to the corresponding handler at `handle_action/2`.
+  """
+  handle StepActionRequestedEvent do
+    with \
+      %{object: step, entry: story_step} <-
+        StoryQuery.fetch_step(event.entity_id, event.contact_id)
+    do
+      step = Step.new(step, event)
+
+      handle_action(event.action, step, story_step)
+    end
+  end
+
+  docp """
   Main step handler. Its first role is to figure out the entity that event
   belongs to, and then fetching any steps that entity is assigned to.
 
@@ -33,7 +67,7 @@ defmodule Helix.Story.Event.Handler.Story do
   - StepProceededEvent.t when action is :complete
   - StepRestartedEvent.t when action is :restart
   """
-  def event_handler(event) do
+  defp generic_event_handler(event) do
     with \
       entity_id = %{} <- Step.get_entity(event),
       steps = [_] <- StoryQuery.get_steps(entity_id)
@@ -43,21 +77,6 @@ defmodule Helix.Story.Event.Handler.Story do
         |> Step.new(event)
         |> step_flow(story_step)
       end)
-    end
-  end
-
-  @doc """
-  Handler for `StepActionRequestedEvent`, directly relaying the requested action
-  to the corresponding handler at `handle_action/2`.
-  """
-  def action_handler(event = %StepActionRequestedEvent{}) do
-    with \
-      %{object: step, entry: story_step} <-
-        StoryQuery.fetch_step(event.entity_id, event.contact_id)
-    do
-      step = Step.new(step, event)
-
-      handle_action(event.action, step, story_step)
     end
   end
 

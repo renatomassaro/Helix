@@ -23,7 +23,7 @@ defmodule Helix.Websocket.Request.Proxy do
     quote do
 
       @spec select_backend(Request.t, Websocket.socket) ::
-        {:ok, Request.t}
+        {:ok, request_module :: atom}
         | {:error, reason :: atom | String.t}
       def select_backend(unquote(request), unquote(socket)) do
         unquote(block)

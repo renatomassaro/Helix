@@ -1,6 +1,8 @@
 defmodule Helix.Software.Event.Virus do
 
-  import Helix.Event
+  import Hevent
+
+  alias Helix.Event
 
   event Collected do
     @moduledoc """
@@ -32,13 +34,15 @@ defmodule Helix.Software.Event.Virus do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishing that a virus has been collected enables the client to reset the
       running time of the virus.
       """
 
-      @event :virus_collected
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :virus_collected
 
       @doc false
       def generate_payload(event = %{}, _socket) do
@@ -94,14 +98,16 @@ defmodule Helix.Software.Event.Virus do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the client that the virus was successfully installed.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Software.Public.Index, as: SoftwareIndex
 
-      @event :virus_installed
+      event_name :virus_installed
 
       def generate_payload(event, _socket) do
         data = %{
@@ -118,17 +124,19 @@ defmodule Helix.Software.Event.Virus do
         do: %{account: event.entity_id}
     end
 
-    loggable do
+    trigger Loggable do
+
+      alias Helix.Event.Loggable.Utils, as: LoggableUtils
 
       @doc """
         Gateway: "localhost installed virus $file_name at $first_ip"
         Endpoint: "$last_ip installed virus $file_name at localhost"
       """
-      log(event) do
-        process = get_process(event)
-        file_name = get_file_name(event.file)
+      def log_map(event) do
+        process = Event.get_process(event)
+        file_name = LoggableUtils.get_file_name(event.file)
 
-        log_map %{
+        %{
           event: event,
           entity_id: event.entity_id,
           gateway_id: process.gateway_id,
@@ -175,12 +183,14 @@ defmodule Helix.Software.Event.Virus do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client that the virus was not installed for some `reason`
       """
 
-      @event :virus_install_failed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :virus_install_failed
 
       def generate_payload(event, _socket) do
         data = %{

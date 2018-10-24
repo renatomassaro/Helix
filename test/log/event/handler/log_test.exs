@@ -6,6 +6,7 @@ defmodule Helix.Log.Event.Handler.LogTest do
   import Helix.Test.Log.Macros
 
   alias Helix.Event
+  alias Helix.Event.Trigger.Loggable
   alias Helix.Log.Event.Handler.Log, as: LogHandler
   alias Helix.Log.Query.Log, as: LogQuery
 
@@ -17,16 +18,16 @@ defmodule Helix.Log.Event.Handler.LogTest do
   alias Helix.Test.Log.Setup, as: LogSetup
 
   describe "handle_event/1" do
-    test "follows the LoggableFlow" do
+    test "follows the LoggableTrigger" do
       # NOTE: We are using `FileDownloadedEvent` merely as a sample to make sure
-      # the LogHandler works as expected, this is not the place to test that
-      # EventX is correctly generating log entries. This should be tested
+      # the Loggable trigger works as expected, this is not the place to test
+      # that EventX is correctly generating log entries. This should be tested
       # elsewhere. That's why this same test also exists on
       # FileDownloadedEventTest
       event = EventSetup.Software.file_downloaded()
 
       # Simulates the handler receiving the event
-      assert :ok == LogHandler.handle_event(event)
+      assert :ok == Loggable.flow(event)
 
       file_name = LogHelper.log_file_name(event.file)
 
@@ -53,15 +54,15 @@ defmodule Helix.Log.Event.Handler.LogTest do
 
       event =
         EventSetup.Software.file_downloaded()
-        |> Event.set_bounce(bounce)
+        |> Event.set_bounce_id(bounce.bounce_id)
 
       file_name = LogHelper.log_file_name(event.file)
 
       gateway_ip = ServerHelper.get_ip(event.to_server_id)
       endpoint_ip = ServerHelper.get_ip(event.from_server_id)
 
-      # Simulates the handler receiving the event
-      assert :ok == LogHandler.handle_event(event)
+      # Simulates the trigger receiving the event
+      assert :ok == Loggable.flow(event)
 
       # Now we verify that the corresponding log has been saved on the relevant
       # places.
@@ -97,11 +98,12 @@ defmodule Helix.Log.Event.Handler.LogTest do
     test "works on single-node log ('offline log')" do
       # Scenario: `ServerJoinedEvent` (on `local` join) only generates log on
       # the local server.
-      # NOTE: This is mostly testing the `log` macro on this custom behaviour
+      # NOTE: This is mostly testing the Loggable trigger on this custom
+      # behaviour
       event = EventSetup.Server.joined(:local)
 
       # Simulates the handler receiving the event
-      assert :ok == LogHandler.handle_event(event)
+      assert :ok == Loggable.flow(event)
 
       [log_server] = LogQuery.get_logs_on_server(event.server_id)
       assert_log log_server, event.server_id, event.entity_id,
@@ -127,7 +129,7 @@ defmodule Helix.Log.Event.Handler.LogTest do
       log_before = LogQuery.fetch(log.log_id)
 
       # Simulate handling of the event
-      LogHandler.forge_processed(event)
+      LogHandler.handle_event(event)
 
       log_after = LogQuery.fetch(log.log_id)
 
@@ -159,7 +161,7 @@ defmodule Helix.Log.Event.Handler.LogTest do
       assert [] == LogQuery.get_logs_on_server(process.target_id)
 
       # Simulate handling of the event
-      LogHandler.forge_processed(event)
+      LogHandler.handle_event(event)
 
       # Now the process server has a new log
       assert [log] = LogQuery.get_logs_on_server(process.target_id)
@@ -189,7 +191,7 @@ defmodule Helix.Log.Event.Handler.LogTest do
 
       assert [old_log] = LogQuery.get_logs_on_server(process.target_id)
 
-      LogHandler.recover_processed(event)
+      LogHandler.handle_event(event)
 
       assert [new_log] = LogQuery.get_logs_on_server(process.target_id)
 

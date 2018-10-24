@@ -1,13 +1,13 @@
 defmodule Helix.Maroto.ClientTools do
 
   alias Helix.Event
-  alias Helix.Event.Publishable
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
   alias Helix.Server.Model.Server
 
   alias Helix.Test.Account.Helper, as: AccountHelper
   alias Helix.Test.Channel.Interceptor
+  alias Helix.Test.Event.Helper.Trigger.Publishable, as: PublishableHelper
   alias Helix.Test.Server.Helper, as: ServerHelper
 
   defmacro __using(_) do
@@ -200,11 +200,11 @@ defmodule Helix.Maroto.ClientTools do
     do: "server:" <> to_string(network_id) <> "@" <> ip
 
   defp build_event(event = %_{__meta__: _}, opts) do
-    {:ok, payload} = Publishable.generate_payload(event, %{})
+    {:ok, payload} = PublishableHelper.generate_payload(event, %{})
 
     %{
       data: payload,
-      event: Publishable.get_event_name(event),
+      event: PublishableHelper.get_event_name(event),
       meta: Event.Meta.render(event)
     }
     |> merge_meta(opts)

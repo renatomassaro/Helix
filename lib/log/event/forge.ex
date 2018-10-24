@@ -1,6 +1,6 @@
 defmodule Helix.Log.Event.Forge do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """
@@ -24,14 +24,14 @@ defmodule Helix.Log.Event.Forge do
         forger_version: pos_integer
       }
 
-      event_struct [
-        :action,
-        :server_id,
-        :entity_id,
-        :target_log_id,
-        :log_info,
-        :forger_version
-      ]
+    event_struct [
+      :action,
+      :server_id,
+      :entity_id,
+      :target_log_id,
+      :log_info,
+      :forger_version
+    ]
 
     @spec new(Process.t, LogForgeProcess.t) ::
       t

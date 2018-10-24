@@ -1,6 +1,6 @@
 defmodule Helix.Event.Loggable.Utils do
   @moduledoc """
-  Utils for the Loggable protocol and underlying implementations. 
+  Utils for the Loggable protocol and underlying implementations.
   """
 
   import HELL.Macros

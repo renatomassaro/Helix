@@ -1,6 +1,6 @@
 defmodule Helix.Log.Event.Recover do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """
@@ -9,6 +9,7 @@ defmodule Helix.Log.Event.Recover do
     revision from the Log.
     """
 
+    alias Helix.Event
     alias Helix.Entity.Model.Entity
     alias Helix.Process.Model.Process
     alias Helix.Server.Model.Server
@@ -45,7 +46,7 @@ defmodule Helix.Log.Event.Recover do
 
       # Later on, after we pop out the revision from the stack, we'll send a
       # SIG_RETARGET signal to the process, so it can keep focus on another log.
-      |> put_process(process)
+      |> Event.set_process(process)
     end
 
     defp get_method(%Process{type: :log_recover_global}),

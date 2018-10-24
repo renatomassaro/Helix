@@ -1,6 +1,6 @@
 defmodule Helix.Universe.Bank.Event.Bank.Transfer do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """

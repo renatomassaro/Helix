@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.File.Transfer do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """
@@ -13,6 +13,7 @@ defmodule Helix.Software.Event.File.Transfer do
     on FileTransferProcess.
     """
 
+    alias Helix.Event
     alias Helix.Entity.Model.Entity
     alias Helix.Network.Model.Network
     alias Helix.Process.Model.Process
@@ -61,7 +62,7 @@ defmodule Helix.Software.Event.File.Transfer do
         connection_type: data.connection_type,
         type: data.type
       }
-      |> put_bounce(process.bounce_id)
+      |> Event.set_bounce_id(process.bounce_id)
     end
   end
 

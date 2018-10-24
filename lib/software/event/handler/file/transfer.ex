@@ -1,5 +1,7 @@
 defmodule Helix.Software.Event.Handler.File.Transfer do
 
+  use Hevent.Handler
+
   alias HELL.Constant
   alias Helix.Event
   alias Helix.Software.Action.File, as: FileAction
@@ -23,7 +25,7 @@ defmodule Helix.Software.Event.Handler.File.Transfer do
   FileDownloadedEvent | FileUploadedEvent, in case of success;
   FileDownloadFailedEvent | FileUploadFailedEvent, in case of failure
   """
-  def complete(event = %FileTransferProcessedEvent{}) do
+  handle FileTransferProcessedEvent do
     create_params = fn file ->
       %{
         path: "/Downloads",

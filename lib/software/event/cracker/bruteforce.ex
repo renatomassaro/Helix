@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.Cracker.Bruteforce do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """

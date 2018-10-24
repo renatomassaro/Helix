@@ -14,7 +14,7 @@ defmodule Helix.Software.Event.CrackerTest do
   alias Helix.Test.Universe.Bank.Setup, as: BankSetup
   alias Helix.Test.Software.Setup.Flow, as: SoftwareFlowSetup
 
-  describe "overflow_conclusion/1" do
+  describe "handle_event/1 for OverflowProcessedEvent" do
     test "life cycle for overflow attack against wire transfer connection" do
       {process, %{acc1: acc1, player: player}} = BankSetup.wire_transfer_flow()
       transfer_id = process.data.transfer_id
@@ -23,7 +23,7 @@ defmodule Helix.Software.Event.CrackerTest do
       event = EventSetup.Software.overflow_conclusion(process)
 
       # Returns a token
-      assert {:ok, token} = CrackerHandler.overflow_conclusion(event)
+      assert {:ok, token} = CrackerHandler.handle_event(event)
 
       # Token belongs to the transfer's source account
       transfer = BankQuery.fetch_transfer(transfer_id)
@@ -57,7 +57,7 @@ defmodule Helix.Software.Event.CrackerTest do
         )
 
       # Returns a token
-      assert {:ok, token} = CrackerHandler.overflow_conclusion(event)
+      assert {:ok, token} = CrackerHandler.handle_event(event)
 
       # Token belongs to the account being used by the connection
       assert token.atm_id == acc.atm_id
@@ -97,13 +97,13 @@ defmodule Helix.Software.Event.CrackerTest do
   @tag :pending
   test "it stops overflow attacks when bank_login connection was closed"
 
-  describe "bruteforce_conclusion/1" do
+  describe "handle_event/1 for BruteforceProcessedEvent" do
     test "retrieves the password on success" do
       {process, _} = SoftwareFlowSetup.bruteforce()
 
       event = EventSetup.Software.bruteforce_conclusion(process)
 
-      assert {:ok, _password} = CrackerHandler.bruteforce_conclusion(event)
+      assert {:ok, _password} = CrackerHandler.handle_event(event)
 
       TOPHelper.top_stop(process.gateway_id)
     end
@@ -111,7 +111,7 @@ defmodule Helix.Software.Event.CrackerTest do
     test "fails when target server is not found" do
       event = EventSetup.Software.bruteforce_conclusion()
 
-      assert {:error, reason} = CrackerHandler.bruteforce_conclusion(event)
+      assert {:error, reason} = CrackerHandler.handle_event(event)
 
       # Server not found! This may happen if target changed her IP mid-process
       assert reason == {:nip, :notfound}

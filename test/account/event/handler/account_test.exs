@@ -2,7 +2,6 @@ defmodule Helix.Account.Event.Handler.AccountTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Event
   alias Helix.Entity.Model.Entity
   alias Helix.Entity.Query.Entity, as: EntityQuery
   alias Helix.Server.Model.Server
@@ -10,6 +9,7 @@ defmodule Helix.Account.Event.Handler.AccountTest do
   alias Helix.Server.Query.Motherboard, as: MotherboardQuery
   alias Helix.Server.Query.Server, as: ServerQuery
 
+  alias Helix.Test.Event.Helper, as: EventHelper
   alias Helix.Test.Event.Setup, as: EventSetup
 
   describe "account_created" do
@@ -17,7 +17,7 @@ defmodule Helix.Account.Event.Handler.AccountTest do
       event = EventSetup.Account.verified()
 
       # Simulate the AccountVerifiedEvent
-      Event.emit(event)
+      EventHelper.emit(event)
 
       # Entity was created
       entity =

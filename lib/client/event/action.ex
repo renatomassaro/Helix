@@ -1,4 +1,4 @@
-import Helix.Event
+import Hevent
 
 defmodule Helix.Client.Event.Action do
 

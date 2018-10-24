@@ -1,6 +1,6 @@
 defmodule Helix.Server.Event.Motherboard do
 
-  import Helix.Event
+  import Hevent
 
   event Updated do
     @moduledoc """
@@ -39,9 +39,11 @@ defmodule Helix.Server.Event.Motherboard do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :motherboard_updated
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :motherboard_updated
 
       @doc """
       The player (server channel with `local` access) receives the full hardware
@@ -97,9 +99,11 @@ defmodule Helix.Server.Event.Motherboard do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :motherboard_update_failed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :motherboard_update_failed
 
       @doc """
       Only the player receives the publication (server channel with `local`

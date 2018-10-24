@@ -1,6 +1,6 @@
 defmodule Helix.Universe.Bank.Event.Bank.Account.Password do
 
-  import Helix.Event
+  import Hevent
 
   event Revealed do
 

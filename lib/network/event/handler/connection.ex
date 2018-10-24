@@ -1,5 +1,7 @@
 defmodule Helix.Network.Event.Handler.Connection do
 
+  use Hevent.Handler
+
   alias Helix.Event
   alias Helix.Network.Action.Tunnel, as: TunnelAction
   alias Helix.Network.Query.Tunnel, as: TunnelQuery
@@ -7,9 +9,9 @@ defmodule Helix.Network.Event.Handler.Connection do
   alias Helix.Universe.Bank.Event.Bank.Transfer.Processed,
     as: BankTransferProcessedEvent
 
-  def bank_transfer_processed(e = %BankTransferProcessedEvent{}) do
-    connection = TunnelQuery.fetch_connection(e.connection_id)
-    event = TunnelAction.close_connection(connection)
-    Event.emit(event, from: e)
+  handle BankTransferProcessedEvent do
+    connection = TunnelQuery.fetch_connection(event.connection_id)
+    close_event = TunnelAction.close_connection(connection)
+    Event.emit(close_event, from: event)
   end
 end

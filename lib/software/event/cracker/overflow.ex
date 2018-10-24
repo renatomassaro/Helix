@@ -1,6 +1,6 @@
 defmodule Helix.Software.Event.Cracker.Overflow do
 
-  import Helix.Event
+  import Hevent
 
   event Processed do
     @moduledoc """

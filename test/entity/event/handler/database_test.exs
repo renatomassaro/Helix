@@ -18,7 +18,7 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
     test "fails if target server changed ip"
   end
 
-  describe "bank_password_revealed/1" do
+  describe "handle_event/1 for BankPasswordRevealed" do
     test "the entry password is updated" do
       {entry, %{acc: acc}} = DatabaseSetup.entry_bank_account()
       password = "lulz"
@@ -29,7 +29,7 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
           entry.entity_id,
           [password: password])
 
-      DatabaseHandler.bank_password_revealed(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(entry.entity_id, acc)
 
@@ -53,7 +53,7 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
           fake_entry.entity_id,
           [password: password])
 
-      DatabaseHandler.bank_password_revealed(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(fake_entry.entity_id, acc)
 
@@ -66,14 +66,14 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
     end
   end
 
-  describe "bank_token_acquired/1" do
+  describe "handle_event/1 for BankTokenAcquired" do
     test "the entry token is updated" do
       {entry, %{acc: acc}} = DatabaseSetup.entry_bank_account()
       token = Ecto.UUID.generate()
 
       event = EventSetup.Bank.token_acquired(token, acc, entry.entity_id)
 
-      DatabaseHandler.bank_token_acquired(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(entry.entity_id, acc)
 
@@ -93,7 +93,7 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
 
       event = EventSetup.Bank.token_acquired(token, acc, fake_entry.entity_id)
 
-      DatabaseHandler.bank_token_acquired(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(fake_entry.entity_id, acc)
 
@@ -107,13 +107,13 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
     end
   end
 
-  describe "bank_account_login" do
+  describe "handle_event/1 for BankAccountLogin" do
     test "the entry is updated" do
       {entry, %{acc: acc}} = DatabaseSetup.entry_bank_account()
 
       event = EventSetup.Bank.login(acc, entry.entity_id)
 
-      DatabaseHandler.bank_account_login(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(entry.entity_id, acc)
 
@@ -133,7 +133,7 @@ defmodule Helix.Entity.Event.Handler.DatabaseTest do
 
       event = EventSetup.Bank.login(acc, fake_entry.entity_id)
 
-      DatabaseHandler.bank_account_login(event)
+      DatabaseHandler.handle_event(event)
 
       on_db = DatabaseQuery.fetch_bank_account(fake_entry.entity_id, acc)
 

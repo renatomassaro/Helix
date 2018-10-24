@@ -5,7 +5,7 @@ defmodule Helix.Mixfile do
     [
       app: :helix,
       version: "0.0.1",
-      elixir: "~> 1.5",
+      elixir: "~> 1.7",
 
       elixirc_options: elixirc_options(Mix.env),
       elixirc_paths: elixirc_paths(Mix.env),
@@ -28,8 +28,8 @@ defmodule Helix.Mixfile do
         "test.cluster": :test,
         "test.external": :test,
         "test.cover": :test,
-        "pr": :test,
-        "coveralls": :test,
+        pr: :test,
+        coveralls: :test,
         "coveralls.html": :test,
         "coveralls.travis": :test
       },
@@ -44,13 +44,14 @@ defmodule Helix.Mixfile do
   def application do
     [
       mod: {Helix.Application, []},
-      extra_applications: [:timber, :logger, :crypto]
+      extra_applications: [:timber, :logger, :crypto, :hevent]
     ]
   end
 
   defp deps do
     [
       {:distillery, "~>1.5.2", runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
 
       {:phoenix, "~> 1.3.0"},
       {:corsica, "~> 1.1.0"},
@@ -60,6 +61,7 @@ defmodule Helix.Mixfile do
       {:ecto_enum, "~> 1.0"},
 
       {:helf, "~> 0.0.3"},
+      {:hevent, path: "../hevent"},
       {:poison, "~> 3.1"},
 
       {:comeonin, "~> 4.0.3"},
@@ -103,7 +105,7 @@ defmodule Helix.Mixfile do
       "test.quick": [
         "helix.test --no-prune --exclude sequential --exclude cluster --exclude external --exclude slow",
       ],
-      "pr": [
+      pr: [
         "helix.test --exclude sequential --exclude cluster --exclude external",
         "helix.test --no-prune --only sequential --exclude cluster --exclude external --max-cases 1",
         "dialyzer --halt-exit-status",

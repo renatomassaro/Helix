@@ -2,9 +2,8 @@ defmodule Helix.Process.Event.Process.CreatedTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Event.Publishable
-
   alias Helix.Test.Channel.Setup, as: ChannelSetup
+  alias Helix.Test.Event.Helper.Trigger.Publishable, as: PublishableHelper
   alias Helix.Test.Event.Setup, as: EventSetup
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Process.View.Helper, as: ProcessViewHelper
@@ -14,7 +13,7 @@ defmodule Helix.Process.Event.Process.CreatedTest do
       event = EventSetup.Process.created()
 
       assert %{server: [event.gateway_id, event.target_id]} ==
-        Publishable.whom_to_publish(event)
+        PublishableHelper.whom_to_publish(event)
     end
   end
 
@@ -34,7 +33,7 @@ defmodule Helix.Process.Event.Process.CreatedTest do
           type: :bruteforce
         )
 
-      assert {:ok, data} = Publishable.generate_payload(event, socket)
+      assert {:ok, data} = PublishableHelper.generate_payload(event, socket)
 
       ProcessViewHelper.assert_keys(data, :full)
     end
@@ -62,7 +61,7 @@ defmodule Helix.Process.Event.Process.CreatedTest do
       refute event.target_id == attack_source_id
 
       # Attacker has full access to the output payload
-      assert {:ok, data} = Publishable.generate_payload(event, socket)
+      assert {:ok, data} = PublishableHelper.generate_payload(event, socket)
 
       ProcessViewHelper.assert_keys(data, :full)
     end
@@ -84,7 +83,7 @@ defmodule Helix.Process.Event.Process.CreatedTest do
         )
 
       # Attacker has full access to the output payload
-      assert {:ok, data} = Publishable.generate_payload(event, socket)
+      assert {:ok, data} = PublishableHelper.generate_payload(event, socket)
 
       ProcessViewHelper.assert_keys(data, :full)
     end
@@ -119,7 +118,8 @@ defmodule Helix.Process.Event.Process.CreatedTest do
       refute event.target_id == third_server_id
 
       # Generates the payload as if `third` was receiving it
-      assert {:ok, data} = Publishable.generate_payload(event, third_socket)
+      assert {:ok, data} =
+        PublishableHelper.generate_payload(event, third_socket)
 
       # Third can see the full process, since the process originated at
       # `attack_source` and `third` is connected to `attack_source`.
@@ -148,7 +148,7 @@ defmodule Helix.Process.Event.Process.CreatedTest do
         )
 
       # `third` never gets the publication
-      assert {:ok, data} = Publishable.generate_payload(event, third_socket)
+      assert {:ok, data} = PublishableHelper.generate_payload(event, third_socket)
 
       # Third-party can see the process exists, but not who created it.
       ProcessViewHelper.assert_keys(data, :partial)

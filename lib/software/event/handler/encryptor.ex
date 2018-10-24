@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Event.Handler.Encryptor do
+defmodule Helix.Software.Event.Handler.Encryptor do
 
 #   alias Helix.Event
 #   alias Helix.Software.Model.SoftwareType.Encryptor.ProcessConclusionEvent
@@ -27,4 +27,4 @@
 #         Event.emit(events)
 #     end
 #   end
-# end
+end

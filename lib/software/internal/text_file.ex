@@ -1,4 +1,4 @@
-# defmodule Helix.Software.Internal.TextFile do
+defmodule Helix.Software.Internal.TextFile do
 
 #   alias Helix.Software.Model.File
 #   alias Helix.Software.Model.TextFile
@@ -39,4 +39,4 @@
 #     |> TextFile.update_contents(contents)
 #     |> Repo.update()
 #   end
-# end
+end

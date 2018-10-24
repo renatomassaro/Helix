@@ -2,16 +2,15 @@ defmodule Helix.Story.Event.EmailTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Event.Publishable
-
   alias Helix.Test.Channel.Setup, as: ChannelSetup
+  alias Helix.Test.Event.Helper.Trigger.Publishable, as: PublishableHelper
   alias Helix.Test.Event.Setup, as: EventSetup
 
   describe "Publishable.whom_to_publish/1" do
     test "publishes only to the player" do
       event = EventSetup.Story.email_sent()
 
-      publish = Publishable.whom_to_publish(event)
+      publish = PublishableHelper.whom_to_publish(event)
       assert publish == %{account: event.entity_id}
     end
   end
@@ -22,7 +21,7 @@ defmodule Helix.Story.Event.EmailTest do
 
       event = EventSetup.Story.email_sent()
 
-      assert {:ok, data} = Publishable.generate_payload(event, socket)
+      assert {:ok, data} = PublishableHelper.generate_payload(event, socket)
 
       assert data.step == to_string(event.step.name)
       assert data.email_id == event.email.id
@@ -31,7 +30,7 @@ defmodule Helix.Story.Event.EmailTest do
       assert data.replies
       assert is_float(data.timestamp)
 
-      assert "story_email_sent" == Publishable.get_event_name(event)
+      assert "story_email_sent" == PublishableHelper.get_event_name(event)
     end
   end
 end

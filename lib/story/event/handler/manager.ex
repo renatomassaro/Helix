@@ -1,5 +1,7 @@
 defmodule Helix.Story.Event.Handler.Manager do
 
+  use Hevent.Handler
+
   import HELF.Flow
 
   alias Helix.Account.Model.Account
@@ -11,7 +13,7 @@ defmodule Helix.Story.Event.Handler.Manager do
 
   alias Helix.Entity.Event.Entity.Created, as: EntityCreatedEvent
 
-  def setup_story(event = %EntityCreatedEvent{source: %Account{}}) do
+  handle EntityCreatedEvent, on: %EntityCreatedEvent{source: %Account{}} do
     entity = event.entity
     plan = %{dlk: 128, ulk: 16}  # TODO 341
     flowing do
@@ -38,6 +40,8 @@ defmodule Helix.Story.Event.Handler.Manager do
       end
     end
   end
-  def setup_story(%EntityCreatedEvent{source: _}),
-    do: :noop
+
+  handle EntityCreatedEvent, on: %EntityCreatedEvent{source: _} do
+    :noop
+  end
 end

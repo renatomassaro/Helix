@@ -1,5 +1,7 @@
 defmodule Helix.Account.Event.Handler.Account do
 
+  use Hevent.Handler
+
   alias Helix.Account.Action.Flow.Account, as: AccountFlow
   alias Helix.Account.Event.Account.Verified, as: AccountVerifiedEvent
 
@@ -8,6 +10,7 @@ defmodule Helix.Account.Event.Handler.Account do
 
   Emits EntityCreatedEvent
   """
-  def account_created(event = %AccountVerifiedEvent{}),
-    do: AccountFlow.setup_account(event.account, event)
+  handle AccountVerifiedEvent do
+    AccountFlow.setup_account(event.account, event)
+  end
 end

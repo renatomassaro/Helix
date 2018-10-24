@@ -1,11 +1,11 @@
-defmodule Helix.Event.Loggable.FlowTest do
+defmodule Helix.Event.Trigger.LoggableTest do
 
   use Helix.Test.Case.Integration
 
   import Helix.Test.Macros
 
   alias Helix.Log.Query.Log, as: LogQuery
-  alias Helix.Event.Loggable.Flow, as: LoggableFlow
+  alias Helix.Event.Trigger.Loggable
 
   alias Helix.Test.Entity.Helper, as: EntityHelper
   alias Helix.Test.Log.Helper, as: LogHelper
@@ -16,7 +16,7 @@ defmodule Helix.Event.Loggable.FlowTest do
 
   describe "get_ip/2" do
     test "returns empty string if not found " do
-      ip = LoggableFlow.get_ip(ServerHelper.id(), NetworkHelper.id())
+      ip = Loggable.get_ip(ServerHelper.id(), NetworkHelper.id())
       assert is_binary(ip)
     end
   end
@@ -36,7 +36,7 @@ defmodule Helix.Event.Loggable.FlowTest do
       {bounce, _} = NetworkSetup.Bounce.bounce(links: [link1, link2, link3])
 
       [entry1, entry2, entry3] =
-        LoggableFlow.build_bounce_entries(
+        Loggable.build_bounce_entries(
           bounce, gateway, target, entity_id, network_id
         )
 
@@ -76,10 +76,12 @@ defmodule Helix.Event.Loggable.FlowTest do
       log_info = {log_type, log_data} = LogHelper.log_info()
 
       entry =
-        LoggableFlow.build_entry(server.server_id, entity.entity_id, log_info)
+        Loggable.build_entry(
+          server.server_id, entity.entity_id, log_info
+        )
 
       # Saves the entry; returns LogCreatedEvent
-      assert [event] = LoggableFlow.save(entry)
+      assert [event] = Loggable.save(entry)
       assert event.__struct__ == Helix.Log.Event.Log.Created
 
       # Log is stored correctly on the server
@@ -91,7 +93,7 @@ defmodule Helix.Event.Loggable.FlowTest do
     end
 
     test "performs a noop on empty list" do
-      assert [] == LoggableFlow.save([])
+      assert [] == Loggable.save([])
     end
   end
 end

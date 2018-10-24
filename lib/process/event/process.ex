@@ -1,6 +1,6 @@
 defmodule Helix.Process.Event.Process do
 
-  import Helix.Event
+  import Hevent
 
   event Created do
     @moduledoc """
@@ -67,11 +67,13 @@ defmodule Helix.Process.Event.Process do
     def new(event = %__MODULE__{confirmed: false}),
       do: %{event| confirmed: true}
 
-    publish do
+    trigger Publishable do
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias Helix.Process.Public.View.Process, as: ProcessView
 
-      @event :process_created
+      event_name :process_created
 
       @doc """
       # ProcessCreatedEvent filtering
@@ -150,9 +152,11 @@ defmodule Helix.Process.Event.Process do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :process_completed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :process_completed
 
       def generate_payload(event, _socket) do
         data = %{
@@ -223,9 +227,11 @@ defmodule Helix.Process.Event.Process do
       }
     end
 
-    publish do
+    trigger Publishable do
 
-      @event :process_killed
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :process_killed
 
       @doc false
       def generate_payload(event, _socket) do

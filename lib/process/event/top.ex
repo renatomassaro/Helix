@@ -1,6 +1,6 @@
 defmodule Helix.Process.Event.TOP do
 
-  import Helix.Event
+  import Hevent
 
   event BringMeToLife do
     @moduledoc """
@@ -58,16 +58,18 @@ defmodule Helix.Process.Event.TOP do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc """
       Publishes to the Client(s) that the TOP has changed. Instead of sending a
       diff of what has changed, we send the whole TOP, as the Client would
       receive if it were logging in for the first time.
       """
 
+      use Helix.Event.Trigger.Publishable.Macros
+
       alias Helix.Process.Public.Index, as: ProcessIndex
 
-      @event :top_recalcado
+      event_name :top_recalcado
 
       def generate_payload(event, socket) do
         data = ProcessIndex.index(event.server_id, socket.assigns.entity_id)

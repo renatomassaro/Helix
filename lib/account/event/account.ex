@@ -1,6 +1,6 @@
 defmodule Helix.Account.Event.Account do
 
-  import Helix.Event
+  import Hevent
 
   event Created do
     @moduledoc """

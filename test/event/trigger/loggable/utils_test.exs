@@ -1,4 +1,4 @@
-defmodule Helix.Loggable.UtilsTest do
+defmodule Helix.Event.Trigger.Loggable.UtilsTest do
 
   use Helix.Test.Case.Integration
 

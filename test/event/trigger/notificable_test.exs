@@ -1,4 +1,4 @@
-defmodule Helix.Notification.Event.Handler.NotificationTest do
+defmodule Helix.Event.Trigger.NotificableTest do
 
   use Helix.Test.Case.Integration
 
@@ -10,9 +10,9 @@ defmodule Helix.Notification.Event.Handler.NotificationTest do
   alias Helix.Test.Account.Helper, as: AccountHelper
   alias Helix.Test.Channel.Setup, as: ChannelSetup
   alias Helix.Test.Entity.Setup, as: EntitySetup
+  alias Helix.Test.Server.Setup, as: ServerSetup
   alias Helix.Test.Event.Helper, as: EventHelper
   alias Helix.Test.Event.Setup, as: EventSetup
-  alias Helix.Test.Server.Setup, as: ServerSetup
 
   # Dear reader,
   # This broad test is meant to make sure notifications work right. We've picked

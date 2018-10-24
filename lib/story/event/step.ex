@@ -1,6 +1,6 @@
 defmodule Helix.Story.Event.Step do
 
-  import Helix.Event
+  import Hevent
 
   event Proceeded do
     @moduledoc """
@@ -30,10 +30,12 @@ defmodule Helix.Story.Event.Step do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc false
 
-      @event :story_step_proceeded
+      use Helix.Event.Trigger.Publishable.Macros
+
+      event_name :story_step_proceeded
 
       def generate_payload(event, _socket) do
         data = %{
@@ -84,12 +86,14 @@ defmodule Helix.Story.Event.Step do
       }
     end
 
-    publish do
+    trigger Publishable do
       @moduledoc false
+
+      use Helix.Event.Trigger.Publishable.Macros
 
       alias HELL.Utils
 
-      @event :story_step_restarted
+      event_name :story_step_restarted
 
       def generate_payload(event, _socket) do
         allowed_replies =

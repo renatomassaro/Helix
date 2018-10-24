@@ -3,6 +3,8 @@ defmodule Helix.Software.Event.Handler.Filesystem do
   This is the Hacker Experience's equivalent of `inotify(7)`
   """
 
+  use Hevent.Handler
+
   alias Helix.Event
   alias Helix.Server.Model.Server
   alias Helix.Software.Model.File
@@ -13,11 +15,13 @@ defmodule Helix.Software.Event.Handler.Filesystem do
 
   # New entries
 
-  def filesystem_handler(event = %FileDownloadedEvent{}),
-    do: notify_new(event.file, event.to_server_id, event)
+  handle FileDownloadedEvent do
+    notify_new(event.file, event.to_server_id, event)
+  end
 
-  def filesystem_handler(event = %FileUploadedEvent{}),
-    do: notify_new(event.file, event.to_server_id, event)
+  handle FileUploadedEvent do
+    notify_new(event.file, event.to_server_id, event)
+  end
 
   # Existing entries being updated
 
