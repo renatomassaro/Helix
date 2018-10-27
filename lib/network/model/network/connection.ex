@@ -46,13 +46,13 @@ defmodule Helix.Network.Model.Network.Connection do
 
   @primary_key false
   schema "network_connections" do
-    field :network_id, Network.ID,
+    field :network_id, id(:network),
       primary_key: true
     field :ip, IPv4,
       primary_key: true
 
-    field :entity_id, Entity.ID
-    field :nic_id, Component.ID,
+    field :entity_id, id(:entity)
+    field :nic_id, id(:component),
       default: nil
   end
 

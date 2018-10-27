@@ -26,7 +26,7 @@ defmodule Helix.Network.Model.Bounce.Sorted do
 
   @primary_key false
   schema "sorted_bounces" do
-    field :bounce_id, Bounce.ID,
+    field :bounce_id, id(:bounce),
       primary_key: true
     field :sorted_nips, {:array, :map}
 

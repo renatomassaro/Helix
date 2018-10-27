@@ -34,11 +34,11 @@ defmodule Helix.Log.Model.Log do
 
   @primary_key false
   schema "logs" do
-    field :log_id, ID,
+    field :log_id, id(),
       primary_key: true
 
     field :revision_id, :integer
-    field :server_id, Server.ID
+    field :server_id, id(:server)
 
     # Stores the exact moment the log was created. This value is immutable! Even
     # if several revisions occurred at a later time, the `creation_time` of the

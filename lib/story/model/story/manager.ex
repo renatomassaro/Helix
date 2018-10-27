@@ -31,11 +31,11 @@ defmodule Helix.Story.Model.Story.Manager do
 
   @primary_key false
   schema "story_manager" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
 
-    field :server_id, Server.ID
-    field :network_id, Network.ID
+    field :server_id, id(:server)
+    field :network_id, id(:network)
   end
 
   @spec create(creation_params) ::

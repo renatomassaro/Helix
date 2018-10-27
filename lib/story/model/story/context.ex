@@ -44,7 +44,7 @@ defmodule Helix.Story.Model.Story.Context do
 
   @primary_key false
   schema "story_contexts" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
 
     field :context, :map,

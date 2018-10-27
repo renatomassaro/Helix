@@ -56,13 +56,13 @@ defmodule Helix.Network.Model.Tunnel do
   @required_fields [:network_id, :gateway_id, :target_id]
 
   schema "tunnels" do
-    field :tunnel_id, ID,
+    field :tunnel_id, id(),
       primary_key: true
 
-    field :network_id, Network.ID
-    field :gateway_id, Server.ID
-    field :target_id, Server.ID
-    field :bounce_id, Bounce.ID,
+    field :network_id, id(:network)
+    field :gateway_id, id(:server)
+    field :target_id, id(:server)
+    field :bounce_id, id(:bounce),
       default: nil
 
     # Default for `hops` is `nil` in order to make sure we explicitly set it to

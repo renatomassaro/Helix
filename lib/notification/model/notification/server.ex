@@ -44,11 +44,11 @@ defmodule Helix.Notification.Model.Notification.Server do
   @required_fields [:account_id, :server_id, :code, :data, :creation_time]
 
   schema "notifications_server" do
-    field :notification_id, ID,
+    field :notification_id, id(),
       primary_key: true
 
-    field :account_id, Account.ID
-    field :server_id, Server.ID
+    field :account_id, id(:account)
+    field :server_id, id(:server)
     field :code, CodeEnum
     field :data, :map
     field :is_read, :boolean,

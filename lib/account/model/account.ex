@@ -40,7 +40,7 @@ defmodule Helix.Account.Model.Account do
 
   @derive {Poison.Encoder, only: [:email, :username, :account_id]}
   schema "accounts" do
-    field :account_id, ID,
+    field :account_id, id(),
       primary_key: true
 
     field :email, :string

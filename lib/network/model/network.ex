@@ -39,7 +39,7 @@ defmodule Helix.Network.Model.Network do
   @network_types [:internet, :story, :mission, :lan]
 
   schema "networks" do
-    field :network_id, ID,
+    field :network_id, id(),
       primary_key: true
 
     field :name, :string

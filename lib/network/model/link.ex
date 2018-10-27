@@ -26,12 +26,12 @@ defmodule Helix.Network.Model.Link do
 
   @primary_key false
   schema "links" do
-    field :tunnel_id, Tunnel.ID,
+    field :tunnel_id, id(:tunnel),
       primary_key: true
-    field :source_id, Server.ID,
+    field :source_id, id(:server),
       primary_key: true
 
-    field :target_id, Server.ID
+    field :target_id, id(:server)
 
     field :sequence, :integer
   end

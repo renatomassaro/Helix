@@ -3,6 +3,7 @@ defmodule Helix.Account.Model.AccountSession do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Helix.Account.Model.Account
@@ -24,7 +25,7 @@ defmodule Helix.Account.Model.AccountSession do
     field :session_id, Ecto.UUID,
       primary_key: true
 
-    field :account_id, Account.ID
+    field :account_id, id(:account)
 
     belongs_to :account, Account,
       references: :account_id,

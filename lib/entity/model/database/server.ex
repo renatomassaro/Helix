@@ -3,6 +3,7 @@ defmodule Helix.Entity.Model.Database.Server do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias HELL.Constant
@@ -70,14 +71,14 @@ defmodule Helix.Entity.Model.Database.Server do
 
   @primary_key false
   schema "database_servers" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
-    field :network_id, Network.ID,
+    field :network_id, id(:network),
       primary_key: true
     field :server_ip, IPv4,
       primary_key: true
 
-    field :server_id, Server.ID
+    field :server_id, id(:server)
 
     field :server_type, Constant
     field :password, :string
@@ -115,10 +116,8 @@ defmodule Helix.Entity.Model.Database.Server do
   defp update_last_update(changeset),
     do: put_change(changeset, :last_update, DateTime.utc_now())
 
-  defmodule Query do
-    import Ecto.Query
+  query do
 
-    alias Ecto.Queryable
     alias Helix.Network.Model.Network
     alias Helix.Server.Model.Server
     alias Helix.Entity.Model.Database

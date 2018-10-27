@@ -3,6 +3,7 @@ defmodule Helix.Universe.Bank.Model.ATM do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Helix.Server.Model.Server
   alias Helix.Universe.NPC.Model.NPC
@@ -27,9 +28,9 @@ defmodule Helix.Universe.Bank.Model.ATM do
 
   @primary_key false
   schema "atms" do
-    field :atm_id, Server.ID,
+    field :atm_id, id(:server),
       primary_key: true
-    field :bank_id, NPC.ID
+    field :bank_id, id(:npc)
     field :region, :string
 
     belongs_to :bank, Bank,

@@ -40,9 +40,9 @@ defmodule Helix.Network.Model.Bounce do
 
   @primary_key false
   schema "bounces" do
-    field :bounce_id, ID,
+    field :bounce_id, id(),
       primary_key: true
-    field :entity_id, Entity.ID
+    field :entity_id, id(:entity)
     field :name, :string
 
     has_many :entries, Bounce.Entry,

@@ -3,6 +3,7 @@ defmodule Helix.Entity.Model.EntityComponent do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Helix.Server.Model.Component
@@ -23,9 +24,9 @@ defmodule Helix.Entity.Model.EntityComponent do
 
   @primary_key false
   schema "entity_components" do
-    field :component_id, Component.ID,
+    field :component_id, id(:component),
       primary_key: true
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
 
     belongs_to :entity, Entity,
@@ -43,13 +44,10 @@ defmodule Helix.Entity.Model.EntityComponent do
     |> validate_required(@creation_fields)
   end
 
-  defmodule Query do
-    import Ecto.Query
+  query do
 
-    alias Ecto.Queryable
     alias Helix.Server.Model.Component
     alias Helix.Entity.Model.Entity
-    alias Helix.Entity.Model.EntityComponent
 
     @spec by_entity(Queryable.t, Entity.idtb) ::
       Queryable.t

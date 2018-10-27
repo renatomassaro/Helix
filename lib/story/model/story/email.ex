@@ -56,7 +56,7 @@ defmodule Helix.Story.Model.Story.Email do
 
   @primary_key false
   schema "story_emails" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
     field :contact_id, Constant,
       primary_key: true

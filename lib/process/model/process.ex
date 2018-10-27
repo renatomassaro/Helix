@@ -352,22 +352,22 @@ defmodule Helix.Process.Model.Process do
   # Similar to `task_struct` on `sched.h` ;-)
   @primary_key false
   schema "processes" do
-    field :process_id, ID,
+    field :process_id, id(),
       primary_key: true
 
     ### Identifiers
 
     # The gateway that started the process
-    field :gateway_id, Server.ID
+    field :gateway_id, id(:server)
 
     # The entity that started the process
-    field :source_entity_id, Entity.ID
+    field :source_entity_id, id(:entity)
 
     # The server where the target object of this process action is
-    field :target_id, Server.ID
+    field :target_id, id(:server)
 
     # Which network (if any) is this process bound to
-    field :network_id, Network.ID,
+    field :network_id, id(:network),
       default: nil
 
     # Which bounce (if any) is this process bound to
@@ -375,21 +375,21 @@ defmodule Helix.Process.Model.Process do
     # it generates the underlying action log, creating `connection_bounced` logs
     # on all hops within the bounce.
     # If the process does not generate a log, this field may be ignored.
-    field :bounce_id, Bounce.ID,
+    field :bounce_id, id(:bounce),
       default: nil
 
     ### Custom keys
 
     # Which connection (if any) originated this process
-    field :src_connection_id, Connection.ID,
+    field :src_connection_id, id(:connection),
       default: nil
 
     # Which file (if any) originated this process
-    field :src_file_id, File.ID,
+    field :src_file_id, id(:file),
       default: nil
 
     # Which ATM id (if any) originated this process
-    field :src_atm_id, Server.ID,
+    field :src_atm_id, id(:server),
       default: nil
 
     # Which bank account (if any) originated this process
@@ -397,15 +397,15 @@ defmodule Helix.Process.Model.Process do
       default: nil
 
     # Which file (if any) is the target of this process
-    field :tgt_file_id, File.ID,
+    field :tgt_file_id, id(:file),
       default: nil
 
     # Which connection (if any) is the target of this process
-    field :tgt_connection_id, Connection.ID,
+    field :tgt_connection_id, id(:connection),
       default: nil
 
     # Which ATM id (if any) is the target of this process
-    field :tgt_atm_id, Server.ID,
+    field :tgt_atm_id, id(:server),
       default: nil
 
     # Which bank account (if any) is the target of this process
@@ -413,11 +413,11 @@ defmodule Helix.Process.Model.Process do
       default: nil
 
     # Which process (if any) is the target of this process
-    field :tgt_process_id, Process.ID,
+    field :tgt_process_id, id(:process),
       default: nil
 
     # Which log (if any) is the target of this process
-    field :tgt_log_id, Log.ID,
+    field :tgt_log_id, id(:log),
       default: nil
 
     ### Helix.Process required data

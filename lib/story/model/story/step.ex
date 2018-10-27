@@ -55,7 +55,7 @@ defmodule Helix.Story.Model.Story.Step do
 
   @primary_key false
   schema "story_steps" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
     field :contact_id, Constant,
       primary_key: true

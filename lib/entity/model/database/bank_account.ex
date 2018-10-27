@@ -3,11 +3,11 @@ defmodule Helix.Entity.Model.Database.BankAccount do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Ecto.UUID
   alias HELL.IPv4
-  alias Helix.Server.Model.Server
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.Bank.Model.BankAccount
   alias Helix.Entity.Model.Entity
@@ -50,9 +50,9 @@ defmodule Helix.Entity.Model.Database.BankAccount do
 
   @primary_key false
   schema "database_bank_accounts" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
-    field :atm_id, Server.ID,
+    field :atm_id, id(:server),
       primary_key: true
     field :account_number, :integer,
       primary_key: true
@@ -94,10 +94,8 @@ defmodule Helix.Entity.Model.Database.BankAccount do
   defp update_last_update(changeset),
     do: put_change(changeset, :last_update, DateTime.utc_now())
 
-  defmodule Query do
-    import Ecto.Query
+  query do
 
-    alias Ecto.Queryable
     alias HELL.IPv4
     alias Helix.Universe.Bank.Model.ATM
     alias Helix.Universe.Bank.Model.BankAccount

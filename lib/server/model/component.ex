@@ -55,7 +55,7 @@ defmodule Helix.Server.Model.Component do
 
   @primary_key false
   schema "components" do
-    field :component_id, ID,
+    field :component_id, id(),
       primary_key: true
 
     field :type, Constant

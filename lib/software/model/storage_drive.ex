@@ -3,6 +3,7 @@ defmodule Helix.Software.Model.StorageDrive do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Helix.Server.Model.Component
@@ -23,9 +24,9 @@ defmodule Helix.Software.Model.StorageDrive do
 
   @primary_key false
   schema "storage_drives" do
-    field :storage_id, Storage.ID,
+    field :storage_id, id(:storage),
       primary_key: true
-    field :drive_id, Component.ID,
+    field :drive_id, id(:component),
       primary_key: true
 
     belongs_to :storage, Storage,
@@ -43,13 +44,10 @@ defmodule Helix.Software.Model.StorageDrive do
     |> foreign_key_constraint(:storage_id)
   end
 
-  defmodule Query do
-    import Ecto.Query
+  query do
 
-    alias Ecto.Queryable
     alias Helix.Server.Model.Component
     alias Helix.Software.Model.Storage
-    alias Helix.Software.Model.StorageDrive
 
     @spec by_storage(Queryable.t, Storage.idtb) ::
       Queryable.t

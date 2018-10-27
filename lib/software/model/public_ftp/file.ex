@@ -3,6 +3,7 @@ defmodule Helix.Software.Model.PublicFTP.File do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Helix.Server.Model.Server
@@ -27,10 +28,10 @@ defmodule Helix.Software.Model.PublicFTP.File do
 
   @primary_key false
   schema "pftp_files" do
-    field :server_id, Server.ID,
+    field :server_id, id(:server),
       primary_key: true
 
-    field :file_id, File.ID
+    field :file_id, id(:file)
     field :inserted_at, :utc_datetime
 
     belongs_to :file, File,
@@ -72,11 +73,8 @@ defmodule Helix.Software.Model.PublicFTP.File do
   defp add_timestamp(changeset),
     do: put_change(changeset, :inserted_at, DateTime.utc_now())
 
-  defmodule Query do
+  query do
 
-    import Ecto.Query
-
-    alias Ecto.Queryable
     alias Helix.Software.Model.File
     alias Helix.Software.Model.PublicFTP
 

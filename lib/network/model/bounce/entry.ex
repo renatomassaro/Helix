@@ -26,11 +26,11 @@ defmodule Helix.Network.Model.Bounce.Entry do
 
   @primary_key false
   schema "bounce_entries" do
-    field :bounce_id, Bounce.ID,
+    field :bounce_id, id(:bounce),
       primary_key: true
-    field :server_id, Server.ID,
+    field :server_id, id(:server),
       primary_key: true
-    field :network_id, Network.ID,
+    field :network_id, id(:network),
       primary_key: true
 
     field :ip, IPv4

@@ -66,14 +66,14 @@ defmodule Helix.Software.Model.File do
   @software_types Software.Type.all()
 
   schema "files" do
-    field :file_id, ID,
+    field :file_id, id(),
       primary_key: true
 
     field :name, :string
     field :path, :string
     field :software_type, Constant
     field :file_size, :integer
-    field :storage_id, Storage.ID
+    field :storage_id, id(:storage)
 
     field :crypto_version, :integer
 

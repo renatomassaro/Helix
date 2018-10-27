@@ -30,7 +30,7 @@ defmodule Helix.Entity.Model.Entity do
   @creation_fields [:entity_type]
 
   schema "entities" do
-    field :entity_id, ID,
+    field :entity_id, id(),
       primary_key: true
 
     field :entity_type, Constant

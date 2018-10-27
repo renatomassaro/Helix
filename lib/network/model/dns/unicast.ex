@@ -3,6 +3,7 @@ defmodule Helix.Network.Model.DNS.Unicast do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias HELL.IPv4
   alias Helix.Network.Model.Network
@@ -21,7 +22,7 @@ defmodule Helix.Network.Model.DNS.Unicast do
 
   @primary_key false
   schema "dns_unicast" do
-    field :network_id, Network.ID,
+    field :network_id, id(:network),
       primary_key: true
 
     field :name, :string,
@@ -36,13 +37,9 @@ defmodule Helix.Network.Model.DNS.Unicast do
     |> unique_constraint(:ip, name: @one_nip_per_name)
   end
 
-  defmodule Query do
+  query do
 
-    import Ecto.Query, only: [where: 3]
-
-    alias Ecto.Queryable
     alias HELL.IPv4
-    alias Helix.Network.Model.DNS.Unicast
     alias Helix.Network.Model.Network
 
     @spec by_net_and_name(Queryable.t, Network.id, String.t) ::

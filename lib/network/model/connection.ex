@@ -47,10 +47,10 @@ defmodule Helix.Network.Model.Connection do
   @close_reasons [:normal, :force]
 
   schema "connections" do
-    field :connection_id, ID,
+    field :connection_id, id(),
       primary_key: true
 
-    field :tunnel_id, Tunnel.ID
+    field :tunnel_id, id(:tunnel)
 
     field :connection_type, Constant
 

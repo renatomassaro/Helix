@@ -43,10 +43,10 @@ defmodule Helix.Notification.Model.Notification.Account do
   @required_fields [:account_id, :code, :data, :creation_time]
 
   schema "notifications_account" do
-    field :notification_id, ID,
+    field :notification_id, id(),
       primary_key: true
 
-    field :account_id, Account.ID
+    field :account_id, id(:account)
     field :code, CodeEnum
     field :data, :map
     field :is_read, :boolean,

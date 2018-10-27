@@ -3,6 +3,7 @@ defmodule Helix.Universe.Bank.Model.Bank do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.NPC.Model.NPC
@@ -24,7 +25,7 @@ defmodule Helix.Universe.Bank.Model.Bank do
 
   @primary_key false
   schema "banks" do
-    field :bank_id, NPC.ID,
+    field :bank_id, id(:npc),
       primary_key: true
     field :name, :string
 

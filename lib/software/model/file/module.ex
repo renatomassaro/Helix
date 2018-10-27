@@ -53,7 +53,7 @@ defmodule Helix.Software.Model.File.Module do
 
   @primary_key false
   schema "file_modules" do
-    field :file_id, File.ID,
+    field :file_id, id(:file),
       primary_key: true
     field :name, Constant,
       primary_key: true

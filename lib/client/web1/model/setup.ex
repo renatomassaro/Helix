@@ -3,6 +3,7 @@ defmodule Helix.Client.Web1.Model.Setup do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias HELL.Constant
@@ -33,7 +34,7 @@ defmodule Helix.Client.Web1.Model.Setup do
 
   @primary_key false
   schema "web1_setup" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
 
     field :pages, {:array, Constant},
@@ -89,12 +90,7 @@ defmodule Helix.Client.Web1.Model.Setup do
   def valid_pages,
     do: @pages
 
-  defmodule Query do
-
-    import Ecto.Query
-
-    alias Ecto.Queryable
-    alias Helix.Client.Web1.Model.Setup
+  query do
 
     @spec by_entity(Queryable.t, Entity.id) ::
       Queryable.t
@@ -102,11 +98,7 @@ defmodule Helix.Client.Web1.Model.Setup do
       do: where(query, [s], s.entity_id == ^entity_id)
   end
 
-  defmodule Select do
-
-    import Ecto.Query
-
-    alias Ecto.Queryable
+  select do
 
     @spec pages(Queryable.t) ::
       Queryable.t

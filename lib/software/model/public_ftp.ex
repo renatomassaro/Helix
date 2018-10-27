@@ -6,6 +6,7 @@ defmodule Helix.Software.Model.PublicFTP do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Hector
@@ -28,7 +29,7 @@ defmodule Helix.Software.Model.PublicFTP do
 
   @primary_key false
   schema "pftps" do
-    field :server_id, Server.ID,
+    field :server_id, id(:server),
       primary_key: true
 
     field :is_active, :boolean
@@ -103,13 +104,9 @@ defmodule Helix.Software.Model.PublicFTP do
     |> validate_required(@required_fields)
   end
 
-  defmodule Query do
+  query do
 
-    import Ecto.Query
-
-    alias Ecto.Queryable
     alias Helix.Server.Model.Server
-    alias Helix.Software.Model.PublicFTP
 
     @spec by_server(Queryable.t, Server.idtb) ::
       Queryable.t

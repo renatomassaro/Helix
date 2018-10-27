@@ -43,10 +43,10 @@ defmodule Helix.Server.Model.Server do
   @required_fields [:type, :password]
 
   schema "servers" do
-    field :server_id, ID,
+    field :server_id, id(),
       primary_key: true
 
-    field :motherboard_id, Component.ID
+    field :motherboard_id, id(:component)
     field :type, Constant
 
     field :hostname, :string,

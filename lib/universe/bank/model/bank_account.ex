@@ -3,11 +3,10 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias HELL.Password
-  alias Helix.Account.Model.Account
-  alias Helix.Server.Model.Server
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.NPC.Model.NPC
 
@@ -37,14 +36,14 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
 
   @primary_key false
   schema "bank_accounts" do
-    field :atm_id, Server.ID,
+    field :atm_id, id(:server),
       primary_key: true
     field :account_number, :integer,
       primary_key: true
-    field :bank_id, NPC.ID
+    field :bank_id, id(:npc)
     field :password, :string
     field :balance, :integer
-    field :owner_id, Account.ID
+    field :owner_id, id(:account)
     field :creation_date, :utc_datetime
   end
 
@@ -140,13 +139,9 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
   defp generate_account_password,
     do: Password.generate(:bank_account)
 
-  defmodule Query do
+  query do
 
-    import Ecto.Query
-
-    alias Ecto.Queryable
     alias Helix.Account.Model.Account
-    alias Helix.Universe.Bank.Model.BankAccount
 
     @spec by_atm_account(Queryable.t, ATM.idtb, BankAccount.account) ::
       Queryable.t

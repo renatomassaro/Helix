@@ -47,10 +47,10 @@ defmodule Helix.Software.Model.Virus do
 
   @primary_key false
   schema "viruses" do
-    field :file_id, File.ID,
+    field :file_id, id(:file),
       primary_key: true
 
-    field :entity_id, Entity.ID
+    field :entity_id, id(:entity)
 
     field :is_active?, :boolean,
       virtual: true,

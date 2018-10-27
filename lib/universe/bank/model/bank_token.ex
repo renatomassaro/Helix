@@ -3,11 +3,11 @@ defmodule Helix.Universe.Bank.Model.BankToken do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Ecto.UUID
   alias Helix.Network.Model.Connection
-  alias Helix.Server.Model.Server
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.Bank.Model.BankAccount
 
@@ -38,9 +38,9 @@ defmodule Helix.Universe.Bank.Model.BankToken do
   schema "bank_tokens" do
     field :token_id, UUID,
       primary_key: true
-    field :atm_id, Server.ID
+    field :atm_id, id(:server)
     field :account_number, :integer
-    field :connection_id, Connection.ID
+    field :connection_id, id(:connection)
     field :expiration_date, :utc_datetime
   end
 

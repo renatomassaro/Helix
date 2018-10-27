@@ -68,11 +68,11 @@ defmodule Helix.Server.Model.Motherboard do
 
   @primary_key false
   schema "motherboards" do
-    field :motherboard_id, Component.ID,
+    field :motherboard_id, id(:component),
       primary_key: true
 
     field :slot_id, Constant
-    field :linked_component_id, Component.ID
+    field :linked_component_id, id(:component)
     field :linked_component_type, Constant
 
     belongs_to :linked_component, Component,

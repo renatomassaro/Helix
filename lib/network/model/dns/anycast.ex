@@ -3,6 +3,7 @@ defmodule Helix.Network.Model.DNS.Anycast do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Helix.Universe.NPC.Model.NPC
 
@@ -22,7 +23,7 @@ defmodule Helix.Network.Model.DNS.Anycast do
     field :name, :string,
       primary_key: true
 
-    field :npc_id, NPC.ID
+    field :npc_id, id(:npc)
   end
 
   def create_changeset(params) do
@@ -32,13 +33,9 @@ defmodule Helix.Network.Model.DNS.Anycast do
     |> unique_constraint(:npc_id, name: @one_npc_per_name)
   end
 
-  defmodule Query do
+  query do
 
-    import Ecto.Query, only: [where: 3]
-
-    alias Ecto.Queryable
     alias Helix.Universe.NPC.Model.NPC
-    alias Helix.Network.Model.DNS.Anycast
 
     @spec by_name(Queryable.t, String.t) ::
       Queryable.t

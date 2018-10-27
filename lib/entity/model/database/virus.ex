@@ -37,11 +37,11 @@ defmodule Helix.Entity.Model.Database.Virus do
 
   @primary_key false
   schema "database_viruses" do
-    field :entity_id, Entity.ID,
+    field :entity_id, id(:entity),
       primary_key: true
-    field :server_id, Server.ID,
+    field :server_id, id(:server),
       primary_key: true
-    field :file_id, File.ID,
+    field :file_id, id(:file),
       primary_key: true
   end
 

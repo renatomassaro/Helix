@@ -7,7 +7,6 @@ defmodule Helix.Universe.Bank.Model.BankTransfer do
   import HELL.Ecto.Macros
 
   alias Helix.Account.Model.Account
-  alias Helix.Server.Model.Server
   alias Helix.Universe.Bank.Model.BankAccount
   alias Helix.Universe.Bank.Model.ATM
 
@@ -43,14 +42,14 @@ defmodule Helix.Universe.Bank.Model.BankTransfer do
 
   @primary_key false
   schema "bank_transfers" do
-    field :transfer_id, ID,
+    field :transfer_id, id(),
       primary_key: true
     field :account_from, :integer
     field :account_to, :integer
-    field :atm_from, Server.ID
-    field :atm_to, Server.ID
+    field :atm_from, id(:server)
+    field :atm_to, id(:server)
     field :amount, :integer
-    field :started_by, Account.ID
+    field :started_by, id(:account)
     field :started_time, :utc_datetime
   end
 
@@ -86,8 +85,6 @@ defmodule Helix.Universe.Bank.Model.BankTransfer do
     do: put_change(changeset, :started_time, DateTime.utc_now())
 
   query do
-
-    alias Helix.Universe.Bank.Model.BankTransfer
 
     @spec by_id(Queryable.t, BankTransfer.id) ::
       Queryable.t

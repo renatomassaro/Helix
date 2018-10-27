@@ -3,6 +3,7 @@ defmodule Helix.Account.Model.AccountSetting do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import HELL.Ecto.Macros
 
   alias Ecto.Changeset
   alias Helix.Account.Model.Account
@@ -21,7 +22,7 @@ defmodule Helix.Account.Model.AccountSetting do
 
   @primary_key false
   schema "account_settings" do
-    field :account_id, Account.ID,
+    field :account_id, id(:account),
       primary_key: true
 
     embeds_one :settings, Setting,
@@ -43,12 +44,9 @@ defmodule Helix.Account.Model.AccountSetting do
     |> cast_embed(:settings)
   end
 
-  defmodule Query do
-    import Ecto.Query
+  query do
 
-    alias Ecto.Queryable
     alias Helix.Account.Model.Account
-    alias Helix.Account.Model.AccountSetting
 
     @spec by_account(Queryable.t, Account.idtb) ::
       Queryable.t

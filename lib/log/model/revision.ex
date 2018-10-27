@@ -46,12 +46,12 @@ defmodule Helix.Log.Model.Revision do
 
   @primary_key false
   schema "log_revisions" do
-    field :log_id, Log.ID,
+    field :log_id, id(:log),
       primary_key: true
     field :revision_id, :integer,
       primary_key: true
 
-    field :entity_id, Entity.ID
+    field :entity_id, id(:entity)
 
     field :type, LogEnum
     field :data, :map

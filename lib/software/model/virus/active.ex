@@ -18,7 +18,6 @@ defmodule Helix.Software.Model.Virus.Active do
 
   alias Ecto.Changeset
   alias Helix.Entity.Model.Entity
-  alias Helix.Software.Model.File
   alias Helix.Software.Model.Storage
   alias Helix.Software.Model.Virus
 
@@ -37,11 +36,11 @@ defmodule Helix.Software.Model.Virus.Active do
 
   @primary_key false
   schema "viruses_active" do
-    field :virus_id, File.ID,
+    field :virus_id, id(:file),
       primary_key: true
 
-    field :entity_id, Entity.ID
-    field :storage_id, Storage.ID
+    field :entity_id, id(:entity)
+    field :storage_id, id(:storage)
 
     field :activation_time, :utc_datetime
 

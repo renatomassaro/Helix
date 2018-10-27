@@ -19,7 +19,7 @@ defmodule Helix.Software.Model.Storage do
   @type name :: String.t
 
   schema "storages" do
-    field :storage_id, ID,
+    field :storage_id, id(),
       primary_key: true
 
     has_many :drives, StorageDrive,
