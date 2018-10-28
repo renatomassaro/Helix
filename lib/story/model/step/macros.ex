@@ -1,3 +1,5 @@
+# TODO: The entire Story system is in desperate need of a major refactor.
+# It works, has a nice DSL and is tested, but it became a complexity beast.
 # credo:disable-for-this-file Credo.Check.Refactor.CyclomaticComplexity
 defmodule Helix.Story.Model.Step.Macros do
   @moduledoc """
@@ -22,6 +24,9 @@ defmodule Helix.Story.Model.Step.Macros do
   alias Helix.Story.Event.Reply.Sent, as: StoryReplySentEvent
   alias Helix.Story.Event.Step.ActionRequested, as: StepActionRequestedEvent
 
+  def __on_definition__(env, _kind, method, _args, _guards, _body),
+    do: Module.put_attribute(env.module, :methods, method)
+
   defmacro step(name, contact \\ nil, do: block) do
     quote location: :keep do
       defmodule unquote(name) do
@@ -39,6 +44,10 @@ defmodule Helix.Story.Model.Step.Macros do
           alias Helix.Event
           alias Helix.Story.Make.Story, as: StoryMake
 
+          @on_definition unquote(__MODULE__)
+
+          Module.register_attribute(__MODULE__, :methods, accumulate: true)
+
           @emails Module.get_attribute(__MODULE__, :emails) || %{}
           @replies Module.get_attribute(__MODULE__, :replies) || %{}
           @contact get_contact(unquote(contact), __MODULE__)
@@ -48,9 +57,11 @@ defmodule Helix.Story.Model.Step.Macros do
 
           # Most steps do not have a "restart" option. Those who do must
           # manually implement this protocol function.
-          @doc false
-          def restart(_step, _, _),
-            do: raise "Undefined restart handler at #{inspect unquote(__MODULE__)}"
+          unless :restart in @methods do
+            @doc false
+            def restart(_step, _, _),
+              do: raise "Undefined restart handler at #{inspect unquote(__MODULE__)}"
+          end
 
           # Catch-all for unhandled events, otherwise any unexpected event would
           # thrown an exception here.
@@ -58,9 +69,11 @@ defmodule Helix.Story.Model.Step.Macros do
           def handle_event(step, _event, _meta),
             do: {:noop, step, []}
 
-          @doc false
-          def format_meta(%{meta: meta}),
-            do: meta
+          unless :format_meta in @methods do
+            @doc false
+            def format_meta(%{meta: meta}),
+              do: meta
+          end
 
           @doc false
           def get_contact(_),

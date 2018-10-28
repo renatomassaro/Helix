@@ -342,6 +342,5 @@ defmodule Helix.Story.Mission.Tutorial do
     end
 
     next_step __MODULE__
-
   end
 end
