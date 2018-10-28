@@ -9,12 +9,12 @@ defmodule Helix.Universe.Bank.Event.Handler.Bank.Transfer do
   alias Helix.Universe.Bank.Event.Bank.Transfer.Processed,
     as: BankTransferProcessedEvent
 
-  handle BankTransferProcessedEvent do
+  def handle_event(event = %BankTransferProcessedEvent{}) do
     transfer = BankQuery.fetch_transfer(event.transfer_id)
     BankAction.complete_transfer(transfer)
   end
 
-  handle BankTransferAbortedEvent do
+  def handle_event(event = %BankTransferAbortedEvent{}) do
     transfer = BankQuery.fetch_transfer(event.transfer_id)
     BankAction.abort_transfer(transfer)
   end

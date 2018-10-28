@@ -25,7 +25,7 @@ defmodule Helix.Software.Event.Handler.File.Transfer do
   FileDownloadedEvent | FileUploadedEvent, in case of success;
   FileDownloadFailedEvent | FileUploadFailedEvent, in case of failure
   """
-  handle FileTransferProcessedEvent do
+  def handle_event(event = %FileTransferProcessedEvent{}) do
     create_params = fn file ->
       %{
         path: "/Downloads",

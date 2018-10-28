@@ -29,7 +29,7 @@ defmodule Helix.Software.Event.Handler.Cracker do
 
   Emits: ServerPasswordAcquiredEvent | CrackerBruteforceFailedEvent
   """
-  handle BruteforceProcessedEvent do
+  def handle_event(event = %BruteforceProcessedEvent{}) do
     flowing do
       with \
         {:ok, password, events} <-
@@ -62,9 +62,7 @@ defmodule Helix.Software.Event.Handler.Cracker do
   publication of the overflow result to the user is done on more specific
   events, e.g. the `BankTokenAcquiredEvent`.
   """
-  handle OverflowProcessedEvent,
-    on: %OverflowProcessedEvent{target_connection_id: nil}
-  do
+  def handle_event(event = %OverflowProcessedEvent{target_connection_id: nil}) do
     process = ProcessQuery.fetch(event.target_process_id)
 
     case process.type do
@@ -73,9 +71,7 @@ defmodule Helix.Software.Event.Handler.Cracker do
     end
   end
 
-  handle OverflowProcessedEvent,
-    on: %OverflowProcessedEvent{target_process_id: nil}
-  do
+  def handle_event(event = %OverflowProcessedEvent{target_process_id: nil}) do
     connection = TunnelQuery.fetch_connection(event.target_connection_id)
 
     case connection.connection_type do
@@ -144,7 +140,6 @@ defmodule Helix.Software.Event.Handler.Cracker do
   end
 
   # TODO: Waiting merge of PR 249 in order to implement OverflowFlow
-  handle BankTransferAbortedEvent do
-    ProcessQuery.get_processes_originated_on_connection(event.connection_id)
-  end
+  def handle_event(event = %BankTransferAbortedEvent{}),
+    do: ProcessQuery.get_processes_originated_on_connection(event.connection_id)
 end

@@ -27,24 +27,20 @@ defmodule Helix.Story.Event.Handler.Story do
   alias Helix.Story.Event.Reply.Sent, as: ReplySentEvent
   alias Helix.Story.Event.Step.ActionRequested, as: StepActionRequestedEvent
 
-  handle ClientPerformedActionEvent do
-    generic_event_handler(event)
-  end
-  handle EmailSentEvent do
-    generic_event_handler(event)
-  end
-  handle ReplySentEvent do
-    generic_event_handler(event)
-  end
-  handle ProcessCreatedEvent do
-    generic_event_handler(event)
-  end
+  def handle_event(event = %ClientPerformedActionEvent{}),
+    do: generic_event_handler(event)
+  def handle_event(event = %EmailSentEvent{}),
+    do: generic_event_handler(event)
+  def handle_event(event = %ReplySentEvent{}),
+    do: generic_event_handler(event)
+  def handle_event(event = %ProcessCreatedEvent{}),
+    do: generic_event_handler(event)
 
   @doc """
   Handler for `StepActionRequestedEvent`, directly relaying the requested action
   to the corresponding handler at `handle_action/2`.
   """
-  handle StepActionRequestedEvent do
+  def handle_event(event = %StepActionRequestedEvent{}) do
     with \
       %{object: step, entry: story_step} <-
         StoryQuery.fetch_step(event.entity_id, event.contact_id)

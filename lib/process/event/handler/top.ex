@@ -25,7 +25,7 @@ defmodule Helix.Process.Event.Handler.TOP do
 
   May emit ProcessCompletedEvent
   """
-  handle TOPBringMeToLifeEvent do
+  def handle_event(event = %TOPBringMeToLifeEvent{}) do
     process = ProcessQuery.fetch(event.process_id)
 
     if process do
@@ -50,7 +50,7 @@ defmodule Helix.Process.Event.Handler.TOP do
 
   Emits ProcessCreatedEvent or ProcessCreateFailedEvent
   """
-  handle ProcessCreatedEvent, on: %ProcessCreatedEvent{confirmed: false} do
+  def handle_event(event = %ProcessCreatedEvent{confirmed: false}) do
     case call_recalque(event.process, event) do
       {true, _} ->
         event
@@ -66,11 +66,8 @@ defmodule Helix.Process.Event.Handler.TOP do
     end
   end
 
-  handle ProcessCreatedEvent,
-    on: %ProcessCreatedEvent{confirmed: true}
-  do
-    :noop
-  end
+  def handle_event(%ProcessCreatedEvent{confirmed: true}),
+    do: :noop
 
   @spec call_recalque(Process.t, Event.t) ::
     {gateway_recalque :: boolean, target_recalque :: boolean}
@@ -117,7 +114,7 @@ defmodule Helix.Process.Event.Handler.TOP do
   Notice that if the received event was emitted from a process, this process
   won't receive the corresponding signal. See `filter_self_message/2`.
   """
-  handle ConnectionClosedEvent do
+  def handle_event(event = %ConnectionClosedEvent{}) do
     signal_param = %{connection: event.connection}
 
     # Send SIG_SRC_CONN_DELETED for processes that originated on such connection
@@ -133,7 +130,7 @@ defmodule Helix.Process.Event.Handler.TOP do
     |> Enum.each(&ProcessFlow.signal(&1, :SIG_TGT_CONN_DELETED, signal_param))
   end
 
-  handle LogRevisedEvent do
+  def handle_event(event = %LogRevisedEvent{}) do
     signal_param = %{log: event.log}
 
     # Send SIG_TGT_LOG_REVISED for process that are targeting such log
@@ -143,7 +140,7 @@ defmodule Helix.Process.Event.Handler.TOP do
     |> Enum.each(&ProcessFlow.signal(&1, :SIG_TGT_LOG_REVISED, signal_param))
   end
 
-  handle LogRecoveredEvent do
+  def handle_event(event = %LogRecoveredEvent{}) do
     signal_param = %{log: event.log}
 
     # Send SIG_TGT_LOG_RECOVERED for process that are targeting such log
@@ -153,7 +150,7 @@ defmodule Helix.Process.Event.Handler.TOP do
     |> Enum.each(&ProcessFlow.signal(&1, :SIG_TGT_LOG_RECOVERED, signal_param))
   end
 
-  handle LogDestroyedEvent do
+  def handle_event(event = %LogDestroyedEvent{}) do
     signal_param = %{log: event.log}
 
     # Send SIG_TGT_LOG_DESTROYED for process that are targeting such log

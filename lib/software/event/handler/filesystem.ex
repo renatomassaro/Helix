@@ -15,13 +15,11 @@ defmodule Helix.Software.Event.Handler.Filesystem do
 
   # New entries
 
-  handle FileDownloadedEvent do
-    notify_new(event.file, event.to_server_id, event)
-  end
+  def handle_event(event = %FileDownloadedEvent{}),
+    do: notify_new(event.file, event.to_server_id, event)
 
-  handle FileUploadedEvent do
-    notify_new(event.file, event.to_server_id, event)
-  end
+  def handle_event(event = %FileUploadedEvent{}),
+    do: notify_new(event.file, event.to_server_id, event)
 
   # Existing entries being updated
 

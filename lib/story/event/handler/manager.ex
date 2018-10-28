@@ -13,7 +13,7 @@ defmodule Helix.Story.Event.Handler.Manager do
 
   alias Helix.Entity.Event.Entity.Created, as: EntityCreatedEvent
 
-  handle EntityCreatedEvent, on: %EntityCreatedEvent{source: %Account{}} do
+  def handle_event(event = %EntityCreatedEvent{source: %Account{}}) do
     entity = event.entity
     plan = %{dlk: 128, ulk: 16}  # TODO 341
     flowing do
@@ -41,7 +41,6 @@ defmodule Helix.Story.Event.Handler.Manager do
     end
   end
 
-  handle EntityCreatedEvent, on: %EntityCreatedEvent{source: _} do
-    :noop
-  end
+  def handle_event(%EntityCreatedEvent{source: _}),
+    do: :noop
 end

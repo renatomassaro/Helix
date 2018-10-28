@@ -24,7 +24,7 @@ defmodule Helix.Entity.Event.Handler.Database do
   This handler goal is to update the attacker's database with the recently
   obtained password.
   """
-  handle ServerPasswordAcquiredEvent do
+  def handle_event(event = %ServerPasswordAcquiredEvent{}) do
     entity = EntityQuery.fetch(event.entity_id)
 
     DatabaseAction.update_server_password(
@@ -45,7 +45,7 @@ defmodule Helix.Entity.Event.Handler.Database do
   process has finished and successfully revealed the password. Hence, this
   handler's goal is to store the newly discovered password into the Database.
   """
-  handle BankAccountPasswordRevealedEvent do
+  def handle_event(event = %BankAccountPasswordRevealedEvent{}) do
     DatabaseAction.update_bank_password(
       event.entity_id,
       event.account,
@@ -57,7 +57,7 @@ defmodule Helix.Entity.Event.Handler.Database do
   Handler called when a BankToken is successfully acquired, after an Overflow
   attack. Its goal is simple: store the new token on the Hacked Database.
   """
-  handle BankAccountTokenAcquiredEvent do
+  def handle_event(event = %BankAccountTokenAcquiredEvent{}) do
     DatabaseAction.update_bank_token(
       event.entity_id,
       event.account,
@@ -70,7 +70,7 @@ defmodule Helix.Entity.Event.Handler.Database do
   sure the Hacked Database is updated to reflect that account information.
   Note that currently there are two methods for login: using password or token.
   """
-  handle BankAccountLoginEvent do
+  def handle_event(event = %BankAccountLoginEvent{}) do
     DatabaseAction.update_bank_login(
       event.entity_id,
       event.account,
@@ -82,7 +82,7 @@ defmodule Helix.Entity.Event.Handler.Database do
   Handler called after a virus is installed. Its main goal is to add the virus
   to the Hacked Database (`Database.Virus`).
   """
-  handle VirusInstalledEvent do
+  def handle_event(event = %VirusInstalledEvent{}) do
     server_id =
       event
       |> Event.get_process()

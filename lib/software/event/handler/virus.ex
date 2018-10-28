@@ -18,9 +18,7 @@ defmodule Helix.Software.Event.Handler.Virus do
 
   Emits: `VirusInstalledEvent`, `VirusInstallFailedEvent`
   """
-  handle FileInstallProcessedEvent,
-    on: %FileInstallProcessedEvent{backend: :virus}
-  do
+  def handle_event(event = %FileInstallProcessedEvent{backend: :virus}) do
     case VirusAction.install(event.file, event.entity_id) do
       {:ok, virus, events} ->
         Event.emit(events, from: event)
@@ -34,27 +32,22 @@ defmodule Helix.Software.Event.Handler.Virus do
     end
   end
 
-  handle FileInstallProcessedEvent,
-    on: %FileInstallProcessedEvent{backend: _}
-  do
-    :noop
-  end
+  def handle_event(%FileInstallProcessedEvent{backend: _}),
+    do: :noop
 
   @doc """
   Handles the completion of `VirusCollectProcess`.
 
   Emits: `VirusCollectedEvent`
   """
-  handle VirusCollectProcessedEvent do
+  def handle_event(event = %VirusCollectProcessedEvent{}) do
     case VirusAction.collect(event.file, event.payment_info) do
       {:ok, events} ->
         Event.emit(events, from: event)
-
         :ok
 
       {:error, events} ->
         Event.emit(events, from: event)
-
         :error
     end
   end

@@ -7,7 +7,7 @@ defmodule Helix.Network.Event.Handler.Tunnel do
 
   alias Helix.Network.Event.Connection.Closed, as: ConnectionClosedEvent
 
-  handle ConnectionClosedEvent do
+  def handle_event(event = %ConnectionClosedEvent{}) do
     if Enum.empty?(TunnelQuery.get_connections(event.tunnel)) do
       TunnelAction.delete(event.tunnel)
     end

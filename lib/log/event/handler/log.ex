@@ -18,7 +18,7 @@ defmodule Helix.Log.Event.Handler.Log do
 
   Emits: `LogCreatedEvent`, `LogRevisedEvent`
   """
-  handle LogForgeProcessedEvent, on: %LogForgeProcessedEvent{action: :create} do
+  def handle_event(event = %LogForgeProcessedEvent{action: :create}) do
     # `action` is `:create`, so we'll create a new log out of thin air!
     result =
       LogAction.create(
@@ -30,7 +30,7 @@ defmodule Helix.Log.Event.Handler.Log do
     end
   end
 
-  handle LogForgeProcessedEvent, on: %LogForgeProcessedEvent{action: :edit} do
+  def handle_event(event = %LogForgeProcessedEvent{action: :edit}) do
     # `action` is `:edit`, so we'll stack up a revision on an existing log
     revise = fn log ->
       LogAction.revise(
@@ -57,13 +57,10 @@ defmodule Helix.Log.Event.Handler.Log do
 
   Otherwise, we pop the revision out and send the SIG_RETARGET signal.
   """
-  handle LogRecoverProcessedEvent,
-    on: %LogRecoverProcessedEvent{target_log_id: nil}
-  do
-    sigretarget(event)
-  end
+  def handle_event(event = %LogRecoverProcessedEvent{target_log_id: nil}),
+    do: sigretarget(event)
 
-  handle LogRecoverProcessedEvent do
+  def handle_event(event = %LogRecoverProcessedEvent{}) do
     with \
       log = %Log{} <- LogQuery.fetch(event.target_log_id),
       {:ok, _, events} <- LogAction.recover(log, event.entity_id)

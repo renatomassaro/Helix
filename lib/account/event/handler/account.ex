@@ -10,7 +10,6 @@ defmodule Helix.Account.Event.Handler.Account do
 
   Emits EntityCreatedEvent
   """
-  handle AccountVerifiedEvent do
-    AccountFlow.setup_account(event.account, event)
-  end
+  def handle_event(event = %AccountVerifiedEvent{}),
+    do: AccountFlow.setup_account(event.account, event)
 end
