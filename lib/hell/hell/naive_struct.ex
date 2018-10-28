@@ -21,7 +21,7 @@ defmodule HELL.NaiveStruct do
     not_a_struct =
       struct
       |> Map.from_struct()
-      |> Map.put(:"__module_name__", module)
+      |> Map.put(:__module_name__, module)
 
     {:ok, not_a_struct}
   end

@@ -80,6 +80,10 @@ defmodule Helix.Software.Event.Handler.Cracker do
     end
   end
 
+  # TODO: Waiting merge of PR 249 in order to implement OverflowFlow
+  def handle_event(event = %BankTransferAbortedEvent{}),
+    do: ProcessQuery.get_processes_originated_on_connection(event.connection_id)
+
   @spec overflow_of_wire_transfer(Process.t, OverflowProcessedEvent.t) ::
     {:ok, BankToken.t}
     | term
@@ -139,7 +143,4 @@ defmodule Helix.Software.Event.Handler.Cracker do
     end
   end
 
-  # TODO: Waiting merge of PR 249 in order to implement OverflowFlow
-  def handle_event(event = %BankTransferAbortedEvent{}),
-    do: ProcessQuery.get_processes_originated_on_connection(event.connection_id)
 end

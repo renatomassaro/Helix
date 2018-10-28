@@ -134,7 +134,7 @@ defmodule Helix.Software.Model.File do
       end)
 
     file
-    |> Map.replace(:modules, formatted_modules)
+    |> Map.replace!(:modules, formatted_modules)
 
     # For some reason, Ecto assigns the `:built` state sometimes, which leads to
     # some weird behaviour on some Repo inserts. As suggested here[1], we'll use
@@ -215,15 +215,13 @@ defmodule Helix.Software.Model.File do
   Removes the trailing slash of a path, if any. Does not apply when "/" is the
   actual path.
   """
+  defp remove_trailing_slash("/"),
+    do: "/"
   defp remove_trailing_slash(path) do
-    path_size = (byte_size(path) - 1) * 8
-
-    case path do
-      # TODO
-      # <<path::bits-size(path_size)>> <> "/" ->
-      #   <<path::bits-size(path_size)>>
-      path ->
-        path
+    if String.ends_with?(path, "/") do
+      String.slice(path, 0..-2)
+    else
+      path
     end
   end
 

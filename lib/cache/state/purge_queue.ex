@@ -116,7 +116,7 @@ defmodule Helix.Cache.State.PurgeQueue do
   end
 
   def handle_call({:lookup, model, key}, _from, state) do
-    queued? = :ets.match_object(@ets_table_name, {{model, key, :'_'}})
+    queued? = :ets.match_object(@ets_table_name, {{model, key, :_}})
     |> case do
          [] ->
            false

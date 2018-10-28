@@ -11,6 +11,8 @@ defmodule Helix.Event do
   @type source :: t | RequestRelay.t
   @type relay :: source | nil
 
+  @type id :: EventMeta.id
+
   @spec emit([t] | t, from: t) ::
     term
   @doc """
@@ -61,7 +63,7 @@ defmodule Helix.Event do
     |> emit_after(interval)
   end
 
-@spec emit_after([t] | t, interval :: float | non_neg_integer) ::
+  @spec emit_after([t] | t, interval :: float | non_neg_integer) ::
     term
   @doc """
   Emits the given event(s) after `interval` milliseconds have passed.
@@ -73,8 +75,8 @@ defmodule Helix.Event do
   def emit_after(event, interval),
     do: EventTimer.emit_after(event, interval)
 
-  # @spec inherit(t, source) ::
-  #   t
+  @spec inherit(t, source) ::
+    t
   docp """
   The application wants to emit `event`, which is coming from `source`. On this
   case, `event` will inherit the source's metadata according to the logic below.
@@ -122,4 +124,12 @@ defmodule Helix.Event do
     defdelegate unquote(:"set_#{field}")(event, value),
       to: EventMeta
   end
+
+  @spec generate_id() ::
+    id
+  @doc """
+  Returns a valid UUIDv4 used as event identifier.
+  """
+  def generate_id,
+    do: Ecto.UUID.generate()
 end

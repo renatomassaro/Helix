@@ -1,4 +1,4 @@
-# # TODO: This whole module needs to be rewritten with the new Process interface.
+# TODO: This whole module needs to be rewritten with the new Process interface.
 defmodule Helix.Software.Model.SoftwareType.Firewall.Passive do
 
 #   @type t :: %__MODULE__{

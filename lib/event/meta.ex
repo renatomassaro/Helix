@@ -7,13 +7,15 @@ defmodule Helix.Event.Meta do
   alias Helix.Process.Model.Process
 
   @type t :: %{
-    event_id: HETypes.uuid | nil,
+    event_id: id | nil,
     process_id: Process.id | nil,
     process: Process.t | nil,
     stack: [Event.t] | nil,
     request_id: binary | nil,
     bounce_id: Bounce.t | nil
   }
+
+  @type id :: HETypes.uuid
 
   @type rendered :: %{
     event_id: String.t | nil,

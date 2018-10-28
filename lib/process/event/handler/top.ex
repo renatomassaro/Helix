@@ -69,42 +69,6 @@ defmodule Helix.Process.Event.Handler.TOP do
   def handle_event(%ProcessCreatedEvent{confirmed: true}),
     do: :noop
 
-  @spec call_recalque(Process.t, Event.t) ::
-    {gateway_recalque :: boolean, target_recalque :: boolean}
-  defp call_recalque(process = %Process{}, source_event, opts \\ []) do
-    %{gateway: gateway_recalque, target: target_recalque} =
-      TOPAction.recalque(process, source: source_event)
-
-    gateway_recalque =
-      case gateway_recalque do
-        {:ok, _processes, events} ->
-          unless opts[:silent] do
-            Event.emit(events, from: source_event)
-          end
-          true
-
-        _ ->
-          false
-      end
-
-    target_recalque =
-      case target_recalque do
-        {:ok, _processes, events} ->
-          unless opts[:silent] do
-            Event.emit(events, from: source_event)
-          end
-          true
-
-        :noop ->
-          true
-
-        _ ->
-          false
-      end
-
-    {gateway_recalque, target_recalque}
-  end
-
   @doc """
   Handler for changes in objects that might be of interest to some processes.
 
@@ -158,6 +122,42 @@ defmodule Helix.Process.Event.Handler.TOP do
     |> ProcessQuery.get_processes_targeting_log()
     |> filter_self_message(event)
     |> Enum.each(&ProcessFlow.signal(&1, :SIG_TGT_LOG_DESTROYED, signal_param))
+  end
+
+  @spec call_recalque(Process.t, Event.t) ::
+    {gateway_recalque :: boolean, target_recalque :: boolean}
+  defp call_recalque(process = %Process{}, source_event, opts \\ []) do
+    %{gateway: gateway_recalque, target: target_recalque} =
+      TOPAction.recalque(process, source: source_event)
+
+    gateway_recalque =
+      case gateway_recalque do
+        {:ok, _processes, events} ->
+          unless opts[:silent] do
+            Event.emit(events, from: source_event)
+          end
+          true
+
+        _ ->
+          false
+      end
+
+    target_recalque =
+      case target_recalque do
+        {:ok, _processes, events} ->
+          unless opts[:silent] do
+            Event.emit(events, from: source_event)
+          end
+          true
+
+        :noop ->
+          true
+
+        _ ->
+          false
+      end
+
+    {gateway_recalque, target_recalque}
   end
 
   docp """

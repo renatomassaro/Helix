@@ -38,7 +38,8 @@ defmodule Helix.Log.Event.LogTest do
       event = EventSetup.Log.revised()
 
       # Generates the payload
-      assert {:ok, data} = PublishableHelper.generate_payload(event, @mocked_socket)
+      assert {:ok, data} =
+        PublishableHelper.generate_payload(event, @mocked_socket)
 
       # Returned payload is json-friendly
       assert data.log_id == to_string(event.log.log_id)

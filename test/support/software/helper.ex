@@ -139,14 +139,13 @@ defmodule Helix.Test.Software.Helper do
   defp add_leading_slash(path),
     do: "/" <> path
 
+  defp remove_trailing_slash("/"),
+    do: "/"
   defp remove_trailing_slash(path) do
-    path_size = (byte_size(path) - 1) * 8
-
-    case path do
-      # <<path::bits-size(path_size)>> <> "/" ->
-      #   <<path::bits-size(path_size)>>
-      path ->
-        path
+    if String.ends_with?(path, "/") do
+      String.slice(path, 0..-2)
+    else
+      path
     end
   end
 end

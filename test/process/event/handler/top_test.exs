@@ -27,8 +27,8 @@ defmodule Helix.Process.Event.Handler.TOPTest do
 
     params =
       params
-      |> Map.replace(:data, FakeDefaultProcess.new())
-      |> Map.replace(:type, :fake_default_process)
+      |> Map.replace!(:data, FakeDefaultProcess.new())
+      |> Map.replace!(:type, :fake_default_process)
 
     {:ok, process} = ProcessInternal.create(params)
 
@@ -59,8 +59,8 @@ defmodule Helix.Process.Event.Handler.TOPTest do
 
     params =
       params
-      |> Map.replace(:data, FakeDefaultProcess.new())
-      |> Map.replace(:type, :fake_default_process)
+      |> Map.replace!(:data, FakeDefaultProcess.new())
+      |> Map.replace!(:type, :fake_default_process)
 
     {:ok, process} = ProcessInternal.create(params)
 
