@@ -9,7 +9,7 @@ defmodule Helix.Account.Action.Account do
   alias Helix.Account.Event.Account.Verified, as: AccountVerifiedEvent
 
   @spec create(Account.email, Account.username, Account.password) ::
-    {:ok, Account.t}
+    {:ok, Account.t, events :: list}
     | {:error, Ecto.Changeset.t}
   @doc """
   Creates an user

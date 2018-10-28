@@ -21,6 +21,7 @@ defmodule Helix.Server.Action.Flow.Server do
 
   @spec setup(Server.type, Entity.t, Component.mobo, Event.relay) ::
     {:ok, Server.t}
+    | {:error, :internal}
   @doc """
   Creates a new server of `type`. The server's motherboard must be passed.
 
@@ -39,6 +40,9 @@ defmodule Helix.Server.Action.Flow.Server do
         on_fail(fn -> EntityAction.unlink_server(server) end)
       do
         {:ok, server}
+      else
+        _ ->
+          {:error, :internal}
       end
     end
   end

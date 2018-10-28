@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Log.Process.Recover do
   @moduledoc """
@@ -94,11 +94,6 @@ process Helix.Log.Process.Recover do
   def get_process_type(_, %{method: :custom}),
     do: :log_recover_custom
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params),
-    do: get_resources params
-
   @spec find_next_target(Server.idt) ::
     Log.t
     | nil
@@ -126,7 +121,8 @@ process Helix.Log.Process.Recover do
 
     alias Helix.Log.Event.Recover.Processed, as: LogRecoverProcessedEvent
 
-    on_completion(process, data) do
+    @doc false
+    def on_complete(process, data, _reason) do
       event = LogRecoverProcessedEvent.new(process, data)
 
       # We can't send a SIG_RETARGET now because if we do so, it might fetch the
@@ -142,7 +138,7 @@ process Helix.Log.Process.Recover do
     it's a `Global` process, a random log is selected on each iteration. If it's
     a `Custom` process, however, the same log is always selected.
     """
-    on_retarget(process, _data) do
+    def on_retarget(process, _data) do
       {new_log, method} =
         # On `log_recover_global`, we must select a new log on each iteration.
         if process.type == :log_recover_global do
@@ -176,22 +172,18 @@ process Helix.Log.Process.Recover do
     If the Log currently being recovered was recovered by someone else,
     automatically `:retarget` the process.
     """
-    on_target_log_recovered(_process, _data, _log) do
-      {:SIG_RETARGET, []}
-    end
+    def on_target_log_recovered(_process, _data, _log),
+      do: {:SIG_RETARGET, []}
 
     @doc """
     If the Log currently being recovered was destroyed, `:retarget` if it's a
     global process, otherwise the custom process should be killed and the user
     notified.
     """
-    on_target_log_destroyed(%{type: :log_recover_global}, _data, _log) do
-      {:SIG_RETARGET, []}
-    end
-
-    on_target_log_destroyed(%{type: :log_recover_custom}, _data, _log) do
-      {{:SIGKILL, :tgt_log_deleted}, []}
-    end
+    def on_target_log_destroyed(%{type: :log_recover_global}, _data, _log),
+      do: {:SIG_RETARGET, []}
+    def on_target_log_destroyed(%{type: :log_recover_custom}, _data, _log),
+      do: {{:SIGKILL, :tgt_log_deleted}, []}
   end
 
   resourceable do
@@ -199,7 +191,6 @@ process Helix.Log.Process.Recover do
     alias Helix.Software.Factor.File, as: FileFactor
     alias Helix.Log.Factor.Log, as: LogFactor
 
-    @type params :: LogRecoverProcess.resources_params
     @type factors ::
       %{
         optional(:recover) => %{version: FileFactor.fact_version},
@@ -232,11 +223,11 @@ process Helix.Log.Process.Recover do
 
     # `log` may be nil iff `method = :global`, when there are no logs that can
     # be recovered. This means infinite work!
-    cpu(%{log: nil}) do
+    def cpu(_, %{log: nil}) do
       999_999_999_999
     end
 
-    cpu(%{method: method}) do
+    def cpu(f, %{method: method}) do
       multiplier =
         if method == :custom,
           do: 500,
@@ -251,11 +242,10 @@ process Helix.Log.Process.Recover do
       end
     end
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
 
-    static do
+    def static do
       %{
         paused: %{ram: 100},
         running: %{ram: 200}
@@ -265,11 +255,27 @@ process Helix.Log.Process.Recover do
 
   executable do
 
-    import HELL.Macros
+    alias Helix.Entity.Model.Entity
+    alias Helix.Network.Model.Connection
+    alias Helix.Network.Model.Network
+    alias Helix.Software.Model.File
+    alias Helix.Log.Model.Log
 
-    @type custom :: %{log: Log.t | nil}
+    @type custom ::
+      %{log: Log.t | nil}
 
-    custom(_, target, _params, meta) do
+    @type meta ::
+      %{
+        recover: File.t,
+        ssh: Connection.t | nil,
+        method: :global | :custom,
+        log: Log.t | nil,
+        entity_id: Entity.id,
+        network_id: Network.id | nil
+      }
+
+    @doc false
+    def custom(_, target, _params, meta) do
       log =
         # If it's a `global` recovery, we'll randomly select a recoverable log
         if meta.method == :global do
@@ -283,7 +289,8 @@ process Helix.Log.Process.Recover do
       %{log: log}
     end
 
-    resources(_gateway, _, _params, meta, custom) do
+    @doc false
+    def resources(_gateway, _, _params, meta, custom) do
       log =
         if meta.method == :global do
           custom.log
@@ -291,55 +298,49 @@ process Helix.Log.Process.Recover do
           meta.log
         end
 
+      recover_version =
+        if is_nil(meta.recover) do
+          nil
+        else
+          meta.recover.modules.log_recover.version
+        end
+
       %{
         log: log,
         recover: meta.recover,
+        recover_version: recover_version,
         method: meta.method,
         entity_id: meta.entity_id
       }
     end
 
-    source_file(_gateway, _target, _params, %{recover: recover}, _) do
-      recover.file_id
-    end
+    @doc false
+    def source_file(_gateway, _target, _params, %{recover: recover}, _),
+      do: recover
 
-    docp """
+    @doc """
     The LogRecoverProcess have a `source_connection` when the player is
     recovering a log on a remote server.
 
     However, if the operation is local, there is no `source_connection`.
     """
-    source_connection(_, _, _, %{ssh: ssh = %Connection{}}, _) do
-      ssh
-    end
+    def source_connection(_, _, _, %{ssh: ssh = %Connection{}}, _),
+      do: ssh
+    def source_connection(_, _, _, _, _),
+      do: nil
 
-    docp """
-    `custom` log is nil => there are no recoverable logs on the server.
+    @doc """
+    When `log` is nil => there are no recoverable logs on the server.
+
+    Otherwise, when `log` is not nil => Random recoverable log was selected, and
+    that is the one we'll work on during this process iteration.
+
+    Finally, when method is `custom`, the player already chose which log we'll
+    work on.
     """
-    target_log(_gateway, _target, _params, %{method: :global}, %{log: nil}) do
-      nil
-    end
-
-    docp """
-    `custom` log is not nil => Random recoverable log was select, and that is
-    the one we'll work on during this process iteration.
-    """
-    target_log(_gateway, _target, _params, %{method: :global}, %{log: log}) do
-      log.log_id
-    end
-
-    docp """
-    Method is `custom`, so the player already choose which log we'll work on.
-    """
-    target_log(_gateway, _target, _params, %{method: :custom, log: log}, _) do
-      log.log_id
-    end
-  end
-
-  process_viewable do
-
-    @type data :: %{}
-
-    render_empty_data()
+    def target_log(_gateway, _target, _params, %{method: :global}, %{log: log}),
+      do: log
+    def target_log(_gateway, _target, _params, %{method: :custom, log: log}, _),
+      do: log
   end
 end

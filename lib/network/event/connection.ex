@@ -55,9 +55,8 @@ defmodule Helix.Network.Event.Connection do
         }
       end
 
-      def log_map(e) do
-        %{}
-      end
+      def log_map(_),
+        do: %{}
     end
   end
 

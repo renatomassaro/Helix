@@ -14,8 +14,6 @@ defmodule HELL.Hack.Experience do
       Helix.Websocket.Requestable,
       Helix.Websocket.Joinable,
       Helix.Cache.Model.Cacheable,
-      Helix.Process.Model.Processable,
-      Helix.Process.Public.View.ProcessViewable,
       Helix.Story.Model.Steppable
     ]
 
@@ -32,21 +30,6 @@ defmodule HELL.Hack.Experience do
         {:check_permissions, 2},
         {:join, 3},
         {:log_error, 3}
-      ],
-      "Elixir.Helix.Process.Model.Processable" => [
-        {:kill, 3},
-        {:complete, 2},
-        {:retarget, 2},
-        {:source_connection_closed, 3},
-        {:target_connection_closed, 3},
-        {:target_log_revised, 3},
-        {:target_log_recovered, 3},
-        {:target_log_destroyed, 3},
-        {:after_read_hook, 1}
-      ],
-      "Elixir.Helix.Process.Public.View.ProcessViewable" => [
-        {:get_scope, 4},
-        {:render, 3}
       ],
       "Elixir.Helix.Story.Model.Steppable" => [
         {:start, 1},

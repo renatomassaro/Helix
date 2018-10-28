@@ -52,7 +52,10 @@ defmodule Helix.Process.Query.Process do
 
   Returns both local and remote processes.
   """
-  defdelegate get_processes_on_server(gateway_id),
+  defdelegate get_processes_on_server(server_id),
+    to: ProcessInternal
+
+  defdelegate get_processes_from_entity_on_server(server_id, entity_id),
     to: ProcessInternal
 
   @spec get_processes_originated_on_connection(Connection.idt) ::

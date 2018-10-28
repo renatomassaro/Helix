@@ -28,7 +28,7 @@ defmodule Helix.Event.Trigger.PublishableTest do
   # As such, we use `ProcessCreatedEvent` here merely as an example. Peace.
   describe "publication_handler/1" do
     test "publishes to gateway that a process was created (single-server)" do
-      {_socket, %{gateway: gateway}} =
+      {_socket, %{gateway: gateway, gateway_entity: entity}} =
         ChannelSetup.join_server(own_server: true)
 
       # Remove the `LogCreatedEvent` from the queue (so it won't affect tests)
@@ -38,11 +38,13 @@ defmodule Helix.Event.Trigger.PublishableTest do
         EventSetup.Process.created(
           gateway_id: gateway.server_id,
           target_id: gateway.server_id,
+          entity_id: entity.entity_id,
           type: :bruteforce
         )
 
       # Process happens on the same server
       assert event.gateway_id == event.target_id
+      assert event.process.source_entity_id == entity.entity_id
 
       EventHelper.emit(event)
 
@@ -60,9 +62,8 @@ defmodule Helix.Event.Trigger.PublishableTest do
       # Make sure all we need is on the process return
       assert_id process.process_id, event.process.process_id
       assert process.type == event.process.type |> to_string()
-      assert_id process.access.source_file.id, event.process.src_file_id
-      assert_id \
-        process.access.source_connection_id, event.process.src_connection_id
+      assert_id process.source_file.id, event.process.src_file_id
+      assert_id process.source_connection_id, event.process.src_connection_id
       assert_id process.network_id, event.process.network_id
       assert process.target_ip
 
@@ -75,7 +76,7 @@ defmodule Helix.Event.Trigger.PublishableTest do
     end
 
     test "multi-server" do
-      {_, %{gateway: gateway, destination: destination}} =
+      {_, %{gateway: gateway, gateway_entity: entity, destination: endpoint}} =
         ChannelSetup.join_server()
 
       # Filter out the usual `LogCreatedEvent` after remote server join
@@ -84,12 +85,16 @@ defmodule Helix.Event.Trigger.PublishableTest do
       event =
         EventSetup.Process.created(
           gateway_id: gateway.server_id,
-          target_id: destination.server_id,
+          target_id: endpoint.server_id,
+          entity_id: entity.entity_id,
           type: :bruteforce
         )
 
       # Process happens on two different servers
       refute event.gateway_id == event.target_id
+
+      # But was originated by `entity_id`
+      assert event.process.source_entity_id == entity.entity_id
 
       EventHelper.emit(event)
 
@@ -107,8 +112,7 @@ defmodule Helix.Event.Trigger.PublishableTest do
       # Make sure all we need is on the process return
       assert_id process.process_id, event.process.process_id
       assert process.type == event.process.type |> to_string()
-      assert_id \
-        process.access.source_connection_id, event.process.src_connection_id
+      assert_id process.source_connection_id, event.process.src_connection_id
       assert_id process.network_id, event.process.network_id
       assert process.target_ip
 

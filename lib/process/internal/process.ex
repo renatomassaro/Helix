@@ -1,5 +1,6 @@
 defmodule Helix.Process.Internal.Process do
 
+  alias Helix.Entity.Model.Entity
   alias Helix.Log.Model.Log
   alias Helix.Network.Model.Connection
   alias Helix.Server.Model.Server
@@ -33,6 +34,21 @@ defmodule Helix.Process.Internal.Process do
   def get_processes_on_server(server_id) do
     server_id
     |> Process.Query.on_server()
+    |> Repo.all()
+    |> Enum.map(&Process.format/1)
+  end
+
+  @spec get_processes_from_entity_on_server(Server.idt, Entity.id) ::
+    [Process.t]
+  @doc """
+  Returns all processes originated by `entity_id` on the given server. This
+  include processes that were started at that server (`local`) and processes
+  that target that server (`remote`).
+  """
+  def get_processes_from_entity_on_server(server_id, entity_id) do
+    server_id
+    |> Process.Query.on_server()
+    |> Process.Query.by_source_entity(entity_id)
     |> Repo.all()
     |> Enum.map(&Process.format/1)
   end

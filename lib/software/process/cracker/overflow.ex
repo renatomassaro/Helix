@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Software.Process.Cracker.Overflow do
   @moduledoc false
@@ -38,19 +38,12 @@ process Helix.Software.Process.Cracker.Overflow do
   def new(_, _),
     do: %__MODULE__{}
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params = %{cracker: %File{}}),
-    do: get_resources params
-
   processable do
-
-    alias Helix.Software.Process.Cracker.Overflow, as: OverflowProcess
 
     alias Helix.Software.Event.Cracker.Overflow.Processed,
       as: OverflowProcessedEvent
 
-    on_completion(process, data) do
+    def on_complete(process, data, _reason) do
       event = OverflowProcessedEvent.new(process, data)
 
       {:delete, [event]}
@@ -61,9 +54,7 @@ process Helix.Software.Process.Cracker.Overflow do
 
     alias Helix.Software.Factor.File, as: FileFactor
     alias Helix.Software.Model.File
-    alias Helix.Software.Process.Cracker.Overflow, as: OverflowProcess
 
-    @type params :: OverflowProcess.resources_params
     @type factors ::
       %{
         cracker: %{version: FileFactor.fact_version}
@@ -76,15 +67,14 @@ process Helix.Software.Process.Cracker.Overflow do
     end
 
     # TODO: Testing and proper balance
-    cpu do
+    def cpu(f, _) do
       f.cracker.version.overflow
     end
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
 
-    static do
+    def static do
       %{
         paused: %{ram: 100},
         running: %{ram: 200}
@@ -94,33 +84,36 @@ process Helix.Software.Process.Cracker.Overflow do
 
   executable do
 
-    @type custom :: %{}
+    alias Helix.Network.Model.Connection
+    alias Helix.Software.Model.File
+    alias Helix.Process.Model.Process
 
-    resources(_, _, _, %{cracker: cracker}, _) do
-      %{cracker: cracker}
-    end
+    @type meta ::
+      %{
+        cracker: File.t,
+        connection: Connection.t | nil,
+        process: Process.t,
+        ssh: Connection.t | nil
+      }
 
-    source_file(_gateway, _target, _params, %{cracker: cracker}, _) do
-      cracker.file_id
-    end
+    @doc false
+    def resources(_, _, _, %{cracker: cracker}, _),
+      do: %{cracker: cracker}
 
-    source_connection(_, _, _, %{ssh: ssh}, _) do
-      ssh.connection_id
-    end
+    @doc false
+    def source_file(_gateway, _target, _params, %{cracker: cracker}, _),
+      do: cracker
 
-    target_connection(_, _, _, %{connection: connection}, _) do
-      connection.connection_id
-    end
+    @doc false
+    def source_connection(_, _, _, %{ssh: ssh}, _),
+      do: ssh
 
-    target_process(_, _, _, %{process: process}, _) do
-      process.process_id
-    end
-  end
+    @doc false
+    def target_connection(_, _, _, %{connection: connection}, _),
+      do: connection
 
-  process_viewable do
-
-    @type data :: %{}
-
-    render_empty_data()
+    @doc false
+    def target_process(_, _, _, %{process: process}, _),
+      do: process
   end
 end

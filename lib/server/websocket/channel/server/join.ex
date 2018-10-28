@@ -30,6 +30,7 @@ join Helix.Server.Websocket.Channel.Server.Join do
   alias Helix.Network.Henforcer.Network, as: NetworkHenforcer
   alias Helix.Server.Henforcer.Channel, as: ChannelHenforcer
   alias Helix.Server.Model.Server
+  alias Helix.Server.Public.Index, as: ServerIndex
   alias Helix.Server.Public.Server, as: ServerPublic
   alias Helix.Server.State.Websocket.Channel, as: ServerWebsocketChannelState
   alias Helix.Server.Websocket.Channel.Server.Join, as: ServerJoin
@@ -220,8 +221,8 @@ join Helix.Server.Websocket.Channel.Server.Join do
 
     bootstrap =
       gateway
-      |> ServerPublic.bootstrap_gateway(entity.entity_id)
-      |> ServerPublic.render_bootstrap_gateway()
+      |> ServerIndex.gateway(entity.entity_id)
+      |> ServerIndex.render_gateway(gateway, entity.entity_id)
       |> WebsocketUtils.wrap_data()
 
     log :join, gateway.server_id,
@@ -297,8 +298,8 @@ join Helix.Server.Websocket.Channel.Server.Join do
 
       bootstrap =
         destination
-        |> ServerPublic.bootstrap_remote(destination_entity.entity_id)
-        |> ServerPublic.render_bootstrap_remote()
+        |> ServerIndex.remote(destination_entity.entity_id)
+        |> ServerIndex.render_remote(destination, destination_entity.entity_id)
         |> WebsocketUtils.wrap_data()
 
       log :join, destination.server_id,

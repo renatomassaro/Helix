@@ -2,21 +2,6 @@ defmodule Helix.Websocket.Utils do
 
   alias HELL.Utils
   alias Helix.Websocket
-  alias Helix.Process.Model.Process
-  alias Helix.Process.Public.View.Process, as: ProcessView
-
-  @spec render_process(Process.t, Websocket.t) ::
-    %{data: map}
-  @doc """
-  Helper that automatically renders the reply with the recently created process.
-  """
-  def render_process(process = %Process{}, socket) do
-    process_data = process.data
-    server_id = socket.assigns.gateway.server_id
-    entity_id = socket.assigns.entity_id
-
-    ProcessView.render(process_data, process, server_id, entity_id)
-  end
 
   @spec reply_ok(Websocket.payload, Websocket.t) ::
     Websocket.reply_ok

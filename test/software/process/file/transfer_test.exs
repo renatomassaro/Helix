@@ -2,7 +2,6 @@ defmodule Helix.Software.Process.File.TransferTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Process.Model.Processable
   alias Helix.Software.Model.Storage
   alias Helix.Software.Process.File.Transfer, as: FileTransferProcess
 
@@ -10,6 +9,7 @@ defmodule Helix.Software.Process.File.TransferTest do
 
   alias Helix.Test.Network.Helper, as: NetworkHelper
   alias Helix.Test.Process.Helper, as: ProcessHelper
+  alias Helix.Test.Process.Helper.Processable, as: ProcessableHelper
   alias Helix.Test.Process.Setup, as: ProcessSetup
   alias Helix.Test.Process.TOPHelper
   alias Helix.Test.Software.Setup, as: SoftwareSetup
@@ -50,7 +50,7 @@ defmodule Helix.Software.Process.File.TransferTest do
 
       db_process = ProcessHelper.raw_get(process)
 
-      serialized = Processable.after_read_hook(db_process.data)
+      serialized = ProcessableHelper.after_read_hook(db_process.data)
 
       assert %Storage.ID{} = serialized.destination_storage_id
       assert is_atom(serialized.connection_type)

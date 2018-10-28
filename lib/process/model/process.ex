@@ -28,8 +28,8 @@ defmodule Helix.Process.Model.Process do
   alias Helix.Server.Model.Server
   alias Helix.Software.Model.File
   alias Helix.Universe.Bank.Model.BankAccount
-  alias Helix.Process.Model.Processable
   alias Helix.Process.Model.TOP
+  alias Helix.Process.Processable
   alias __MODULE__, as: Process
 
   @type t ::
@@ -97,7 +97,7 @@ defmodule Helix.Process.Model.Process do
 
   ## SIGTERM
 
-  Process reached its objective. Handled by Processable's `on_completion`.
+  Process reached its objective. Handled by Processable's `on_complete`.
   This callback MUST be implemented by the process.
 
   Note that, despite the name, it has no similarities with UNIX's SIGTERM.
@@ -787,6 +787,7 @@ defmodule Helix.Process.Model.Process do
 
   query do
 
+    alias Helix.Entity.Model.Entity
     alias Helix.Log.Model.Log
     alias Helix.Network.Model.Connection
     alias Helix.Network.Model.Network
@@ -815,6 +816,11 @@ defmodule Helix.Process.Model.Process do
       Queryable.t
     def by_target(query \\ Process, id),
       do: where(query, [p], p.target_id == ^id)
+
+    @spec by_source_entity(Queryable.t, Entity.idtb) ::
+      Queryable.t
+    def by_source_entity(query \\ Process, id),
+      do: where(query, [p], p.source_entity_id == ^id)
 
     @spec by_source_file(Queryable.t, File.idtb) ::
       Queryable.t

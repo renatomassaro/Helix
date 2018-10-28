@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Software.Process.File.Transfer do
   @moduledoc """
@@ -15,6 +15,7 @@ process Helix.Software.Process.File.Transfer do
   alias Helix.Network.Model.Network
   alias Helix.Software.Model.File
   alias Helix.Software.Model.Storage
+  alias __MODULE__, as: FileTransferProcess
 
   process_struct [:type, :destination_storage_id, :connection_type]
 
@@ -69,11 +70,6 @@ process Helix.Software.Process.File.Transfer do
     }
   end
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params = %{type: _, file: _, network_id: _}),
-    do: get_resources params
-
   processable do
     @moduledoc """
     Processable handler for SoftwareFileTransferProcess
@@ -87,7 +83,6 @@ process Helix.Software.Process.File.Transfer do
 
     alias Helix.Server.Model.Server
     alias Helix.Software.Model.Storage
-    alias Helix.Software.Process.File.Transfer, as: FileTransferProcess
 
     alias Helix.Software.Event.File.Transfer.Aborted,
       as: FileTransferAbortedEvent
@@ -95,9 +90,19 @@ process Helix.Software.Process.File.Transfer do
       as: FileTransferProcessedEvent
 
     @doc """
+    Emits `FileTransferProcessedEvent.t` when process completes.
+    """
+    def on_complete(process, data, _reason) do
+      {from_id, to_id} = get_servers_context(data, process)
+      event = FileTransferProcessedEvent.new(process, data, from_id, to_id)
+
+      {:delete, [event]}
+    end
+
+    @doc """
     Emits `FileTransferAbortedEvent.t` when/if process gets killed.
     """
-    on_kill(process, data, _reason) do
+    def on_kill(process, data, _reason) do
       reason = :killed
       {from_id, to_id} = get_servers_context(data, process)
 
@@ -107,22 +112,12 @@ process Helix.Software.Process.File.Transfer do
       {:delete, [event]}
     end
 
-    @doc """
-    Emits `FileTransferProcessedEvent.t` when process completes.
-    """
-    on_completion(process, data) do
-      {from_id, to_id} = get_servers_context(data, process)
-      event = FileTransferProcessedEvent.new(process, data, from_id, to_id)
-
-      {:delete, [event]}
-    end
-
     @spec get_servers_context(data :: term, process :: term) ::
       context :: {from_server :: Server.id, to_server :: Server.id}
     defp get_servers_context(%{type: :download}, process),
       do: {process.target_id, process.gateway_id}
     defp get_servers_context(%{type: :upload}, process),
-        do: {process.gateway_id, process.target_id}
+      do: {process.gateway_id, process.target_id}
 
     def after_read_hook(data) do
       %FileTransferProcess{
@@ -138,10 +133,7 @@ process Helix.Software.Process.File.Transfer do
     Sets the objectives to FileTransferProcess
     """
 
-    alias Helix.Software.Process.File.Transfer, as: FileTransferProcess
     alias Helix.Software.Factor.File, as: FileFactor
-
-    @type params :: FileTransferProcess.resources_params
 
     @type factors ::
       %{
@@ -155,50 +147,45 @@ process Helix.Software.Process.File.Transfer do
       factor Helix.Software.Factor.File, params, only: :size
     end
 
+    @doc false
+    def network_id(_, %{network_id: network_id}),
+      do: network_id
+
     @doc """
     Uses the downlink resource during download.
     """
-    dlk(%{type: :download}) do
-      f.file.size
-    end
+    def dlk(f, %{type: :download}),
+      do: f.file.size
+    def dlk(_, %{type: :upload}),
+      do: 0
 
     @doc """
     Uses the uplink resource during upload.
     """
-    ulk(%{type: :upload}) do
-      f.file.size
-    end
+    def ulk(f, %{type: :upload}),
+      do: f.file.size
+    def ulk(_, %{type: :download}),
+      do: 0
 
-    network(%{network_id: network_id}) do
-      network_id
-    end
-
-    # Safety fallbacks
-    dlk(%{type: :upload})
-    ulk(%{type: :download})
-
-    dynamic(%{type: :download}) do
-      [:dlk]
-    end
-
-    dynamic(%{type: :upload}) do
-      [:ulk]
-    end
-
-    static do
+    @doc false
+    def static do
       %{
         paused: %{ram: 10},
         running: %{ram: 20}
       }
     end
 
-    r_dynamic(%{type: :download}) do
-      [:ulk]
-    end
+    @doc false
+    def dynamic(%{type: :download}),
+      do: [:dlk]
+    def dynamic(%{type: :upload}),
+      do: [:ulk]
 
-    r_dynamic(%{type: :upload}) do
-      [:dlk]
-    end
+    @doc false
+    def r_dynamic(%{type: :download}),
+      do: [:ulk]
+    def r_dynamic(%{type: :upload}),
+      do: [:dlk]
   end
 
   executable do
@@ -206,9 +193,20 @@ process Helix.Software.Process.File.Transfer do
     Defines how FileTransferProcess should be executed.
     """
 
-    @type custom :: %{}
+    alias Helix.Network.Model.Bounce
+    alias Helix.Network.Model.Network
+    alias Helix.Software.Model.File
 
-    resources(_, _, params, meta, _) do
+    @type meta ::
+      %{
+        file: File.t,
+        type: FileTransferProcess.process_type,
+        network_id: Network.id,
+        bounce: Bounce.idt | nil
+      }
+
+    @doc false
+    def resources(_, _, params, meta, _) do
       %{
         type: params.type,
         file: meta.file,
@@ -216,67 +214,23 @@ process Helix.Software.Process.File.Transfer do
       }
     end
 
-    target_file(_gateway, _target, _params, %{file: file}, _) do
-      file.file_id
-    end
+    @doc false
+    def target_file(_gateway, _target, _params, %{file: file}, _),
+      do: file
 
-    source_connection(_gateway, _target, params, _, _) do
-      {:create, params.connection_type}
-    end
+    @doc false
+    def source_connection(_gateway, _target, params, _, _),
+      do: {:create, params.connection_type}
   end
 
-  process_viewable do
-    @moduledoc """
-    Renders the FileTransferProcess to the client.
-    """
+  viewable do
 
-    @type data ::
-      data_download_full
-      | data_download_partial
-      | data_upload
-
-    @typep download ::
+    @doc false
+    def render_data(process) do
       %{
-        :type => :download,
-        term => term
+        connection_type: to_string(process.data.connection_type),
+        storage_id: to_string(process.data.destination_storage_id),
       }
-
-    @typep upload ::
-      %{
-        :type => :upload,
-        term => term
-      }
-
-    @typep data_download_full ::
-      %{
-        connection_type: String.t,
-        storage_id: String.t
-      }
-
-    @typep data_download_partial ::
-      %{
-        connection_type: String.t
-      }
-
-    @typep data_upload :: %{}
-
-    @spec render_data(download, :full) :: data_download_full
-    @spec render_data(download, :partial) :: data_download_partial
-    @spec render_data(upload, :full | :partial) :: data_upload
-
-    render_data(data = %{type: :download}, :full) do
-      %{
-        connection_type: to_string(data.connection_type),
-        storage_id: to_string(data.destination_storage_id)
-      }
-    end
-    render_data(data = %{type: :download}, :partial) do
-      %{
-        connection_type: to_string(data.connection_type)
-      }
-    end
-    render_data(_, _) do
-      %{}
     end
   end
 end

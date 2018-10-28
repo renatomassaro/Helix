@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Software.Process.Virus.Collect do
   @moduledoc """
@@ -60,17 +60,13 @@ process Helix.Software.Process.Virus.Collect do
     }
   end
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params),
-    do: get_resources params
-
   processable do
 
     alias Helix.Software.Event.Virus.Collect.Processed,
       as: VirusCollectProcessedEvent
 
-    on_completion(process, data) do
+    @doc false
+    def on_complete(process, data, _reason) do
       event = VirusCollectProcessedEvent.new(process, data)
 
       {:delete, [event]}
@@ -79,62 +75,58 @@ process Helix.Software.Process.Virus.Collect do
 
   resourceable do
 
-    alias Helix.Software.Process.Virus.Collect, as: VirusCollectProcess
-
-    @type params :: VirusCollectProcess.resources_params
-
     @type factors :: map
 
     get_factors(_params) do
     end
 
-    cpu(_) do
+    def cpu(_, _) do
       500
     end
 
-    static do
+    def static do
       %{
         paused: %{ram: 10},
         running: %{ram: 20}
       }
     end
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
   end
 
   executable do
 
-    @type custom :: %{}
+    alias Helix.Network.Model.Bounce
+    alias Helix.Network.Model.Network
+    alias Helix.Software.Model.File
 
-    resources(_, _, _params, _meta, _) do
-      %{}
-    end
+    @type meta ::
+      %{
+        virus: File.t,
+        network_id: Network.id,
+        bounce: Bounce.idt | nil
+      }
 
-    source_file(_, _, _, %{virus: virus}, _) do
-      virus.file_id
-    end
+    @doc false
+    def source_file(_, _, _, %{virus: virus}, _),
+      do: virus.file_id
 
-    source_connection(_, _, _, _, _) do
-      {:create, :virus_collect}
-    end
+    @doc false
+    def source_connection(_, _, _, _, _),
+      do: {:create, :virus_collect}
 
-    # There's no bank account when collecting the earnings of a `miner` virus
-    target_bank_account(_, _, _, %{virus: %{software_type: :virus_miner}}, _) do
+    @doc """
+    There's no bank account when collecting the earnings of a `miner` virus. For
+    any other virus, there must always have a bank account.
+    """
+    def target_bank_account(
+      _, _, _, %{virus: %{software_type: :virus_miner}}, _)
+    do
       nil
     end
 
-    # For any other virus, there must always have a bank account
-    target_bank_account(_, _, %{bank_account: bank_acc}, _, _) do
-      bank_acc
-    end
-  end
-
-  process_viewable do
-
-    @type data :: %{}
-
-    render_empty_data()
+    def target_bank_account(_, _, %{bank_account: bank_acc}, _, _),
+      do: bank_acc
   end
 end

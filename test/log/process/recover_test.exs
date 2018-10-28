@@ -2,13 +2,13 @@ defmodule Helix.Log.Process.RecoverTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Process.Model.Processable
   alias Helix.Process.Query.Process, as: ProcessQuery
   alias Helix.Log.Process.Recover, as: LogRecoverProcess
   alias Helix.Log.Query.Log, as: LogQuery
 
   alias Helix.Test.Event.Helper, as: EventHelper
   alias Helix.Test.Event.Setup, as: EventSetup
+  alias Helix.Test.Process.Helper.Processable, as: ProcessableHelper
   alias Helix.Test.Process.TOPHelper
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Server.Setup, as: ServerSetup
@@ -156,13 +156,12 @@ defmodule Helix.Log.Process.RecoverTest do
         LogRecoverProcess.execute(gateway, gateway, params, meta, @relay)
 
       # Simulate completion
-      assert {:noop, event} = Processable.complete(process.data, process)
+      assert {:noop, event} = ProcessableHelper.complete(process)
 
       # Let LogHandler handle the `LogRecoverProcessedEvent`
       EventHelper.emit(event)
 
-      assert {{:retarget, changes}, _} =
-        Processable.retarget(process.data, process)
+      assert {{:retarget, changes}, _} = ProcessableHelper.retarget(process)
 
       # `retarget` selected a different log
       refute changes.tgt_log_id == process.tgt_log_id
@@ -201,13 +200,12 @@ defmodule Helix.Log.Process.RecoverTest do
         LogRecoverProcess.execute(gateway, gateway, params, meta, @relay)
 
       # Simulate completion
-      assert {:noop, event} = Processable.complete(process.data, process)
+      assert {:noop, event} = ProcessableHelper.complete(process)
 
       # Let LogHandler handle the `LogRecoverProcessedEvent`
       EventHelper.emit(event)
 
-      assert {{:retarget, changes}, _} =
-        Processable.retarget(process.data, process)
+      assert {{:retarget, changes}, _} = ProcessableHelper.retarget(process)
 
       # Infinity CPU objective because we've recovered the last additional
       # revision of `log`. Now it is currently at the original revision.

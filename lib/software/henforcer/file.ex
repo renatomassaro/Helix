@@ -5,6 +5,7 @@ defmodule Helix.Software.Henforcer.File do
   alias Helix.Server.Model.Server
   alias Helix.Software.Model.File
   alias Helix.Software.Model.Software
+  alias Helix.Software.Model.Storage
   alias Helix.Software.Henforcer.Storage, as: StorageHenforcer
   alias Helix.Software.Query.File, as: FileQuery
 
@@ -28,29 +29,31 @@ defmodule Helix.Software.Henforcer.File do
     end
   end
 
-  @type belongs_to_server_relay :: %{file: File.t, server: Server.t}
+  @type belongs_to_server_relay ::
+    %{file: File.t, server: Server.t, storage: Storage.t}
   @type belongs_to_server_relay_partial :: file_exists_relay
   @type belongs_to_server_error ::
     {false, {:file, :not_belongs}, belongs_to_server_relay_partial}
     | file_exists_error
 
-  @spec belongs_to_server?(File.idt, Server.id) ::
+  @spec belongs_to_server?(File.idt, Server.idt) ::
     {true, belongs_to_server_relay}
     | belongs_to_server_error
   @doc """
   Verifies whether the given file belongs to the server.
   """
-  def belongs_to_server?(file_id = %File.ID{}, server_id) do
+  def belongs_to_server?(file_id = %File.ID{}, server) do
     henforce(file_exists?(file_id)) do
-      belongs_to_server?(relay.file, server_id)
+      belongs_to_server?(relay.file, server)
     end
   end
 
-  def belongs_to_server?(file = %File{}, server_id) do
+  def belongs_to_server?(file = %File{}, server) do
     henforce_else(
-      StorageHenforcer.belongs_to_server?(file.storage_id, server_id),
+      StorageHenforcer.belongs_to_server?(file.storage_id, server),
       {:file, :not_belongs}
     )
+    |> wrap_relay(%{file: file, server: server})
   end
 
   @type exists_software_module_relay :: %{server: Server.t, file: File.t}

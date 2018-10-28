@@ -9,7 +9,7 @@ request Helix.Server.Websocket.Requests.Bootstrap do
   joining a local or remote server Channel.
   """
 
-  alias Helix.Server.Public.Server, as: ServerPublic
+  alias Helix.Server.Public.Index, as: ServerIndex
   alias Helix.Server.Query.Server, as: ServerQuery
 
   def check_params(request, _socket),
@@ -26,20 +26,24 @@ request Helix.Server.Websocket.Requests.Bootstrap do
 
     bootstrap =
       if socket.assigns.meta.access == :local do
-        ServerPublic.bootstrap_gateway(server, entity_id)
+        ServerIndex.gateway(server, entity_id)
       else
-        ServerPublic.bootstrap_remote(server, entity_id)
+        ServerIndex.remote(server, entity_id)
       end
 
-    update_meta(request, %{bootstrap: bootstrap}, reply: true)
+    update_meta(request, %{bootstrap: bootstrap, server: server}, reply: true)
   end
 
   render(request, socket) do
+    entity_id = socket.assigns.entity_id
+    server = request.meta.server
+    bootstrap = request.meta.bootstrap
+
     data =
       if socket.assigns.meta.access == :local do
-        ServerPublic.render_bootstrap_gateway(request.meta.bootstrap)
+        ServerIndex.render_gateway(bootstrap, server, entity_id)
       else
-        ServerPublic.render_bootstrap_remote(request.meta.bootstrap)
+        ServerIndex.render_remote(bootstrap, server, entity_id)
       end
 
     {:ok, data}

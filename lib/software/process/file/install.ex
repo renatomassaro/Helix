@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Software.Process.File.Install do
   @moduledoc """
@@ -60,11 +60,6 @@ process Helix.Software.Process.File.Install do
     }
   end
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params = %{file: %File{}, backend: _}),
-    do: get_resources(params)
-
   @spec get_backend(File.t) ::
     backend
   @doc """
@@ -82,12 +77,14 @@ process Helix.Software.Process.File.Install do
 
   processable do
 
-    on_completion(process, data) do
+    @doc false
+    def on_complete(process, data, _reason) do
       event = FileInstallProcessedEvent.new(process, data)
 
       {:delete, [event]}
     end
 
+    @doc false
     def after_read_hook(data) do
       %FileInstallProcess{
         backend: String.to_existing_atom(data.backend)
@@ -99,8 +96,6 @@ process Helix.Software.Process.File.Install do
 
     alias Helix.Software.Factor.File, as: FileFactor
 
-    @type params :: FileInstallProcess.resources_params
-
     @type factors :: term
 
     get_factors(%{file: file, backend: _}) do
@@ -111,39 +106,38 @@ process Helix.Software.Process.File.Install do
     end
 
     # TODO: Use time as a resource instead. #364
-    cpu(_) do
-      300
-    end
+    def cpu(_, _),
+      do: 300
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
   end
 
   executable do
 
-    @type custom :: %{}
+    alias Helix.Software.Model.File
 
-    resources(_gateway, _target, %{backend: backend}, %{file: file}, _) do
+    @type meta ::
+      %{
+        file: File.t,
+        type: FileInstallProcess.process_type,
+        ssh: Connection.t | nil
+      }
+
+    @doc false
+    def resources(_gateway, _target, %{backend: backend}, %{file: file}, _) do
       %{
         file: file,
         backend: backend
       }
     end
 
-    source_connection(_gateway, _target, _params, %{ssh: ssh}, _) do
-      ssh
-    end
+    @doc false
+    def source_connection(_gateway, _target, _params, %{ssh: ssh}, _),
+      do: ssh
 
-    target_file(_gateway, _target, _params, %{file: file}, _) do
-      file.file_id
-    end
-  end
-
-  process_viewable do
-
-    @type data :: %{}
-
-    render_empty_data()
+    @doc false
+    def target_file(_gateway, _target, _params, %{file: file}, _),
+      do: file
   end
 end

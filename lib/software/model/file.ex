@@ -209,6 +209,8 @@ defmodule Helix.Software.Model.File do
   defp add_leading_slash(path),
     do: "/" <> path
 
+  @spec remove_trailing_slash(path) ::
+    path
   docp """
   Removes the trailing slash of a path, if any. Does not apply when "/" is the
   actual path.

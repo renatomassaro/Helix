@@ -10,41 +10,23 @@ defmodule Helix.Process.Public.View.Process do
   alias Helix.Network.Model.Network
   alias Helix.Server.Model.Server
   alias Helix.Process.Model.Process
-  alias Helix.Process.Public.View.ProcessViewable
+  alias Helix.Process.Viewable
 
-  @type full_process :: process(full_access)
-  @type partial_process :: process(partial_access)
-
-  @type scopes ::
-    :full
-    | :partial
-
-  @typep process(access) ::
+  @type process ::
     %{
       process_id: String.t,
-      target_ip: String.t,
-      network_id: String.t,
-      progress: progress | nil,
-      target_file: file,
-      state: String.t,
       type: String.t,
-      access: access
-    }
-
-  @typep full_access ::
-    %{
-      origin_ip: Network.ip,
+      state: String.t,
+      progress: progress | nil,
       priority: 0..5,
       usage: resources,
+      source_file: file,
+      target_file: file,
+      origin_ip: Network.ip,
+      target_ip: String.t,
       source_connection_id: String.t | nil,
       target_connection_id: String.t | nil,
-      source_file: file
-    }
-
-  @typep partial_access ::
-    %{
-      source_connection_id: String.t | nil,
-      target_connection_id: String.t | nil
+      network_id: String.t
     }
 
   @type file ::
@@ -76,18 +58,17 @@ defmodule Helix.Process.Public.View.Process do
       absolute: non_neg_integer
     }
 
-  @spec render(data :: term, Process.t, Server.id, Entity.id) ::
-    rendered_process :: term
-  @doc """
-  Renders the given process, according to the specified context (server, entity)
+  @spec render(Process.t, Server.id, Entity.id) ::
+    process
+    | nil
+  def render(
+    process = %Process{source_entity_id: entity_id}, _server_id, entity_id)
+  do
+    Viewable.render(process)
+  end
 
-  It uses the `ProcessViewable` protocol internally, so for more details refer
-  to its documentation.
-  """
-  def render(data, process, server_id, entity_id) do
-    scope = ProcessViewable.get_scope(data, process, server_id, entity_id)
-    {base, data} = ProcessViewable.render(data, process, scope)
-
-    Map.merge(base, %{data: data})
+  def render(_process, _server_id, _entity_id) do
+    #raise "wut"
+    nil
   end
 end

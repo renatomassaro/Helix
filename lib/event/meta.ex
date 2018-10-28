@@ -1,7 +1,5 @@
 defmodule Helix.Event.Meta do
 
-  import HELL.Macros.Docp
-
   alias HELL.HETypes
   alias HELL.Utils
   alias Helix.Event
@@ -93,5 +91,4 @@ defmodule Helix.Event.Meta do
       request_id: get_request_id(event)
     }
   end
-
 end

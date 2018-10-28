@@ -16,14 +16,7 @@ request Helix.Software.Websocket.Requests.Virus.Collect do
   alias Helix.Software.Henforcer.Virus, as: VirusHenforcer
   alias Helix.Software.Public.Virus, as: VirusPublic
 
-  def check_params(request, socket) do
-    # Account information must have either both `{atm_id, acc}` or neither
-    check_account_info =
-      fn atm_id, acc ->
-        (is_nil(atm_id) and is_nil(acc)) or
-        (not is_nil(atm_id) and not is_nil(acc))
-      end
-
+  def check_params(request, _socket) do
     wallet = nil  # #244
 
     with \

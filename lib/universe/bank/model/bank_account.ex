@@ -7,6 +7,7 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
 
   alias Ecto.Changeset
   alias HELL.Password
+  alias Helix.Account.Model.Account
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.NPC.Model.NPC
 

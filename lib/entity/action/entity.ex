@@ -7,6 +7,7 @@ defmodule Helix.Entity.Action.Entity do
   alias Helix.Entity.Internal.Entity, as: EntityInternal
   alias Helix.Entity.Model.Entity
   alias Helix.Entity.Model.EntityComponent
+  alias Helix.Entity.Model.EntityServer
   alias Helix.Entity.Query.Entity, as: EntityQuery
 
   alias Helix.Entity.Event.Entity.Created, as: EntityCreatedEvent
@@ -81,7 +82,7 @@ defmodule Helix.Entity.Action.Entity do
     to: EntityInternal
 
   @spec link_server(Entity.t, Server.idt) ::
-    :ok
+    {:ok, EntityServer.t}
     | {:error, Ecto.Changeset.t}
   @doc """
   Link `server` to `entity` effectively making entity the owner of the server

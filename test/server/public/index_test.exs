@@ -204,7 +204,7 @@ defmodule Helix.Server.Public.IndexTest do
       rendered =
         server
         |> ServerIndex.gateway(entity.entity_id)
-        |> ServerIndex.render_gateway()
+        |> ServerIndex.render_gateway(server, entity.entity_id)
 
       assert is_binary(rendered.name)
       assert is_binary(rendered.password)
@@ -259,7 +259,7 @@ defmodule Helix.Server.Public.IndexTest do
       rendered =
         server
         |> ServerIndex.remote(entity.entity_id)
-        |> ServerIndex.render_remote()
+        |> ServerIndex.render_remote(server, entity.entity_id)
 
       Enum.each(rendered.nips, fn [network_id, ip] ->
         assert is_binary(network_id)

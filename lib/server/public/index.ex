@@ -247,23 +247,25 @@ defmodule Helix.Server.Public.Index do
       type: server.type
     }
 
-    Map.merge(server_common(server, entity_id), index)
+    Map.merge(bootstrap_common(server, entity_id), index)
   end
 
-  @spec render_gateway(gateway) ::
+  @spec render_gateway(gateway, Server.t, Entity.id) ::
     rendered_gateway
   @doc """
   Renderer for `gateway/2`
   """
-  def render_gateway(server) do
+  def render_gateway(bootstrap_gateway, server, entity_id) do
     partial =
       %{
-        password: server.password,
-        name: server.name,
-        server_type: to_string(server.type)
+        password: bootstrap_gateway.password,
+        name: bootstrap_gateway.name,
+        server_type: to_string(bootstrap_gateway.type)
       }
 
-    Map.merge(partial, render_server_common(server))
+    bootstrap_gateway
+    |> render_bootstrap_common(server, entity_id)
+    |> Map.merge(partial)
   end
 
   @spec remote(Server.t, Entity.id) ::
@@ -282,24 +284,24 @@ defmodule Helix.Server.Public.Index do
         hardware: HardwareIndex.index(server, :remote)
       }
 
-    Map.merge(server_common(server, entity_id), index)
+    Map.merge(bootstrap_common(server, entity_id), index)
   end
 
-  @spec render_remote(remote) ::
+  @spec render_remote(remote, Server.t, Entity.id) ::
     rendered_remote
   @doc """
   Renderer for `remote/2`
   """
-  def render_remote(server) do
-    render_server_common(server)
+  def render_remote(bootstrap_remote, server, entity_id) do
+    render_bootstrap_common(bootstrap_remote, server, entity_id)
   end
 
-  @spec server_common(Server.t, Entity.id) ::
+  @spec bootstrap_common(Server.t, Entity.id) ::
     term
   docp """
   Common values to both local and remote servers being generated.
   """
-  defp server_common(server = %Server{}, entity_id) do
+  defp bootstrap_common(server = %Server{}, entity_id) do
     server_id = server.server_id
     account_id = Account.cast_from_entity(entity_id)
 
@@ -321,25 +323,30 @@ defmodule Helix.Server.Public.Index do
     }
   end
 
-  @spec render_server_common(gateway | remote) ::
+  @spec render_bootstrap_common(gateway | remote, Server.t, Entity.id) ::
     term
   docp """
-  Renderer for `server_common/2`.
+  Renderer for `bootstrap_common/2`.
   """
-  defp render_server_common(server) do
-    nips = Enum.map(server.nips, fn nip ->
-      [to_string(nip.network_id), nip.ip]
-    end)
+  defp render_bootstrap_common(bootstrap, server, entity_id) do
+    nips =
+      Enum.map(bootstrap.nips, fn nip ->
+        [to_string(nip.network_id), nip.ip]
+      end)
 
     %{
       nips: nips,
-      main_storage: server.main_storage |> to_string(),
-      logs: LogIndex.render_index(server.logs),
-      storages: FileIndex.render_index(server.storages),
-      hardware: HardwareIndex.render_index(server.hardware),
-      processes: server.processes,
-      tunnels: NetworkIndex.render_index(server.tunnels),
-      notifications: ServerNotificationIndex.render_index(server.notifications)
+      main_storage: bootstrap.main_storage |> to_string(),
+      logs: LogIndex.render_index(bootstrap.logs),
+      storages: FileIndex.render_index(bootstrap.storages),
+      hardware: HardwareIndex.render_index(bootstrap.hardware),
+      processes: ProcessIndex.render_index(
+        bootstrap.processes, server.server_id, entity_id
+      ),
+      tunnels: NetworkIndex.render_index(bootstrap.tunnels),
+      notifications: ServerNotificationIndex.render_index(
+        bootstrap.notifications
+      )
     }
   end
 

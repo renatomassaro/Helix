@@ -47,20 +47,18 @@ defmodule Helix.Server.Websocket.Channel.Server.Topics.CrackerTest do
       # All required fields are there
       assert process_created_event.data.type == "cracker_bruteforce"
       refute process_created_event.data.target_file
-      assert process_created_event.data.access.origin_ip
-      assert process_created_event.data.access.priority
-      assert process_created_event.data.access.usage
+      assert process_created_event.data.origin_ip
+      assert process_created_event.data.priority
+      assert process_created_event.data.usage
       assert process_created_event.data.network_id
       assert process_created_event.data.state
       assert process_created_event.data.progress
       assert process_created_event.data.target_ip
-      assert process_created_event.data.access.source_file
+      assert process_created_event.data.source_file
 
       process_id = Process.ID.cast!(process_created_event.data.process_id)
       connection_id =
-        Connection.ID.cast!(
-          process_created_event.data.access.source_connection_id
-        )
+        Connection.ID.cast!(process_created_event.data.source_connection_id)
 
       # It definitely worked. Yay!
       assert ProcessQuery.fetch(process_id)

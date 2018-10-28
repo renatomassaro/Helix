@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Universe.Bank.Process.Bank.Account.RevealPassword do
 
@@ -49,17 +49,13 @@ process Helix.Universe.Bank.Process.Bank.Account.RevealPassword do
     }
   end
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params = %{account: %BankAccount{}}),
-    do: get_resources params
-
   processable do
 
     alias Helix.Universe.Bank.Event.RevealPassword.Processed,
       as: RevealPasswordProcessedEvent
 
-    on_completion(process, data) do
+    @doc false
+    def on_complete(process, data, _reason) do
       event = RevealPasswordProcessedEvent.new(process, data)
 
       {:delete, [event]}
@@ -68,30 +64,25 @@ process Helix.Universe.Bank.Process.Bank.Account.RevealPassword do
 
   resourceable do
 
-    alias Helix.Universe.Bank.Process.Bank.Account.RevealPassword,
-      as: RevealPasswordProcess
-
-    @type params :: RevealPasswordProcess.resources_params
     @type factors :: term
 
     # TODO proper balance
     get_factors(%{account: _account}) do end
 
-    cpu(_) do
+    def cpu(_, _) do
       1
     end
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
   end
 
   executable do
 
-    @type custom :: %{}
+    @type meta :: %{}
 
-    resources(_, _, %{account: account}, _, _) do
-      %{account: account}
-    end
+    @doc false
+    def resources(_, _, %{account: account}, _, _),
+      do: %{account: account}
   end
 end

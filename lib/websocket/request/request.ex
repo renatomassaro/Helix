@@ -88,20 +88,6 @@ defmodule Helix.Websocket.Request do
   end
 
   @doc """
-  Shorthand for requests that render a process as response. It assumes the
-  process is at the Request meta field, under the `process` key
-  """
-  defmacro render_process do
-    quote do
-
-      def reply(request, socket) do
-        {:ok, WebsocketUtils.render_process(request.meta.process, socket)}
-      end
-
-    end
-  end
-
-  @doc """
   Shorthand for requests that want to reply with an empty data field. In these
   cases, all the client gets is a successful return code.
   """

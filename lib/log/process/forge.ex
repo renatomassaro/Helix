@@ -1,4 +1,4 @@
-import Helix.Process
+use Helix.Process
 
 process Helix.Log.Process.Forge do
   @moduledoc """
@@ -75,11 +75,6 @@ process Helix.Log.Process.Forge do
   def get_process_type(_, %{action: :edit}),
     do: :log_forge_edit
 
-  @spec resources(resources_params) ::
-    resources
-  def resources(params),
-    do: get_resources params
-
   @spec get_forger_version(File.t, action) ::
     pos_integer
   defp get_forger_version(forger = %File{}, :create),
@@ -93,7 +88,7 @@ process Helix.Log.Process.Forge do
 
     alias Helix.Log.Event.Forge.Processed, as: LogForgeProcessedEvent
 
-    on_completion(process, data) do
+    def on_complete(process, data, _reason) do
       event = LogForgeProcessedEvent.new(process, data)
 
       {:delete, [event]}
@@ -103,9 +98,8 @@ process Helix.Log.Process.Forge do
     If the Log currently being forged was destroyed, the process should be
     killed and the user notified.
     """
-    on_target_log_destroyed(_process, _data, _log) do
-      {{:SIGKILL, :tgt_log_deleted}, []}
-    end
+    def on_target_log_destroyed(_process, _data, _log),
+      do: {{:SIGKILL, :tgt_log_deleted}, []}
 
     @doc false
     def after_read_hook(data) do
@@ -124,7 +118,6 @@ process Helix.Log.Process.Forge do
     alias Helix.Software.Factor.File, as: FileFactor
     alias Helix.Log.Factor.Log, as: LogFactor
 
-    @type params :: LogForgeProcess.resources_params
     @type factors ::
       %{
         :forger => %{version: FileFactor.fact_version},
@@ -140,19 +133,18 @@ process Helix.Log.Process.Forge do
 
     # TODO: time resource (for minimum duration) #364
 
-    cpu(%{action: :edit}) do
+    def cpu(f, %{action: :edit}) do
       f.forger.version.log_edit * (1 + f.log.revisions.from_entity) + 5000
     end
 
-    cpu(%{action: :create}) do
+    def cpu(f, %{action: :create}) do
       f.forger.version.log_create + 5000
     end
 
-    dynamic do
-      [:cpu]
-    end
+    def dynamic,
+      do: [:cpu]
 
-    static do
+    def static do
       %{
         paused: %{ram: 100},
         running: %{ram: 200}
@@ -162,11 +154,23 @@ process Helix.Log.Process.Forge do
 
   executable do
 
-    import HELL.Macros
+    alias Helix.Entity.Model.Entity
+    alias Helix.Network.Model.Connection
+    alias Helix.Network.Model.Network
+    alias Helix.Software.Model.File
 
-    @type custom :: %{}
+    @type meta ::
+      %{
+        forger: File.t,
+        action: :edit | :create,
+        ssh: Connection.t | nil,
+        log: Log.t | nil,
+        network_id: Network.id | nil,
+        entity_id: Entity.id | nil
+      }
 
-    resources(_gateway, _target, _params, meta, _) do
+    @doc false
+    def resources(_gateway, _target, _params, meta, _) do
       %{
         log: meta.log,
         forger: meta.forger,
@@ -175,35 +179,30 @@ process Helix.Log.Process.Forge do
       }
     end
 
-    source_file(_gateway, _target, _params, %{forger: forger}, _) do
-      forger.file_id
-    end
+    @doc false
+    def source_file(_gateway, _target, _params, %{forger: forger}, _),
+      do: forger
 
-    docp """
+    @doc """
     The LogForgeProcess have a `source_connection` when the player is forging a
     log on a remote server.
 
     However, if the operation is local, there is no `source_connection`.
     """
-    source_connection(_, _, _, %{ssh: ssh = %Connection{}}, _) do
-      ssh
-    end
+    def source_connection(_, _, _, %{ssh: ssh = %Connection{}}, _),
+      do: ssh
+    def source_connection(_, _, _, %{ssh: nil}, _),
+      do: nil
 
-    docp """
+    @doc """
     When editing an existing log, we have a valid `target_log` entry.
 
     If, however, we are creating a new log, there is no such entry, as the
     soon-to-be-created log does not exist yet!
     """
-    target_log(_gateway, _target, _params, %{action: :edit, log: log}, _) do
-      log.log_id
-    end
-  end
-
-  process_viewable do
-
-    @type data :: %{}
-
-    render_empty_data()
+    def target_log(_gateway, _target, _params, %{action: :edit, log: log}, _),
+      do: log
+    def target_log(_gateway, _target, _params, %{action: :create}, _),
+      do: nil
   end
 end

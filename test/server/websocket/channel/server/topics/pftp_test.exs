@@ -62,7 +62,7 @@ defmodule Helix.Server.Websocket.Channel.Server.Topics.PFTPTest do
       {file, _} = SoftwareSetup.file(server_id: server.server_id)
       SoftwareSetup.PFTP.pftp(server_id: server.server_id)
 
-      params = %{"file_id": to_string(file.file_id)}
+      params = %{"file_id" => to_string(file.file_id)}
 
       ref = push socket, "pftp.file.add", params
 
@@ -121,7 +121,7 @@ defmodule Helix.Server.Websocket.Channel.Server.Topics.PFTPTest do
       assert process_created_event.data.data.connection_type == "public_ftp"
       assert process_created_event.data.network_id == to_string(@internet_id)
 
-      refute process_created_event.data.access.source_file
+      refute process_created_event.data.source_file
 
       TOPHelper.top_stop(server)
     end

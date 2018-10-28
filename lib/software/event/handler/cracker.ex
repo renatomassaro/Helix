@@ -11,7 +11,6 @@ defmodule Helix.Software.Event.Handler.Cracker do
   alias Helix.Process.Model.Process
   alias Helix.Process.Query.Process, as: ProcessQuery
   alias Helix.Server.Action.Server, as: ServerAction
-  alias Helix.Server.Model.Server
   alias Helix.Universe.Bank.Action.Bank, as: BankAction
   alias Helix.Universe.Bank.Model.BankToken
   alias Helix.Universe.Bank.Query.Bank, as: BankQuery

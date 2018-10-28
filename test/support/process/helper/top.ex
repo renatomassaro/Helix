@@ -1,12 +1,12 @@
 defmodule Helix.Test.Process.TOPHelper do
 
   alias Ecto.Changeset
+  alias Helix.Process.Action.TOP, as: TOPAction
   alias Helix.Process.Model.Process
-  alias Helix.Process.Model.Processable
   alias Helix.Process.Query.Process, as: ProcessQuery
   alias Helix.Process.Repo, as: ProcessRepo
 
-  alias Helix.Process.Action.TOP, as: TOPAction
+  alias Helix.Test.Process.Helper.Processable, as: ProcessableHelper
 
   @doc """
   Fetches a process from an event or its ID (binary or Helix.ID).
@@ -58,12 +58,12 @@ defmodule Helix.Test.Process.TOPHelper do
   actually modify the database, nor emit the conclusion events.
   """
   def soft_complete(process = %Process{}),
-    do: Processable.complete(process.data, process)
+    do: ProcessableHelper.complete(process)
 
   @doc """
   Simulates the `kill` of a process, executing the `Processable` relevant code.
   It won't update the status on DB, nor emit events about the kill.
   """
   def soft_kill(process = %Process{}, reason \\ :killed),
-    do: Processable.kill(process.data, process, reason)
+    do: ProcessableHelper.kill(process, reason)
 end

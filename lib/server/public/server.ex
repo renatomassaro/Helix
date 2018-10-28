@@ -9,7 +9,6 @@ defmodule Helix.Server.Public.Server do
   alias Helix.Server.Model.Server
   alias Helix.Server.Action.Flow.Server, as: ServerFlow
   alias Helix.Server.Action.Motherboard, as: MotherboardAction
-  alias Helix.Server.Public.Index, as: ServerIndex
   alias Helix.Server.Query.Motherboard, as: MotherboardQuery
 
   @spec connect_to_server(
@@ -79,20 +78,4 @@ defmodule Helix.Server.Public.Server do
   """
   defdelegate set_hostname(server, hostname, relay),
     to: ServerFlow
-
-  defdelegate bootstrap_gateway(server_id, entity_id),
-    to: ServerIndex,
-    as: :gateway
-
-  defdelegate bootstrap_remote(server_id, entity_id),
-    to: ServerIndex,
-    as: :remote
-
-  defdelegate render_bootstrap_gateway(bootstrap),
-    to: ServerIndex,
-    as: :render_gateway
-
-  defdelegate render_bootstrap_remote(bootstrap),
-    to: ServerIndex,
-    as: :render_remote
 end

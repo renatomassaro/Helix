@@ -7,7 +7,7 @@ defmodule Helix.Process.Action.Process do
   alias Helix.Server.Query.Server, as: ServerQuery
   alias Helix.Process.Internal.Process, as: ProcessInternal
   alias Helix.Process.Model.Process
-  alias Helix.Process.Model.Processable
+  alias Helix.Process.Processable
 
   alias Helix.Process.Event.Process.Completed, as: ProcessCompletedEvent
   alias Helix.Process.Event.Process.Created, as: ProcessCreatedEvent
@@ -90,53 +90,12 @@ defmodule Helix.Process.Action.Process do
   Processable implementation, also accumulates a `ProcessSignaledEvent`.
   """
   def signal(process = %Process{}, signal, params \\ %{}) do
-    {action, events} = signal_handler(signal, process, params)
+    {action, events} = Processable.signal_handler(signal, process, params)
 
     signaled_event = ProcessSignaledEvent.new(signal, process, action, params)
 
     {:ok, events ++ [signaled_event]}
   end
-
-  @spec signal_handler(Process.signal, Process.t, Process.signal_params) ::
-    {Processable.action, [Event.t]}
-  docp """
-  Actually calls the corresponding signal callback, relaying the required info.
-  """
-  defp signal_handler(:SIGTERM, process, _),
-    do: Processable.complete(process.data, process)
-
-  defp signal_handler(:SIGKILL, process, %{reason: reason}),
-    do: Processable.kill(process.data, process, reason)
-
-  # defp signal_handler(:SIGSTOP, process, _),
-  #   do: Processable.stop(process.data, process)
-
-  # defp signal_handler(:SIGCONT, process, _),
-  #   do: Processable.resume(process.data, process, reason)
-
-  # defp signal_handler(:SIG_RENICE, process, %{priority: priority}),
-  #   do: Processable.priority(process.data, process, priority)
-
-  defp signal_handler(:SIG_RETARGET, process, _),
-    do: Processable.retarget(process.data, process)
-
-  defp signal_handler(:SIG_SRC_CONN_DELETED, process, %{connection: connection}),
-    do: Processable.source_connection_closed(process.data, process, connection)
-
-  defp signal_handler(:SIG_TGT_CONN_DELETED, process, %{connection: connection}),
-    do: Processable.target_connection_closed(process.data, process, connection)
-
-  defp signal_handler(:SIG_TGT_LOG_REVISED, process, %{log: log}),
-    do: Processable.target_log_revised(process.data, process, log)
-
-  defp signal_handler(:SIG_TGT_LOG_RECOVERED, process, %{log: log}),
-    do: Processable.target_log_recovered(process.data, process, log)
-
-  defp signal_handler(:SIG_TGT_LOG_DESTROYED, process, %{log: log}),
-    do: Processable.target_log_destroyed(process.data, process, log)
-
-  # defp signal_handler(:SIG_SRC_FILE_DELETED, process, %{file: file}),
-  #   do: Processable.file_deleted(process.data, process, file)
 
   @spec get_process_ips(Process.creation_params) ::
     {gateway_ip :: Network.ip, target_ip :: Network.ip}

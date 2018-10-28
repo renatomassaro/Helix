@@ -1,6 +1,6 @@
 defmodule Helix.Test.Process do
 
-  import Helix.Process
+  use Helix.Process
 
   process FakeFileTransfer do
 
@@ -24,47 +24,43 @@ defmodule Helix.Test.Process do
     end
 
     processable do
-      on_completion(_process, _data) do
-        {:delete, []}
-      end
+
+      def on_complete(_process, _data, _reason),
+        do: {:delete, []}
     end
 
     resourceable do
 
-      @type params :: term
+      alias Helix.Test.Network.Helper, as: NetworkHelper
+
+      @internet_id NetworkHelper.internet_id()
+
       @type factors :: term
 
       get_factors(_) do
         :noop
       end
 
-      dlk(%{type: :download}) do
-        100
-      end
+      def network_id(_, _),
+        do: @internet_id
 
-      ulk(%{type: :upload}) do
-        100
-      end
+      def dlk(_, %{type: :download}),
+        do: 100
+      def dlk(_, _),
+        do: 0
 
-      dlk(%{type: :upload})
-      ulk(%{type: :download})
+      def ulk(_, %{type: :upload}),
+        do: 100
+      def ulk(_, _),
+        do: 0
 
-      def dynamic(%{type: :download}) do
-        [:dlk]
-      end
-
-      def dynamic(%{type: :upload}) do
-        [:ulk]
-      end
+      def dynamic(%{type: :download}),
+        do: [:dlk]
+      def dynamic(%{type: :upload}),
+        do: [:ulk]
     end
 
     executable do
-
-      @type custom :: %{}
-
-      resources(_, _, _, _, _) do
-        %{}
-      end
     end
   end
 
@@ -81,38 +77,28 @@ defmodule Helix.Test.Process do
       }
     end
 
-    # Inherits default Processable callbacks
     processable do
-      on_completion(_process, _data) do
-        {:delete, []}
-      end
+
+      def on_complete(_process, _data, _reason),
+        do: {:delete, []}
     end
 
     resourceable do
 
-      @type params :: term
       @type factors :: term
 
       get_factors(_) do
         :noop
       end
 
-      cpu(_) do
-        5000
-      end
+      def cpu(_, _),
+        do: 5000
 
-      def dynamic(_) do
-        [:cpu]
-      end
+      def dynamic(_),
+        do: [:cpu]
     end
 
     executable do
-
-      @type custom :: %{}
-
-      resources(_, _, _, _, _) do
-        %{}
-      end
     end
   end
 end

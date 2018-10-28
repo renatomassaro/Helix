@@ -5,7 +5,7 @@ defmodule Helix.Process.Event.Handler.Process do
   alias Helix.Event
   alias Helix.Process.Action.Process, as: ProcessAction
   alias Helix.Process.Model.Process
-  alias Helix.Process.Model.Processable
+  alias Helix.Process.Processable
 
   alias Helix.Process.Event.Process.Signaled, as: ProcessSignaledEvent
 

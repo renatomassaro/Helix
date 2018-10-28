@@ -101,12 +101,13 @@ defmodule Helix.Process.Event.Process do
         server_id = socket.assigns.destination.server_id
         entity_id = socket.assigns.gateway.entity_id
 
-        data =
-          ProcessView.render(
-            event.process.data, event.process, server_id, entity_id
-          )
+        data = ProcessView.render(event.process, server_id, entity_id)
 
-        {:ok, data}
+        if data do
+          {:ok, data}
+        else
+          :noreply
+        end
       end
 
       # Internal event used for optimistic (asynchronous) processing

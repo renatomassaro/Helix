@@ -7,7 +7,9 @@ defmodule Helix.Event do
   alias Helix.Event.Meta, as: EventMeta
   alias Helix.Event.State.Timer, as: EventTimer
 
-  @type t :: term
+  @type t :: struct
+  @type source :: t | RequestRelay.t
+  @type relay :: source | nil
 
   @spec emit([t] | t, from: t) ::
     term

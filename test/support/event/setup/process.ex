@@ -9,6 +9,15 @@ defmodule Helix.Test.Event.Setup.Process do
   def created(opts \\ []) do
     {process, _} = ProcessSetup.fake_process(opts)
 
+    process =
+      if opts[:entity_id] do
+        %{process|
+          source_entity_id: opts[:entity_id]
+        }
+      else
+        process
+      end
+
     %ProcessCreatedEvent{
       confirmed: true,
       process: process,

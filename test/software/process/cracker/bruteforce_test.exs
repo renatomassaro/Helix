@@ -3,16 +3,13 @@ defmodule Helix.Software.Process.Cracker.BruteforceTest do
   use Helix.Test.Case.Integration
 
   alias Helix.Network.Query.Tunnel, as: TunnelQuery
-  alias Helix.Process.Model.Processable
-  alias Helix.Process.Public.View.Process, as: ProcessView
   alias Helix.Software.Process.Cracker.Bruteforce, as: BruteforceProcess
 
   alias Helix.Test.Cache.Helper, as: CacheHelper
-  alias Helix.Test.Entity.Helper, as: EntityHelper
   alias Helix.Test.Process.Helper, as: ProcessHelper
+  alias Helix.Test.Process.Helper.Processable, as: ProcessableHelper
   alias Helix.Test.Process.Setup, as: ProcessSetup
   alias Helix.Test.Process.TOPHelper
-  alias Helix.Test.Process.View.Helper, as: ProcessViewHelper
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Server.Setup, as: ServerSetup
   alias Helix.Test.Software.Setup, as: SoftwareSetup
@@ -76,88 +73,13 @@ defmodule Helix.Software.Process.Cracker.BruteforceTest do
     end
   end
 
-  describe "Process.Viewable" do
-    test "full process for any AT attack_source" do
-      {process, meta} =
-        ProcessSetup.process(fake_server: true, type: :bruteforce)
-      data = process.data
-      server_id = process.gateway_id
-
-      attacker_id = meta.source_entity_id
-      victim_id = meta.target_entity_id
-      third_id = EntityHelper.id()
-
-      # Here we cover all possible cases on `attack_source`, so regardless of
-      # *who* is listing the processes, as long as it's on the `attack_source`,
-      # they have full access to the process.
-      pview_attacker = ProcessView.render(data, process, server_id, attacker_id)
-      pview_victim = ProcessView.render(data, process, server_id, victim_id)
-      pview_third = ProcessView.render(data, process, server_id, third_id)
-
-      ProcessViewHelper.assert_keys(pview_attacker, :full)
-      ProcessViewHelper.assert_keys(pview_victim, :full)
-      ProcessViewHelper.assert_keys(pview_third, :full)
-
-      TOPHelper.top_stop()
-    end
-
-    test "full process for attacker AT attack_target" do
-      {process, %{source_entity_id: entity_id}} =
-        ProcessSetup.process(fake_server: true, type: :bruteforce)
-
-      data = process.data
-      server_id = process.target_id
-
-      # `entity` is the one who started the process, and is listing at the
-      # victim server, so `entity` has full access to the process.
-      rendered = ProcessView.render(data, process, server_id, entity_id)
-
-      ProcessViewHelper.assert_keys(rendered, :full)
-
-      TOPHelper.top_stop()
-    end
-
-    test "partial process for third AT attack_target" do
-      {process, _} = ProcessSetup.process(fake_server: true, type: :bruteforce)
-
-      data = process.data
-      server_id = process.target_id
-      entity_id = EntityHelper.id()
-
-      # `entity` is unrelated to the process, and it's being rendering on the
-      # receiving end of the process (victim), so partial access is applied.
-      rendered = ProcessView.render(data, process, server_id, entity_id)
-
-      ProcessViewHelper.assert_keys(rendered, :partial)
-
-      TOPHelper.top_stop()
-    end
-
-    test "partial process for victim AT attack_target" do
-      {process, %{target_entity_id: entity_id}} =
-        ProcessSetup.process(fake_server: true, type: :bruteforce)
-
-      data = process.data
-      server_id = process.target_id
-
-      # `entity` is the victim, owner of the server receiving the process.
-      # She's rendering at her own server, but she did not start the process,
-      # so she has limited access to the process.
-      rendered = ProcessView.render(data, process, server_id, entity_id)
-
-      ProcessViewHelper.assert_keys(rendered, :partial)
-
-      TOPHelper.top_stop()
-    end
-  end
-
   describe "Processable" do
     test "after_read_hook/1" do
       {process, _} = ProcessSetup.process(fake_server: true, type: :bruteforce)
 
       db_process = ProcessHelper.raw_get(process.process_id)
 
-      serialized = Processable.after_read_hook(db_process.data)
+      serialized = ProcessableHelper.after_read_hook(db_process.data)
 
       assert serialized.target_server_ip
 
