@@ -35,6 +35,3 @@ import_config "#{Mix.env}.exs"
 import_config "hevent.exs"
 import_config "*/config.exs"
 import_config "*/#{Mix.env}.exs"
-
-config :timber, Timber.Integrations.EctoLogger,
-  query_time_ms_threshold: 1_000

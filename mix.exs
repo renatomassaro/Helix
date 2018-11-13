@@ -44,38 +44,39 @@ defmodule Helix.Mixfile do
   def application do
     [
       mod: {Helix.Application, []},
-      extra_applications: [:timber, :logger, :crypto, :hevent]
+      extra_applications: [:logger, :crypto, :hevent]
     ]
   end
 
   defp deps do
     [
-      {:distillery, "~>1.5.2", runtime: false},
+      {:distillery, "~>2.0.3", runtime: false},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
 
-      {:phoenix, "~> 1.3.0"},
-      {:corsica, "~> 1.1.0"},
+      {:phoenix, "~> 1.4.0"},
+      {:plug, "~> 1.7"},
+      {:plug_cowboy, "~> 2.0"},
+      {:corsica, "~> 1.1.2"},
 
-      {:ecto, "~> 2.2.8"},
-      {:postgrex, "~> 0.13.4"},
+      {:ecto_sql, "~> 3.0.0"},
+      {:postgrex, "~> 0.14.0"},
       {:ecto_enum, "~> 1.0"},
 
-      {:helf, "~> 0.0.3"},
+      {:helf, path: "../helf"},
       {:hevent, path: "../hevent"},
-      {:poison, "~> 3.1"},
+      {:poison, "~> 3.0.0"},
 
-      {:comeonin, "~> 4.0.3"},
-      {:bcrypt_elixir, "~> 1.0.5"},
+      {:comeonin, "~> 4.1.1"},
+      {:bcrypt_elixir, "~> 1.1.0"},
 
-      {:timber, "~> 2.5"},
       {:logger_file_backend, "~>0.0.10"},
 
-      {:entropy_string, "~> 1.3"},
+      {:entropy_string, "~> 1.3.1"},
       {:burette, git: "https://github.com/HackerExperience/burette"},
 
-      {:earmark, "~> 1.2.4", only: :dev},
+      {:earmark, "~> 1.2.6", only: :dev},
       {:ex_doc, "~> 0.18.1", only: :dev},
-      {:inch_ex, "~> 0.5.6", only: [:dev, :test]},
+      {:inch_ex, "~> 1.0.1", only: [:dev, :test]},
 
       {:credo, "~> 0.8.10", only: [:dev, :test]},
       {:excoveralls, "~> 0.8.1", only: [:dev, :test]}

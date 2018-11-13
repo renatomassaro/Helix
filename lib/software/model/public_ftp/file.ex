@@ -85,7 +85,7 @@ defmodule Helix.Software.Model.PublicFTP.File do
     """
     def by_file(query \\ PublicFTP.File, file_id) do
       query
-      |> join(:inner, [pf, p], pf in PublicFTP, pf.server_id == p.server_id)
+      |> join(:inner, [pf, p], pf in PublicFTP, on: pf.server_id == p.server_id)
       |> where([pf, p], pf.file_id == ^file_id and p.is_active == true)
     end
   end

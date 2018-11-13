@@ -53,7 +53,9 @@ defmodule Helix.Software.Model.Storage do
       Queryable.t
     def by_hdd(query \\ Storage, hdd_id) do
       query
-      |> join(:inner, [s], sd in StorageDrive, s.storage_id == sd.storage_id)
+      |> join(
+        :inner, [s], sd in StorageDrive, on: s.storage_id == sd.storage_id
+      )
       |> where([s, sd], sd.drive_id == ^hdd_id)
     end
   end

@@ -1,5 +1,7 @@
 defmodule Helix.Universe.Repo do
-  use Ecto.Repo, otp_app: :helix
+  use Ecto.Repo,
+    otp_app: :helix,
+    adapter: Ecto.Adapters.Postgres
 
   # HACK: ExUnit + Ecto.Sandbox do not play well with serializable
   @serializable (if Mix.env == :test,

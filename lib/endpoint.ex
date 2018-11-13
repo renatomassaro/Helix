@@ -25,10 +25,5 @@ defmodule Helix.Endpoint do
     pass: ["*/*"],
     json_decoder: Poison
 
-  # Add Timber plugs for capturing HTTP context and events
-  plug Timber.Integrations.SessionContextPlug
-  plug Timber.Integrations.HTTPContextPlug
-  plug Timber.Integrations.EventPlug
-
   plug Helix.HTTP.Router
 end

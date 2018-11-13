@@ -27,7 +27,6 @@ config :logger,
   compile_time_purge_level: :info,
   metadata: [:request_id],
   backends: [
-    Timber.LoggerBackends.HTTP,
     {LoggerFileBackend, :warn},
     {LoggerFileBackend, :error}
   ],
@@ -41,6 +40,3 @@ config :logger, :warn,
 config :logger, :error,
   path: "/var/log/helix/error.log",
   level: :error
-
-config :timber,
-  api_key: {:system, "${TIMBER_API_KEY}"}

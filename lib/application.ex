@@ -12,7 +12,6 @@ defmodule Helix.Application do
       supervisor(Helix.Application.DomainsSupervisor, [])
     ]
 
-    validate_timber_key()
     validate_token_key()
 
     opts = [strategy: :one_for_one, name: Helix.Supervisor]
@@ -39,27 +38,6 @@ defmodule Helix.Application do
       Example:
       HELIX_ENDPOINT_SECRET_KEY="myVerySeCr3tK3y!!++=" mix run
       """
-    end
-  end
-
-  defp validate_timber_key do
-    if Application.get_env(:helix, :env) == :prod do
-      {:system, api_key} = Application.get_env(:timber, :api_key)
-
-      ignore? = System.get_env("YOLO_IGNORE_LOGGING") == "true"
-
-      if (api_key == "${TIMBER_API_KEY}" or api_key == "") and not ignore? do
-        raise """
-
-        Missing environment variable `TIMBER_API_KEY`.
-
-        Set the `TIMBER_API_KEY` env var or ignore this verification by setting
-        `YOLO_IGNORE_LOGGING` to `true`.
-
-        """
-      else
-        IO.puts "Skipping logging..."
-      end
     end
   end
 end

@@ -4,13 +4,25 @@ defmodule Helix.Event.Trigger.Notificable do
 
   alias Hevent.Trigger
 
-  alias Helix.Event
+  alias Helix.Account.Model.Account
+  alias Helix.Entity.Model.Entity
+  alias Helix.Server.Model.Server
   alias Helix.Notification.Action.Notification, as: NotificationAction
   alias Helix.Notification.Model.Code, as: NotificationCode
   alias Helix.Notification.Model.Notification
+  alias Helix.Event
+
+  @type whom_to_notify ::
+    Account.id
+    | Entity.id
+    | %{account_id: Account.id, server_id: Server.id}
+    | %{account_id: Entity.id, server_id: Server.id}
+    | Server.id
 
   @trigger Notificable
 
+  @spec flow(Event.t) ::
+    term
   def flow(event) do
     {class, code} = Trigger.get_data(event, :get_notification_info, @trigger)
     extra_params = Trigger.get_data(event, :extra_params, @trigger)
@@ -31,8 +43,8 @@ defmodule Helix.Event.Trigger.Notificable do
     end)
   end
 
-  # @spec get_target_ids(Notification.class, Notificable.whom_to_notify) ::
-  #   [Notification.id_map]
+  @spec get_target_ids(Notification.class, whom_to_notify) ::
+    [Notification.id_map]
   docp """
   Returns the list of players ("targets") that shall receive the notification.
 

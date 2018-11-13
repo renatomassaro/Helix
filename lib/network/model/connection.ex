@@ -97,8 +97,8 @@ defmodule Helix.Network.Model.Connection do
       Queryable.t
     def through_node(query \\ Connection, id) do
       query
-      |> join(:inner, [c], t in Tunnel, c.tunnel_id == t.tunnel_id)
-      |> join(:inner, [c, ..., t], l in Link, t.tunnel_id == l.tunnel_id)
+      |> join(:inner, [c], t in Tunnel, on: c.tunnel_id == t.tunnel_id)
+      |> join(:inner, [c, ..., t], l in Link, on: t.tunnel_id == l.tunnel_id)
       |> where(
         [c, ..., l],
         l.source_id == ^id or l.target_id == ^id)
@@ -109,8 +109,8 @@ defmodule Helix.Network.Model.Connection do
       Queryable.t
     def inbound_to(query \\ Connection, id) do
       query
-      |> join(:inner, [c], t in Tunnel, c.tunnel_id == t.tunnel_id)
-      |> join(:inner, [c, ..., t], l in Link, t.tunnel_id == l.tunnel_id)
+      |> join(:inner, [c], t in Tunnel, on: c.tunnel_id == t.tunnel_id)
+      |> join(:inner, [c, ..., t], l in Link, on: t.tunnel_id == l.tunnel_id)
       |> where([c, ..., l], l.target_id == ^id)
     end
 
@@ -118,8 +118,8 @@ defmodule Helix.Network.Model.Connection do
       Queryable.t
     def outbound_from(query \\ Connection, id) do
       query
-      |> join(:inner, [c], t in Tunnel, c.tunnel_id == t.tunnel_id)
-      |> join(:inner, [c, ..., t], l in Link, t.tunnel_id == l.tunnel_id)
+      |> join(:inner, [c], t in Tunnel, on: c.tunnel_id == t.tunnel_id)
+      |> join(:inner, [c, ..., t], l in Link, on: t.tunnel_id == l.tunnel_id)
       |> where([c, ..., l], l.source_id == ^id)
     end
 
@@ -127,7 +127,7 @@ defmodule Helix.Network.Model.Connection do
       Queryable.t
     def from_gateway_to_endpoint(query \\ Connection, gateway, target) do
       query
-      |> join(:inner, [c], t in Tunnel, c.tunnel_id == t.tunnel_id)
+      |> join(:inner, [c], t in Tunnel, on: c.tunnel_id == t.tunnel_id)
       |> where([c, ..., t], t.gateway_id == ^gateway)
       |> where([c, ..., t], t.target_id == ^target)
     end

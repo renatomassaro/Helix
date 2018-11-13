@@ -70,7 +70,7 @@ defmodule Helix.Entity.Model.Entity do
       Queryable.t
     def owns_server(query \\ Entity, id) do
       query
-      |> join(:inner, [e], es in EntityServer, es.entity_id == e.entity_id)
+      |> join(:inner, [e], es in EntityServer, on: es.entity_id == e.entity_id)
       |> where([e, ..., es], es.server_id == ^id)
     end
   end

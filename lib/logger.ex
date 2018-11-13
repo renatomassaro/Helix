@@ -53,10 +53,10 @@ defmodule Helix.Logger do
           # https://github.com/timberio/timber-elixir/issues/247
           # #348 on Helix
           [id: account_id]
-          |> Timber.add_context()
+          # |> Timber.add_context()
 
           [request_id: request_id, path: topic, method: method]
-          |> Timber.add_context()
+          # |> Timber.add_context()
 
           %{
             account_id: account_id,
@@ -92,10 +92,10 @@ defmodule Helix.Logger do
             |> Utils.stringify_map()
             |> Map.put(:params, unquote(params))
 
-          %Timber.Events.CustomEvent{
-            data: formatted_data,
-            type: unquote(event_type) |> String.to_atom()
-          }
+          # %Timber.Events.CustomEvent{
+          #   data: formatted_data,
+          #   type: unquote(event_type) |> String.to_atom()
+          # }
         end
       end
 
