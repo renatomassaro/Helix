@@ -8,7 +8,7 @@ defmodule Helix.Application do
 
   def start(_type, _args) do
     children = [
-      supervisor(Helix.Endpoint, []),
+      supervisor(Helix.Webserver.Endpoint, []),
       supervisor(Helix.Application.DomainsSupervisor, [])
     ]
 
@@ -19,7 +19,7 @@ defmodule Helix.Application do
   end
 
   defp validate_token_key do
-    config = Application.get_env(:helix, Helix.Endpoint)
+    config = Application.get_env(:helix, Helix.Webserver.Endpoint)
     secret_key = config[:secret_key_base]
 
     # If there is no env set, distillery will pass the env name forward
@@ -29,11 +29,12 @@ defmodule Helix.Application do
     unless is_binary(secret_key) and byte_size(secret_key) > 20 and env_set? do
       raise """
 
-      Helix.Endpoint `secret_key_base` config is not set or the key is too short
+      Helix.Webserver.Endpoint `secret_key_base` config is not set or the key is
+      too short.
 
       To fix this, set the environment variable `HELIX_ENDPOINT_SECRET_KEY`
       with the desired key. It should be longer than 20 characters to ensure
-      be secure
+      be secure.
 
       Example:
       HELIX_ENDPOINT_SECRET_KEY="myVerySeCr3tK3y!!++=" mix run

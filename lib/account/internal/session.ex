@@ -45,11 +45,11 @@ defmodule Helix.Account.Internal.Session do
   @spec sign(AccountSession.id) ::
     AccountSession.token
   defp sign(session),
-    do: Token.sign(Helix.Endpoint, "player", session)
+    do: %{}#Token.sign(Helix.Webserver.Endpoint, "player", session)
 
   @spec verify(AccountSession.token) ::
     {:ok, AccountSession.id}
     | {:error, :invalid | :expired}
   defp verify(token),
-    do: Token.verify(Helix.Endpoint, "player", token, max_age: @max_age)
+    do: %{}#Token.verify(Helix.Webserver.Endpoint, "player", token, max_age: @max_age)
 end

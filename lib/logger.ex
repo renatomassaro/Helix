@@ -159,8 +159,8 @@ defmodule Helix.Logger do
             |> Map.put(:meta, meta)
             |> Map.put(:timestamp, ClientUtils.to_timestamp(DateTime.utc_now()))
 
-          Helix.Endpoint.broadcast "logflix", "event",
-            %{data: payload, event: "new_log"}
+          # Helix.Webserver.Endpoint.broadcast "logflix", "event",
+          #   %{data: payload, event: "new_log"}
         end
 
         Logger.unquote(log_type)(unquote(log_param))

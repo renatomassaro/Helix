@@ -28,7 +28,7 @@ defmodule Helix.Event.Trigger.Publishable do
     event
     |> Trigger.get_data(:whom_to_publish, @trigger)
     |> channel_mapper()
-    |> Enum.each(&(Helix.Endpoint.broadcast(&1, "event", event)))
+    # |> Enum.each(&(Helix.Webserver.Endpoint.broadcast(&1, "event", event)))
   end
 
   # Entrypoint for socket's `handle_event`

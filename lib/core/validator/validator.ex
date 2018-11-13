@@ -28,6 +28,9 @@ defmodule Helix.Core.Validator do
   """
   def validate_input(input, type, opts \\ [])
 
+  def validate_input(input, :username, _),
+    do: validate_username(input)
+
   def validate_input(input, :password, _),
     do: validate_password(input)
 
@@ -54,6 +57,9 @@ defmodule Helix.Core.Validator do
       :error
     end
   end
+
+  defp validate_username(input),
+    do: validate_hostname(input)  # TODO
 
   defp validate_password(input),
     do: validate_hostname(input)  # TODO

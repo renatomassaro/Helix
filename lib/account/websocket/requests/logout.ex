@@ -20,7 +20,7 @@ request Helix.Account.Websocket.Requests.Logout do
 
     socket
     |> Websocket.id()
-    |> Helix.Endpoint.broadcast("disconnect", %{})
+    # |> Helix.Webserver.Endpoint.broadcast("disconnect", %{})
 
     reply_ok(request)
   end
