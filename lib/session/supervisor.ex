@@ -2,7 +2,7 @@ defmodule Helix.Session.Supervisor do
 
   use Supervisor
 
-  alias Helix.Session.State.Session, as: SessionState
+  alias Helix.Session.State.Supervisor, as: SessionStateSupervisor
   alias Helix.Session.Repo
 
   def start_link do
@@ -12,7 +12,7 @@ defmodule Helix.Session.Supervisor do
   def init(_) do
     children = [
       supervisor(Repo, []),
-      supervisor(SessionState, [])
+      supervisor(SessionStateSupervisor, [])
     ]
 
     supervise(children, strategy: :one_for_one)
