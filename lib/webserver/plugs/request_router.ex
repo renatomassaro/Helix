@@ -2,10 +2,19 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
 
   import Plug.Conn
 
+  alias Helix.Webserver.Session, as: SessionWeb
+
   def init(opts),
     do: opts
 
   def call(conn, _opts) do
+    # TODO: Check req-hearders for `content-type` json. Deny otherwise.
+
+    IO.inspect(conn)
+
+    unless conn.assigns.request_authenticated?,
+      do: raise "unhandled_request"
+
     unsafe_params =
       if conn.method == "GET" do
         conn.params
@@ -13,53 +22,67 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
         conn.body_params
       end
 
-    socket = %{}
     initial_request =
-      %{unsafe: unsafe_params,
+      %{
+        unsafe: unsafe_params,
         params: %{},
         meta: %{},
         response: %{},
-        status: nil
+        status: nil,
+        __special__: []
        }
 
     conn
     |> assign(:helix_request, initial_request)
-    |> check_params(socket)
-    |> check_permissions(socket)
-    |> handle_request(socket)
-    |> render_response(socket)
+    |> check_params()
+    |> check_permissions()
+    |> handle_request()
+    |> render_response()
+    |> handle_special()
     |> put_response()
   end
 
-  defp check_params(conn, socket) do
-    conn.assigns.module
-    |> apply(:check_params, [conn.assigns.helix_request, socket])
+  defp check_params(conn = %_{assigns: assigns}) do
+    assigns.module
+    |> apply(:check_params, [assigns.helix_request, assigns.session])
     |> handle_result(conn)
   end
 
-  defp check_permissions(conn = %_{status: s}, _) when not is_nil(s),
+  defp check_permissions(conn = %_{status: s}) when not is_nil(s),
     do: conn
-  defp check_permissions(conn, socket) do
-    conn.assigns.module
-    |> apply(:check_permissions, [conn.assigns.helix_request, socket])
+  defp check_permissions(conn = %_{assigns: assigns}) do
+    assigns.module
+    |> apply(:check_permissions, [assigns.helix_request, assigns.session])
     |> handle_result(conn)
   end
 
-  defp handle_request(conn = %_{status: s}, _) when not is_nil(s),
+  defp handle_request(conn = %_{status: s}) when not is_nil(s),
     do: conn
-  defp handle_request(conn, socket) do
-    conn.assigns.module
-    |> apply(:handle_request, [conn.assigns.helix_request, socket])
+  defp handle_request(conn = %_{assigns: assigns}) do
+    assigns.module
+    |> apply(:handle_request, [assigns.helix_request, assigns.session])
     |> handle_result(conn)
   end
 
-  defp render_response(conn = %_{status: s}, _) when not is_nil(s),
+  defp render_response(conn = %_{status: s}) when not is_nil(s),
     do: conn
-  defp render_response(conn, socket) do
-    conn.assigns.module
-    |> apply(:render_response, [conn.assigns.helix_request, socket])
+  defp render_response(conn = %_{assigns: assigns}) do
+    assigns.module
+    |> apply(:render_response, [assigns.helix_request, assigns.session])
     |> handle_result(conn)
   end
+
+  defp handle_special(conn = %_{assigns: %{helix_request: %{__special__: []}}}),
+    do: conn
+  defp handle_special(conn = %Plug.Conn{}) do
+    conn.assigns.helix_request.__special__
+    |> Enum.reduce(conn, &(handle_special(&1, &2)))
+  end
+
+  # Move somewhere lese?
+  #
+  defp handle_special(%{action: :create, session_id: session_id}, conn),
+    do: SessionWeb.create_session(conn, session_id)
 
   defp put_response(conn = %_{status: s}) when not is_nil(s),
     do: conn

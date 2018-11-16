@@ -13,6 +13,7 @@ config :helix,
     Helix.Universe.Repo,
     Helix.Process.Repo,
     Helix.Server.Repo,
+    Helix.Session.Repo,
     Helix.Software.Repo,
     Helix.Story.Repo
   ],

@@ -74,6 +74,7 @@ defmodule Helix.Mixfile do
       {:logger_file_backend, "~>0.0.10"},
 
       {:entropy_string, "~> 1.3.1"},
+      {:secure_random, "~> 0.5.1"},
       {:burette, git: "https://github.com/HackerExperience/burette"},
 
       {:earmark, "~> 1.2.6", only: :dev},

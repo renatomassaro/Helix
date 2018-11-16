@@ -3,30 +3,50 @@ defmodule Helix.Account.Requests.Login do
   import Helix.Webserver.Utils
 
   alias Helix.Core.Validator
+  alias Helix.Session.Action.Session, as: SessionAction
+  alias Helix.Account.Query.Account, as: AccountQuery
 
-  def check_params(request, socket) do
+  def check_params(request, _socket) do
     with \
       {:ok, username} <-
         Validator.validate_input(request.unsafe["username"], :username),
       {:ok, password} <-
         Validator.validate_input(request.unsafe["password"], :password)
     do
-      reply_ok(request, %{params: %{username: username, password: password}})
+      params = %{username: username, password: password}
+      reply_ok(request, params: params)
     else
       _ ->
         bad_request(request)
     end
   end
 
-  def check_permissions(request, socket) do
-    reply_ok(request, %{meta: %{foo: :deu}})
-  end
+  def check_permissions(request, _socket),
+    do: reply_ok(request)
 
-  def handle_request(request, socket) do
-    reply_ok(request)
+  def handle_request(request, _socket) do
+    username = request.params.username
+    password = request.params.password
+
+    with \
+      account = %_{} <- AccountQuery.fetch_by_credential(username, password),
+      {:ok, session} <- SessionAction.create_unsynced(account)
+    do
+      request
+      |> create_session(session.session_id)
+      |> reply_ok(meta: %{account: account})
+    else
+      nil ->
+        not_found(request)
+
+      {:error, :internal} ->
+        internal_error(request)
+    end
   end
 
   def render_response(request, socket) do
-    respond_ok(request, %{mapa: :vazio})
+    account_id = request.meta.account.account_id
+
+    respond_ok(request, %{account_id: account_id})
   end
 end

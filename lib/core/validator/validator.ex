@@ -1,5 +1,6 @@
 defmodule Helix.Core.Validator do
 
+  alias HELL.IPv4
   alias Helix.Notification.Model.Notification
 
   @type input_type ::
@@ -37,6 +38,9 @@ defmodule Helix.Core.Validator do
   def validate_input(input, :hostname, _),
     do: validate_hostname(input)
 
+  def validate_input(input, :client, _),
+    do: validate_client(input)
+
   def validate_input(input, :bounce_name, _),
     do: validate_bounce_name(input)
 
@@ -45,6 +49,9 @@ defmodule Helix.Core.Validator do
 
   def validate_input(input, :notification_id, opts),
     do: Notification.Validator.validate_id(input, opts)
+
+  def validate_input(input, :ipv4, _),
+    do: validate_ipv4(input)
 
   # Implementations
 
@@ -69,4 +76,19 @@ defmodule Helix.Core.Validator do
 
   defp validate_reply_id(v),
     do: validate_hostname(v)  # TODO
+
+  defp validate_client("web1"),
+    do: {:ok, :web1}
+  defp validate_client("web2"),
+    do: {:ok, :web2}
+  defp validate_client(_),
+    do: :error
+
+  defp validate_ipv4(v) do
+    if IPv4.valid?(v) do
+      {:ok, v}
+    else
+      :error
+    end
+  end
 end

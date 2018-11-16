@@ -148,7 +148,7 @@ defmodule Helix.Notification.Model.Notification do
     do: query(class, query_method, [])
   def query(class, query_method, arg) when not is_list(arg),
     do: query(class, query_method, [arg])
-  def query(queryable = %_{from: {_, module}}, query_method, args),
+  def query(queryable = %_{from: %_{source: {_, module}}}, query_method, args),
     do: do_query(module, query_method, [queryable | args])
   def query(class, query_method, args) when is_atom(class) do
     class
@@ -163,7 +163,7 @@ defmodule Helix.Notification.Model.Notification do
 
   Must always receive a `Queryable` as input.
   """
-  def order(queryable = %_{from: {_, module}}, order_method) do
+  def order(queryable = %_{from: %_{source: {_, module}}}, order_method) do
     module
     |> Module.concat(:Order)
     |> apply(order_method, [queryable])

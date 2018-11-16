@@ -101,6 +101,12 @@ defmodule HELL.ID do
             do: "\"" <> HELL.ID.to_string(struct) <> "\""
         end
 
+        defimpl Jason.Encoder do
+          def encode(struct, opts) do
+            Jason.Encode.string(HELL.ID.to_string(struct), opts)
+          end
+        end
+
       end
     end
   end

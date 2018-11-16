@@ -1,5 +1,4 @@
 defmodule Helix.Server.Model.Server do
-  ##
 
   use Ecto.Schema
   use HELL.ID, field: :server_id

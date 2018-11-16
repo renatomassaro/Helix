@@ -65,6 +65,7 @@ defmodule Helix.Application.DomainsSupervisor do
       supervisor(Helix.Notification.Supervisor, []),
       supervisor(Helix.Process.Supervisor, []),
       supervisor(Helix.Server.Supervisor, []),
+      supervisor(Helix.Session.Supervisor, []),
       supervisor(Helix.Software.Supervisor, []),
       supervisor(Helix.Story.Supervisor, []),
       supervisor(Helix.Universe.Supervisor, [])

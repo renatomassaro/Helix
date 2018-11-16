@@ -2,7 +2,7 @@ use Mix.Config
 
 config :helix, Helix.Server.Repo,
   priv: "priv/repo/server",
-  pool_size: 3,
+  pool_size: 2,
   username: System.get_env("HELIX_DB_USER") || "postgres",
   password: System.get_env("HELIX_DB_PASS") || "postgres",
   hostname: System.get_env("HELIX_DB_HOST") || "localhost",

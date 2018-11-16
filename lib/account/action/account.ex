@@ -57,7 +57,8 @@ defmodule Helix.Account.Action.Account do
     with \
       account = %{} <- AccountInternal.fetch_by_username(username) || :nxacc,
       true <- Account.check_password(account, password) || :badpass,
-      {:ok, token} <- SessionAction.generate_token(account)
+      # {:ok, token} <- SessionAction.generate_token(account)
+      token = "todorandomtoken"
     do
       {:ok, account, token}
     else

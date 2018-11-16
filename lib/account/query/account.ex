@@ -20,4 +20,19 @@ defmodule Helix.Account.Query.Account do
     | nil
   defdelegate fetch_by_username(username),
     to: AccountInternal
+
+  @spec fetch_by_credential(Account.username, Account.password) ::
+    Account.t
+    | nil
+  def fetch_by_credential(username, password) do
+    with \
+      account = %Account{} <- AccountInternal.fetch_by_username(username),
+      true <- Account.check_password(account, password)
+    do
+      account
+    else
+      _ ->
+        nil
+    end
+  end
 end

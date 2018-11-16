@@ -1,7 +1,7 @@
 use Mix.Config
 
-config :helix, Helix.Cache.Repo,
-  priv: "priv/repo/cache",
+config :helix, Helix.Session.Repo,
+  priv: "priv/repo/session",
   pool_size: 2,
   username: System.get_env("HELIX_DB_USER") || "postgres",
   password: System.get_env("HELIX_DB_PASS") || "postgres",
