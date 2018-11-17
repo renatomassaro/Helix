@@ -39,6 +39,7 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
 
       # Missing session cookie/header
       reason = :nxsession ->
+        IO.puts "Failed header"
         halt_error(conn, reason)
 
       {:error, :nxnip} ->
@@ -46,6 +47,7 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
 
       # Failed SessionStateAPI check
       {:error, reason} ->
+        IO.puts "Failed check"
         halt_error(conn, reason)
     end
   end

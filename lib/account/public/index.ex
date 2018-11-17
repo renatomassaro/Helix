@@ -12,6 +12,7 @@ defmodule Helix.Account.Public.Index do
   alias Helix.Universe.Bank.Query.Bank, as: BankQuery
   alias Helix.Account.Model.Account
   alias Helix.Account.Public.Index.Inventory, as: InventoryIndex
+  alias Helix.Account.Query.Account, as: AccountQuery
 
   @type index ::
     %{
@@ -55,6 +56,7 @@ defmodule Helix.Account.Public.Index do
     account_id = Account.ID.cast!(entity.entity_id |> to_string())
 
     %{
+      profile: AccountQuery.fetch(account_id),
       mainframe: mainframe,
       inventory: InventoryIndex.index(entity),
       bounces: bounces,
@@ -68,6 +70,7 @@ defmodule Helix.Account.Public.Index do
     rendered_index
   def render_index(index) do
     %{
+      profile: render_profile(index.profile),
       mainframe: to_string(index.mainframe),
       inventory: InventoryIndex.render_index(index.inventory),
       bounces: Enum.map(index.bounces, &ClientRenderer.render_bounce/1),
@@ -75,6 +78,10 @@ defmodule Helix.Account.Public.Index do
       bank_accounts: Enum.map(index.bank_accounts, &render_bank_account/1),
       notifications: AccountNotificationIndex.render_index(index.notifications)
     }
+  end
+
+  defp render_profile(profile) do
+    %{username: profile.display_name}
   end
 
   @spec render_bank_account(BankAccount.t) ::

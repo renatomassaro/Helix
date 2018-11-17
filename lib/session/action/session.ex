@@ -24,4 +24,17 @@ defmodule Helix.Session.Action.Session do
         {:error, :internal}
     end
   end
+
+  def link_sse(session_id, node_name) do
+    case SessionInternal.link_sse(session_id, node_name) do
+      {:ok, _} ->
+        :ok
+
+      {:error, r} ->
+        {:error, :internal}
+    end
+  end
+
+  defdelegate unlink_sse(session_id),
+    to: SessionInternal
 end

@@ -10,4 +10,8 @@ defmodule Helix.Session.Query.Session do
 
   defdelegate fetch_unsynced(session_id),
     to: SessionInternal
+
+  def is_sse_active?(session_id) do
+    SessionInternal.is_sse_active?(session_id)
+  end
 end

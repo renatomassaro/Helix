@@ -36,5 +36,10 @@ defmodule Helix.Session.Repo.Migrations.InitialSetup do
       add :account_id, :inet, null: false
       add :expiration_date, :utc_datetime, null: false
     end
+
+    create table(:sessions_sse, primary_key: false) do
+      add :session_id, :uuid, primary_key: true
+      add :node_id, :string, null: false
+    end
   end
 end

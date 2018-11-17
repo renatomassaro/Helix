@@ -20,6 +20,8 @@ defmodule Helix.Webserver.Utils do
 
   def create_session(request, session_id),
     do: put_special(request, %{session_id: session_id, action: :create})
+  def start_subscription(request),
+    do: put_special(request, %{action: :start_subscription})
 
   def bad_request(request, reason \\ :bad_request),
     do: reply_error(request, 400, reason)

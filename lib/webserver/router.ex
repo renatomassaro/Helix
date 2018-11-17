@@ -28,7 +28,7 @@ defmodule Helix.Webserver.Router do
   import Helix.Webserver.RouterMacros
 
   pipeline :api do
-    plug :accepts, ["json"]
+    plug :accepts, ["json", "txt"]
     plug Helix.Webserver.Plugs.SessionHandler
     plug Helix.Webserver.Plugs.RequestRouter
   end
@@ -39,6 +39,9 @@ defmodule Helix.Webserver.Router do
     route(:get, "/", Helix.Request1)
     route(:post, "/login", Helix.Account.Requests.Login)
     route(:post, "/sync", Helix.Account.Requests.Sync)
+    route(:get, "/check-session", Helix.Session.Requests.Check)
+    route(:get, "/subscribe", Helix.Session.Requests.Subscribe)
+    route(:post, "/logout", Helix.Account.Requests.Logout)
 
     scope "/account" do
       post "/join", HelixController, :index

@@ -3,14 +3,13 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
   import Plug.Conn
 
   alias Helix.Webserver.Session, as: SessionWeb
+  alias Helix.Webserver.SSE, as: SSEWeb
 
   def init(opts),
     do: opts
 
   def call(conn, _opts) do
     # TODO: Check req-hearders for `content-type` json. Deny otherwise.
-
-    IO.inspect(conn)
 
     unless conn.assigns.request_authenticated?,
       do: raise "unhandled_request"
@@ -83,6 +82,8 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
   #
   defp handle_special(%{action: :create, session_id: session_id}, conn),
     do: SessionWeb.create_session(conn, session_id)
+  defp handle_special(%{action: :start_subscription}, conn),
+    do: SSEWeb.stream(conn)
 
   defp put_response(conn = %_{status: s}) when not is_nil(s),
     do: conn

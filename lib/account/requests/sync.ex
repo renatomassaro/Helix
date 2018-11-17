@@ -12,7 +12,7 @@ defmodule Helix.Account.Requests.Sync do
   alias Helix.Account.Query.Account, as: AccountQuery
   alias Helix.Account.Public.Account, as: AccountPublic
 
-  def check_params(request, _session) do
+  def check_params(request, session) do
     with \
       {:ok, client} <-
         Validator.validate_input(request.unsafe["client"], :client)
@@ -28,8 +28,14 @@ defmodule Helix.Account.Requests.Sync do
     do: reply_ok(request)
 
   def handle_request(request, session) do
-    account_id = session.context.account_id
-    session_id = session.context.session_id
+    resync = session.context[:resync]
+
+    {account_id, session_id} =
+      if resync do
+        {session.account_id, session.session_id}
+      else
+        {session.context.account_id, session.context.session_id}
+      end
 
     with \
       account = %_{} <- AccountQuery.fetch(account_id),

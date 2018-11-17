@@ -61,6 +61,8 @@ defmodule Helix.Webserver.Session do
     do: session_id
   def get_session_id(_),
     do: nil
+  def get_session_id!(conn),
+    do: get_session_id(conn) || raise "session_id missing"
 
   defp fetch_session_header(conn) do
     case get_req_header(conn, "authorization") do

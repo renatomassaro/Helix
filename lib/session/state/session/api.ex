@@ -61,7 +61,18 @@ defmodule Helix.Session.State.Session.API do
         {:ok, %{}, session}
 
       nil ->
-        {:error, :nxsession}
+        # The given session isn't on the `unsynced` list. That does not mean it
+        # is invalid! It may already be synced, in which case the client is
+        # performing a resync, relogin or login-after-lock request. If *that*
+        # fails, then it's an invalid session.
+        case check_permission({session_id}, synced?: true) do
+          {:ok, session, _} ->
+            # The SyncRequest expects a custom context.
+            {:ok, session, %{resync: true}}
+
+          nil ->
+            nil
+        end
     end
   end
 
