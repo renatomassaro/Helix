@@ -31,7 +31,23 @@ defmodule Helix.Session.State.SSE.Shard do
   end
 
   def dispatch(session_id, method, args),
-    do: apply(SSEShardWorker, method, [get_shard_id(session_id) | args])
+    do: call_worker(get_shard_id(session_id), method, args)
+
+  def dispatch_all(method, args, opts \\ []) do
+    result_raw =
+      Enum.reduce(@shard_list, %{}, fn shard_id, acc ->
+        Map.put(acc, shard_id, call_worker(shard_id, method, args))
+      end)
+
+    if opts[:merge?] do
+      merge_map(result_raw)
+    else
+      result_raw
+    end
+  end
+
+  defp call_worker(shard_id, method, args),
+    do: apply(SSEShardWorker, method, [shard_id | args])
 
   defp map_id("0"),
     do: :sse_state_shard_0
@@ -65,4 +81,10 @@ defmodule Helix.Session.State.SSE.Shard do
     do: :sse_state_shard_e
   defp map_id("f"),
     do: :sse_state_shard_f
+
+  defp merge_map(result) do
+    Enum.reduce(result, %{}, fn shard_id, acc ->
+      Map.merge(acc, result[shard_id])
+    end)
+  end
 end

@@ -32,6 +32,7 @@ defmodule Helix.Log.Model.Log do
   @creation_fields [:server_id]
   @required_fields [:server_id, :revision_id, :creation_time, :log_id]
 
+  @derive {Poison.Encoder, only: [:log_id, :revision_id, :server_id, :revision]}
   @primary_key false
   schema "logs" do
     field :log_id, id(),

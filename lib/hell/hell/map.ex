@@ -23,12 +23,12 @@ defmodule HELL.MapUtils do
 
   # Walk the list and atomize the keys of
   # of any map members
-  def atomize_keys([head | rest]) do
-    [atomize_keys(head) | atomize_keys(rest)]
-  end
+  def atomize_keys([head | rest]),
+    do: [atomize_keys(head) | atomize_keys(rest)]
+  def atomize_keys(not_a_map),
+    do: not_a_map
 
-  def atomize_keys(not_a_map) do
-    not_a_map
+  def stringify() do
   end
 
   @doc """

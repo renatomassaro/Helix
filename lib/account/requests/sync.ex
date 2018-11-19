@@ -53,6 +53,11 @@ defmodule Helix.Account.Requests.Sync do
 
       reply_ok(request, meta: meta)
     else
+      {:error, :internal} ->
+        request
+        |> destroy_session()
+        |> internal_error()
+
       nil ->
         not_found(request)
     end

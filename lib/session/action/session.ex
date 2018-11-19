@@ -25,6 +25,10 @@ defmodule Helix.Session.Action.Session do
     end
   end
 
+  def delete(session_id) do
+    SessionInternal.delete(session_id)
+  end
+
   def link_sse(session_id, node_name) do
     case SessionInternal.link_sse(session_id, node_name) do
       {:ok, _} ->

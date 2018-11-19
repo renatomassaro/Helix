@@ -5,6 +5,9 @@ defmodule Helix.Session.State.SSE do
   def get(session_id),
     do: SSEShard.dispatch(session_id, :get, [session_id])
 
+  def get_all(merge_opts \\ []),
+    do: SSEShard.dispatch_all(:get_all, [], merge_opts)
+
   def put(session_id, pid),
     do: SSEShard.dispatch(session_id, :put, [session_id, pid])
 

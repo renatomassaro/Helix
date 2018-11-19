@@ -4,7 +4,7 @@ defmodule Helix.Websocket do
   use Helix.Logger
 
   alias Phoenix.Socket
-  alias Helix.Event.Trigger.Publishable, as: PublishableTrigger
+  # alias Helix.Event.Trigger.Publishable, as: PublishableTrigger
   alias Helix.Account.Model.AccountSession
   alias Helix.Account.Action.Session, as: SessionAction
   alias Helix.Client.Model.Client

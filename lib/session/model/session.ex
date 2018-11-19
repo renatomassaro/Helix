@@ -58,6 +58,11 @@ defmodule Helix.Session.Model.Session do
       foreign_key: :session_id,
       references: :session_id,
       on_delete: :delete_all
+
+    has_one :sse, Session.SSE,
+      foreign_key: :session_id,
+      references: :session_id,
+      on_delete: :delete_all
   end
 
   def create_session(
@@ -86,7 +91,10 @@ defmodule Helix.Session.Model.Session do
         |> Session.Server.create_changeset()
       end)
 
-    [session_changeset | servers_changeset]
+    %{
+      session: session_changeset,
+      servers: servers_changeset
+    }
   end
 
   @spec create_changeset(creation_params) ::
@@ -96,6 +104,7 @@ defmodule Helix.Session.Model.Session do
     |> cast(params, @creation_fields)
     |> put_change(:expiration_date, Utils.date_after(@expiration_ttl))
     |> validate_required(@required_fields)
+    |> unique_constraint(:session_id, name: :sessions_pkey)
   end
 
   def generate_session_id,
@@ -127,16 +136,6 @@ defmodule Helix.Session.Model.Session do
     }
   end
 
-  def gather_gateway_data(server_id, entity_id) do
-    gateway_data = %{server_id: server_id, entity_id: entity_id}
-    server_data =
-      %{
-        gateway: gateway_data,
-        endpoint: gateway_data,
-        meta: %{access: :local}
-      }
-  end
-
   def format_server_data(server = %{"meta" => %{"access" => "local"}}) do
     server_id = Server.ID.cast!(server["gateway"]["server_id"])
     entity_id = Entity.ID.cast!(server["gateway"]["entity_id"])
@@ -146,6 +145,16 @@ defmodule Helix.Session.Model.Session do
 
   # def format_server(server = %{meta: %{access: "remote"}}) do
   # end
+
+  def gather_gateway_data(server_id, entity_id) do
+    gateway_data = %{server_id: server_id, entity_id: entity_id}
+    server_data =
+      %{
+        gateway: gateway_data,
+        endpoint: gateway_data,
+        meta: %{access: :local}
+      }
+  end
 
   query do
 
@@ -157,6 +166,11 @@ defmodule Helix.Session.Model.Session do
     def join_servers(query) do
       from s in query,
         preload: [:servers]
+    end
+
+    def join_session_sse(query) do
+      from s in query,
+        preload: [:session_sse]
     end
 
     def filter_expired(query) do

@@ -28,7 +28,7 @@ defmodule Helix.Session.Model.Session.SSE do
   schema "sessions_sse" do
     field :session_id, Ecto.UUID,
       primary_key: true
-    field :node_id, HELL.Constant
+    field :node_id, :string
   end
 
   @spec create_changeset(creation_params) ::
@@ -47,5 +47,20 @@ defmodule Helix.Session.Model.Session.SSE do
       Queryable.t
     def by_id(query \\ Session.SSE, id),
       do: where(query, [ss], ss.session_id == ^id)
+
+    def get_account_domain(query \\ Session, accounts) do
+      from session in Session,
+        inner_join: session_sse in assoc(session, :sse),
+        where: session.account_id in ^accounts,
+        select: {session_sse.node_id, session_sse.session_id}
+    end
+
+    def get_server_domain(query \\ Session, servers) do
+      from session in Session,
+        inner_join: session_servers in assoc(session, :servers),
+        inner_join: session_sse in assoc(session, :sse),
+        where: session_servers.server_id in ^servers,
+        select: {session_sse.node_id, session_sse.session_id}
+    end
   end
 end

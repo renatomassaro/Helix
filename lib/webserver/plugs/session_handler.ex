@@ -12,10 +12,11 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
   def call(conn, _opts) do
     conn =
       conn
+      |> put_resp_header("content-type", "application/json; charset=utf-8")
       |> fetch_cookies()
       |> SessionWeb.fetch_session()
 
-    IO.inspect(conn)
+    # IO.inspect(conn)
 
     with \
       true <-
@@ -39,7 +40,6 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
 
       # Missing session cookie/header
       reason = :nxsession ->
-        IO.puts "Failed header"
         halt_error(conn, reason)
 
       {:error, :nxnip} ->
@@ -47,7 +47,6 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
 
       # Failed SessionStateAPI check
       {:error, reason} ->
-        IO.puts "Failed check"
         halt_error(conn, reason)
     end
   end

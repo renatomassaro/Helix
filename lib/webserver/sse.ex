@@ -2,11 +2,11 @@ defmodule Helix.Webserver.SSE do
 
   import Plug.Conn
 
-  # alias Helix.Session.Action.Session, as: SessionAction
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
+  alias Helix.Session.State.SSE.Monitor, as: SSEStateMonitor
   alias Helix.Webserver.Session, as: SessionWeb
 
-  @node_id :bra_helix_of9dm
+  @node_id "todo"
   @keepalive_ttl 100000
 
   def stream(conn) do
@@ -18,24 +18,17 @@ defmodule Helix.Webserver.SSE do
       |> send_chunked(200)
 
     # Send a message now; otherwise client waits for first ping
-    sse_push(conn, ping_msg(0))
+    sse_push(conn, first_blood())
 
-    # Save connection pid on SessionState
+    session_id = SessionWeb.get_session_id!(conn)
 
-    # session_id
-    # |> SessionWeb.get_session_id()
-    # |> SessionAction.link_sse(@node_name)
+    # Link connection pid to the current session
+    SSEStateAPI.link_sse(session_id, @node_id, self())
 
-    conn
-    |> SessionWeb.get_session_id!()
-    |> SSEStateAPI.link_sse(@node_id, self())
-
-    #
-    # SSEStateAPI.fetch_sse(session_id)
-
-    # SSEWebMap.monitor(session_id, self())
-
-    ping_loop(1)
+    # Monitor this process and the SSEState GenServer as well, making sure both
+    # are always up-to-date. It is also responsible for sending ping requests to
+    # the client.
+    SSEStateMonitor.start_and_monitor(session_id, self())
 
     conn
     |> listen()
@@ -44,8 +37,12 @@ defmodule Helix.Webserver.SSE do
 
   defp listen(conn) do
     receive do
+      {:event, payload} ->
+        conn
+        |> sse_push(prepare_msg(payload))
+        |> listen()
+
       {:ping, count} ->
-        ping_loop(count + 1)
         conn
         |> sse_push(ping_msg(count))
         |> listen()
@@ -53,19 +50,10 @@ defmodule Helix.Webserver.SSE do
       {:plug_conn, :sent} ->
         listen(conn)
 
-      # {:DOWN....}
-
-      # TODO: `:close` not really needed because of monitor...
-      :close ->
-        :ok
-
       e ->
-        IO.puts "GOT WTF"
-        IO.inspect(e)
-        # raise "asdf"
+        IO.puts "Unexpected message: #{inspect e}"
     end
 
-    IO.puts "FINISHEDD"
     conn
   end
 
@@ -78,11 +66,13 @@ defmodule Helix.Webserver.SSE do
     "data: {\"ping\": #{count}}\n\n"
   end
 
-  defp ping_loop(count) do
-    new_ref = Process.send_after(self(), {:ping, count}, @keepalive_ttl)
-    old_ref = Process.put(:timer_ref, new_ref)
-    unless is_nil(old_ref),
-      do: Process.cancel_timer(old_ref)
-    :ok
+  defp prepare_msg(payload) do
+    stringified_payload = Poison.encode!(payload)
+    "data: #{stringified_payload}\n\n"
+  end
+
+  defp first_blood do
+    retry_interval = Enum.random(2000..10000)
+    "retry: #{retry_interval}\ndata: {\"phoebe\": \"rulez\"}\n\n"
   end
 end

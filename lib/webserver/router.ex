@@ -42,6 +42,7 @@ defmodule Helix.Webserver.Router do
     route(:get, "/check-session", Helix.Session.Requests.Check)
     route(:get, "/subscribe", Helix.Session.Requests.Subscribe)
     route(:post, "/logout", Helix.Account.Requests.Logout)
+    route(:get, "/ping", Helix.Session.Requests.Ping)
 
     scope "/account" do
       post "/join", HelixController, :index

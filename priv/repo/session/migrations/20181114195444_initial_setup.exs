@@ -18,10 +18,7 @@ defmodule Helix.Session.Repo.Migrations.InitialSetup do
     create table(:sessions_servers, primary_key: false) do
       add :session_id,
         references(
-          :sessions,
-          column: :session_id,
-          type: :uuid,
-          on_delete: :delete_all
+          :sessions, column: :session_id, type: :uuid, on_delete: :delete_all
         ),
         primary_key: true
 
@@ -38,8 +35,24 @@ defmodule Helix.Session.Repo.Migrations.InitialSetup do
     end
 
     create table(:sessions_sse, primary_key: false) do
-      add :session_id, :uuid, primary_key: true
+      add :session_id,
+        references(
+          :sessions, column: :session_id, type: :uuid, on_delete: :delete_all
+        ),
+        primary_key: true
       add :node_id, :string, null: false
+    end
+    create index(:sessions_sse, [:node_id])
+
+    create table(:sse_queue, primary_key: false) do
+      add :message_id, :smallint, primary_key: true
+      add :session_id,
+        references(
+          :sessions, column: :session_id, type: :uuid, on_delete: :delete_all
+        )
+
+      add :node_id, :string, null: false
+      add :creation_date, :utc_datetime, null: false
     end
   end
 end

@@ -2,13 +2,13 @@ defmodule Helix.Session.Requests.Check do
 
   import Helix.Webserver.Utils
 
-  alias Helix.Session.Query.Session, as: SessionQuery
+  alias Helix.Session.State.SSE.API, as: SSEStateAPI
 
   def check_params(request, _session),
     do: reply_ok(request)
 
   def check_permissions(request, session) do
-    if SessionQuery.is_sse_active?(session.session_id) do
+    if SSEStateAPI.has_sse_active?(session.session_id) do
       forbidden(request, :already_online)
     else
       reply_ok(request)

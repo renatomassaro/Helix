@@ -38,47 +38,56 @@ defmodule Helix.Session.Internal.Session do
   end
 
   def is_sse_active?(session_id) do
-    session_id
-    |> Session.SSE.Query.by_id()
-    |> Repo.one()
-    |> case do
-         %Session.SSE{} ->
-           true
+    session_sse =
+      session_id
+      |> Session.SSE.Query.by_id()
+      |> Repo.one()
 
-         nil ->
-           false
-       end
+    with %Session.SSE{} <- session_sse || false do
+      true
+    end
+  end
+
+  def get_account_domain(accounts) do
+    accounts
+    |> Session.SSE.Query.get_account_domain()
+    |> Repo.all()
+  end
+
+  def get_server_domain(servers) do
+    servers
+    |> Session.SSE.Query.get_server_domain()
+    |> Repo.all()
   end
 
   def create(session_id, session_data) do
     Repo.transaction fn ->
+      # Remove temporary, unsynced session
       session_id
       |> Session.Unsynced.Query.by_id()
       |> Repo.delete_all()
 
-      session_id
-      |> Session.create_session(session_data)
-      |> Enum.reduce(nil, fn changeset, acc ->
-        conflict_opts =
-          case Ecto.Changeset.apply_changes(changeset) do
-            %Session{} ->
-              [on_conflict: :replace_all, conflict_target: [:session_id]]
+      %{
+        session: session_changeset,
+        servers: servers_changeset
+      } = Session.create_session(session_id, session_data)
 
-            %Session.Server{} ->
-              [on_conflict: :replace_all, conflict_target: [:session_id, :server_id]]
-          end
+      conflict_opts_session =
+        [on_conflict: :replace_all, conflict_target: [:session_id]]
+      conflict_opts_server =
+        [on_conflict: :replace_all, conflict_target: [:session_id, :server_id]]
 
-        case Repo.insert(changeset, conflict_opts) do
-          {:ok, session = %Session{}} ->
-            session
+      case Repo.insert(session_changeset, conflict_opts_session) do
+        {:ok, session} ->
+          Enum.each(servers_changeset, fn server_changeset ->
+            Repo.insert!(server_changeset, conflict_opts_server)
+          end)
 
-          {:ok, _} ->
-            acc
+          session
 
-          {:error, cs} ->
-            Repo.rollback(cs)
-        end
-      end)
+        _ ->
+          Repo.rollback(:error)
+      end
     end
   end
 
@@ -89,6 +98,12 @@ defmodule Helix.Session.Internal.Session do
     }
     |> Session.Unsynced.create_changeset()
     |> Repo.insert()
+  end
+
+  def delete(session_id) do
+    session_id
+    |> Session.Query.by_id()
+    |> Repo.delete_all()
   end
 
   def link_sse(session_id, node_id) do
@@ -104,7 +119,6 @@ defmodule Helix.Session.Internal.Session do
     session_id
     |> Session.SSE.Query.by_id()
     |> Repo.delete_all()
-    |> IO.inspect()
 
     :ok
   end

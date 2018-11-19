@@ -13,6 +13,9 @@ defmodule Helix.Webserver.Session do
   def create_session(conn, session_id),
     do: put_resp_cookie(conn, @session_key, session_id, @session_opts)
 
+  def destroy_session(conn),
+    do: delete_resp_cookie(conn, @session_key, @session_opts)
+
   def fetch_session(conn = %_{assigns: %{session_id: _}}),
     do: conn
   def fetch_session(conn) do

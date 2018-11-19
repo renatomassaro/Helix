@@ -20,6 +20,8 @@ defmodule Helix.Webserver.Utils do
 
   def create_session(request, session_id),
     do: put_special(request, %{session_id: session_id, action: :create})
+  def destroy_session(request),
+    do: put_special(request, %{action: :destroy})
   def start_subscription(request),
     do: put_special(request, %{action: :start_subscription})
 

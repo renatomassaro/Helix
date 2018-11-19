@@ -36,6 +36,11 @@ defmodule Helix.Session.Model.Session.Server do
       primary_key: true
 
     field :server_data, :map
+
+    has_one :session, Session,
+      foreign_key: :session_id,
+      references: :session_id,
+      on_delete: :delete_all
   end
 
   @spec create_changeset(creation_params) ::

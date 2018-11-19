@@ -2,12 +2,18 @@ defmodule Helix.Session.Requests.Subscribe do
 
   import Helix.Webserver.Utils
 
+  alias Helix.Session.State.SSE.API, as: SSEStateAPI
+
   def check_params(request, session) do
     reply_ok(request)
   end
 
-  def check_permissions(request, _) do
-    reply_ok(request)
+  def check_permissions(request, session) do
+    if SSEStateAPI.has_sse_active?(session.session_id) do
+      forbidden(request, :already_online)
+    else
+      reply_ok(request)
+    end
   end
 
   def handle_request(request, _) do

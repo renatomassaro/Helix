@@ -44,6 +44,8 @@ defmodule Helix.Log.Model.Revision do
   @creation_fields [:entity_id, :type, :data, :forge_version, :revision_id]
   @required_fields [:log_id, :entity_id, :type, :data, :revision_id]
 
+  @derive {Poison.Encoder, only: [:log_id, :revision_id, :entity_id, :type,
+                                 :data, :forge_version, :creation_time]}
   @primary_key false
   schema "log_revisions" do
     field :log_id, id(:log),

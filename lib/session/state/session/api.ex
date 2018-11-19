@@ -7,6 +7,28 @@ defmodule Helix.Session.State.Session.API do
   alias Helix.Session.Query.Session, as: SessionQuery
   alias Helix.Session.State.Session, as: SessionState
 
+  def fetch(session_id) do
+    case get(session_id) do
+      {:ok, session, _} ->
+        session
+
+      {:error, _} ->
+        nil
+    end
+  end
+
+  defdelegate get(session_id),
+    to: SessionState
+
+  defdelegate get_server(session_id, server_id),
+    to: SessionState
+
+  defdelegate save(session_id, session),
+    to: SessionState
+
+  defdelegate delete(session_id),
+    to: SessionState
+
   def check_permission(id_tuple, synced?: synced?) do
     with \
       {:error, _} <- retrieve_cache(id_tuple, synced?: synced?),
@@ -25,9 +47,9 @@ defmodule Helix.Session.State.Session.API do
   end
 
   defp retrieve_cache({session_id}, synced?: true),
-    do: SessionState.fetch(session_id)
+    do: SessionState.get(session_id)
   defp retrieve_cache({session_id, server_id = %Server.ID{}}, synced?: true),
-    do: SessionState.fetch_server(session_id, server_id)
+    do: SessionState.get_server(session_id, server_id)
   defp retrieve_cache({session_id}, synced?: false),
     do: {:error, :nxsession}
 

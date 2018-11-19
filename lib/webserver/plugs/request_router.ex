@@ -10,7 +10,6 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
 
   def call(conn, _opts) do
     # TODO: Check req-hearders for `content-type` json. Deny otherwise.
-
     unless conn.assigns.request_authenticated?,
       do: raise "unhandled_request"
 
@@ -82,6 +81,8 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
   #
   defp handle_special(%{action: :create, session_id: session_id}, conn),
     do: SessionWeb.create_session(conn, session_id)
+  defp handle_special(%{action: :destroy}, conn),
+    do: SessionWeb.destroy_session(conn)
   defp handle_special(%{action: :start_subscription}, conn),
     do: SSEWeb.stream(conn)
 
@@ -99,6 +100,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
   defp handle_result({:error, request, reason}, conn) do
     conn
     |> put_status(request.status)
+    |> assign(:helix_request, request)
     |> assign(:helix_response, %{error: %{reason: reason}})
   end
 end
