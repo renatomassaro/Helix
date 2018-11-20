@@ -59,6 +59,7 @@ defmodule Helix.Mixfile do
       {:phoenix_pubsub, "~> 1.1"},
       {:jason, "~> 1.0"},
       {:corsica, "~> 1.1.2"},
+      {:hairnet, github: "ferd/hairnet"},
 
       {:ecto_sql, "~> 3.0.0"},
       {:postgrex, "~> 0.14.0"},

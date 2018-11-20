@@ -29,6 +29,8 @@ defmodule Helix.Webserver.Router do
 
   pipeline :api do
     plug :accepts, ["json", "txt"]
+    plug Helix.Webserver.Plugs.Entrypoint
+    plug Helix.Webserver.Plugs.CSRFHandler
     plug Helix.Webserver.Plugs.SessionHandler
     plug Helix.Webserver.Plugs.RequestRouter
   end

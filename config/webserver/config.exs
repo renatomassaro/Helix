@@ -5,8 +5,8 @@ default_key = "asdfghjklzxcvbnm,./';[]-=1234567890!"
 config :helix, Helix.Webserver.Endpoint,
   secret_key_base: System.get_env("HELIX_ENDPOINT_SECRET_KEY") || default_key,
   render_errors: [view: Helix.Webserver.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Helix.Webserver.PubSub, adapter: Phoenix.PubSub.PG2]
-  # https: [compress: true]
+  pubsub: [name: Helix.Webserver.PubSub, adapter: Phoenix.PubSub.PG2],
+  https: [compress: true]
 
 config :helix, :migration_token, "defaultMigrationToken"
 

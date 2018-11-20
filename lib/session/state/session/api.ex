@@ -92,8 +92,8 @@ defmodule Helix.Session.State.Session.API do
             # The SyncRequest expects a custom context.
             {:ok, session, %{resync: true}}
 
-          nil ->
-            nil
+          error = {:error, _} ->
+            error
         end
     end
   end

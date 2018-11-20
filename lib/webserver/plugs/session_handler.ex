@@ -10,14 +10,6 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
     do: opts
 
   def call(conn, _opts) do
-    conn =
-      conn
-      |> put_resp_header("content-type", "application/json; charset=utf-8")
-      |> fetch_cookies()
-      |> SessionWeb.fetch_session()
-
-    # IO.inspect(conn)
-
     with \
       true <-
         SessionWeb.endpoint_requires_auth?(conn.method, conn.path_info)

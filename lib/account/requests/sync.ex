@@ -140,7 +140,6 @@ defmodule Helix.Account.Requests.Sync do
     client_bootstrap = ClientPublic.render_bootstrap(client, client_bootstrap)
 
     reply = %{
-      session_id: session_id,
       account_id: account_id,
       bootstrap: %{
         account: AccountPublic.render_bootstrap(account_bootstrap),

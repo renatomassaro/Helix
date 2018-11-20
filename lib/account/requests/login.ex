@@ -4,6 +4,7 @@ defmodule Helix.Account.Requests.Login do
 
   alias Helix.Core.Validator
   alias Helix.Session.Action.Session, as: SessionAction
+  alias Helix.Webserver.CSRF, as: CSRFWeb
   alias Helix.Account.Query.Account, as: AccountQuery
 
   def check_params(request, _session) do
@@ -30,11 +31,12 @@ defmodule Helix.Account.Requests.Login do
 
     with \
       account = %_{} <- AccountQuery.fetch_by_credential(username, password),
-      {:ok, session} <- SessionAction.create_unsynced(account)
+      {:ok, session} <- SessionAction.create_unsynced(account),
+      csrf_token = CSRFWeb.generate_token(session.session_id)
     do
       request
       |> create_session(session.session_id)
-      |> reply_ok(meta: %{account: account})
+      |> reply_ok(meta: %{account: account, csrf_token: csrf_token})
     else
       nil ->
         not_found(request)
@@ -46,7 +48,8 @@ defmodule Helix.Account.Requests.Login do
 
   def render_response(request, session) do
     account_id = request.meta.account.account_id
+    csrf_token = request.meta.csrf_token
 
-    respond_ok(request, %{account_id: account_id})
+    respond_ok(request, %{account_id: account_id, csrf_token: csrf_token})
   end
 end

@@ -2,6 +2,7 @@ defmodule Helix.Session.Requests.Check do
 
   import Helix.Webserver.Utils
 
+  alias Helix.Webserver.CSRF, as: CSRFWeb
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
 
   def check_params(request, _session),
@@ -15,9 +16,15 @@ defmodule Helix.Session.Requests.Check do
     end
   end
 
-  def handle_request(request, _session),
-    do: reply_ok(request)
+  def handle_request(request, session) do
+    csrf_token = CSRFWeb.generate_token(session.session_id)
 
-  def render_response(request, _session),
-    do: respond_empty(request, 200)
+    reply_ok(request, meta: %{csrf_token: csrf_token})
+  end
+
+  def render_response(request, _session) do
+    csrf_token = request.meta.csrf_token
+
+    respond_ok(request, %{csrf_token: csrf_token})
+  end
 end

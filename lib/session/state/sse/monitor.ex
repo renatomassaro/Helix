@@ -2,11 +2,13 @@ defmodule Helix.Session.State.SSE.Monitor do
 
   use GenServer
 
+  alias Helix.Webserver.CSRF, as: CSRFWeb
   alias Helix.Session.Action.Session, as: SessionAction
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
 
-  @ping_interval 30_000
-  @pong_timeout 5_000
+  @ping_interval 30_000  # 30s
+  @pong_timeout 5_000  # 5s
+  @csrf_refresh_interval 300_000  # 5m
 
   # Public API
 
@@ -55,12 +57,15 @@ defmodule Helix.Session.State.SSE.Monitor do
         }
       }
 
-    # Start the ping loop
+    # Starts the ping loop
     monitor_client()
 
     # Monitors the SSEState GenServer, so if it crashes the existing SSE stream
     # pid can be sent to the new SSEState GenServer.
     monitor_sse_state(state)
+
+    # Automatically refresh the client's CSRF token every few minutes
+    monitor_csrf_token()
 
     {:reply, :ok, state}
   end
@@ -138,6 +143,18 @@ defmodule Helix.Session.State.SSE.Monitor do
   def handle_info(:pong_timeout, state),
     do: {:stop, :pong_timeout, state}
 
+  def handle_info(:refresh_csrf, state) do
+    new_csrf_token = CSRFWeb.generate_token(state.session_id)
+
+    spawn fn ->
+      send(state.conn_pid, {:event, %{event: "renew_csrf", token: new_csrf_token}})
+    end
+
+    monitor_csrf_token()
+
+    {:noreply, state}
+  end
+
   @doc """
   When the Monitor receives a `:DOWN` signal, it means the monitored process has
   crashed. The monitored process in this case is the SSEState shard with the
@@ -182,6 +199,10 @@ defmodule Helix.Session.State.SSE.Monitor do
 
   defp monitor_client do
     Process.send_after(self(), :ping_client, @ping_interval)
+  end
+
+  defp monitor_csrf_token do
+    Process.send_after(self(), :refresh_csrf, @csrf_refresh_interval)
   end
 
   defp monitor_sse_state(state) do
