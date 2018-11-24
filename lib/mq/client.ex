@@ -7,13 +7,18 @@ defmodule Helix.MQ.Client do
   def start_link,
     do: GenServer.start_link(__MODULE__, [], name: @registry_name)
 
+  def publish(@registry_name, payload) do
+    IO.puts "wow"
+  end
   def publish(node_id, payload),
     do: GenServer.cast(@registry_name, {:publish, node_id, payload})
 
-  def register_node(node_id, ip, port),
+  def register_node(node_id, ip, port) when is_binary(ip),
+    do: register_node(node_id, String.to_char_list(ip), port)
+  def register_node(node_id, ip, port) when is_list(ip),
     do: GenServer.call(@registry_name, {:register_node, node_id, ip, port})
-  def unregister_node(node_id, ip, port),
-    do: GenServer.call(@registry_name, {:register_node, node_id, ip, port})
+  def unregister_node(node_id),
+    do: GenServer.call(@registry_name, {:unregister_node, node_id})
 
   def init(_),
     do: {:ok, %{}}

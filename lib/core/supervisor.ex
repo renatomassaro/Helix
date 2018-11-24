@@ -2,6 +2,7 @@ defmodule Helix.Core.Supervisor do
 
   use Supervisor
 
+  alias Helix.Core.Node
   alias Helix.Core.Repo
 
   @doc false
@@ -12,6 +13,7 @@ defmodule Helix.Core.Supervisor do
   @doc false
   def init(_) do
     children = [
+      supervisor(Node.Monitor, []),
       supervisor(Repo, [])
     ]
 

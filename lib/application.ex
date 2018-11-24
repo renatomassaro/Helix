@@ -8,8 +8,8 @@ defmodule Helix.Application do
 
   def start(_type, _args) do
     children = [
-      supervisor(Helix.Webserver.Endpoint, []),
-      supervisor(Helix.Application.DomainsSupervisor, [])
+      supervisor(Helix.Application.DomainsSupervisor, []),
+      supervisor(Helix.Webserver.Endpoint, [])
     ]
 
     validate_token_key()
@@ -61,6 +61,7 @@ defmodule Helix.Application.DomainsSupervisor do
       supervisor(Helix.Entity.Supervisor, []),
       supervisor(Helix.Event.Supervisor, []),
       supervisor(Helix.Log.Supervisor, []),
+      supervisor(Helix.MQ.Supervisor, []),
       supervisor(Helix.Network.Supervisor, []),
       supervisor(Helix.Notification.Supervisor, []),
       supervisor(Helix.Process.Supervisor, []),

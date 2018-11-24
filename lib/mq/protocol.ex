@@ -20,8 +20,14 @@ defmodule Helix.MQ.Protocol do
   end
 
   def handle_info({:tcp, _socket, payload}, state) do
-    %{queue: queue, data: data} = Poison.decode!(payload)
-    MQ.Router.dispatch(queue, data)
+    spawn fn ->
+      payload
+      |> String.split("EOF", trim: true)
+      |> Enum.each(fn message ->
+        %{queue: queue, data: data} = Poison.decode!(message, keys: :atoms)
+        MQ.Router.dispatch(queue, data)
+      end)
+    end
 
     {:noreply, state}
   end
