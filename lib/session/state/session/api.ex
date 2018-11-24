@@ -13,7 +13,13 @@ defmodule Helix.Session.State.Session.API do
         session
 
       {:error, _} ->
-        nil
+        case retrieve_db({session_id}, synced?: true) do
+          {:ok, session, _} ->
+            session
+
+          {:error, _} ->
+            nil
+        end
     end
   end
 

@@ -1,6 +1,6 @@
 defmodule Helix.Session.Requests.Check do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias Helix.Webserver.CSRF, as: CSRFWeb
   alias Helix.Session.State.SSE.API, as: SSEStateAPI

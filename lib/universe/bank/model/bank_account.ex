@@ -6,6 +6,7 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
+  alias HELL.DateUtils
   alias HELL.Password
   alias Helix.Account.Model.Account
   alias Helix.Universe.Bank.Model.ATM
@@ -127,7 +128,7 @@ defmodule Helix.Universe.Bank.Model.BankAccount do
   @spec add_current_time(Changeset.t) ::
     Changeset.t
   defp add_current_time(changeset) do
-    put_change(changeset, :creation_date, DateTime.utc_now())
+    put_change(changeset, :creation_date, DateUtils.utc_now(:second))
   end
 
   @spec generate_account_id ::

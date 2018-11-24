@@ -17,11 +17,12 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
       true <- is_binary(SessionWeb.get_session_id(conn)) || :nxsession,
       synced? = not SessionWeb.is_sync_request?(conn.method, conn.path_info),
       {:ok, id_tuple} <- SessionWeb.get_identifier_tuple(conn.path_info, conn),
-      {:ok, state, context} <-
+      {:ok, session, context} <-
         SessionStateAPI.check_permission(id_tuple, synced?: synced?)
     do
       conn
-      |> assign(:session, Map.put(state, :context, context))
+      # |> assign(:session, Map.put(state, :context, context))
+      |> assign(:session, SessionWeb.trim_session(session, context))
       |> flag_as_authenticated()
     else
       # Public endpoint

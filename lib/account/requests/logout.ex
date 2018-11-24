@@ -1,6 +1,6 @@
 defmodule Helix.Account.Requests.Logout do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias Helix.Session.Action.Session, as: SessionAction
   alias Helix.Session.State.Session.API, as: SessionStateAPI

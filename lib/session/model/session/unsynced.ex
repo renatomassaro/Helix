@@ -6,7 +6,7 @@ defmodule Helix.Session.Model.Session.Unsynced do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
-  alias HELL.Utils
+  alias HELL.DateUtils
   alias Helix.Account.Model.Account
   alias Helix.Session.Model.Session
 
@@ -42,7 +42,7 @@ defmodule Helix.Session.Model.Session.Unsynced do
   def create_changeset(params) do
     %__MODULE__{}
     |> cast(params, @creation_fields)
-    |> put_change(:expiration_date, Utils.date_after(@expiration_ttl))
+    |> put_change(:expiration_date, DateUtils.date_after(@expiration_ttl))
     |> validate_required(@required_fields)
   end
 

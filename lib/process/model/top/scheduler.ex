@@ -180,7 +180,7 @@ defmodule Helix.Process.Model.TOP.Scheduler do
     changeset =
       proc
       |> Changeset.change()
-      |> Changeset.put_change(:l_reserved, next_allocation)
+      |> Changeset.put_change(:l_reserved, fmt_str(next_allocation))
       |> Changeset.put_change(:last_checkpoint_time, DateTime.utc_now())
 
     changeset =
@@ -198,7 +198,7 @@ defmodule Helix.Process.Model.TOP.Scheduler do
     changeset =
       proc
       |> Changeset.change()
-      |> Changeset.put_change(:r_reserved, next_allocation)
+      |> Changeset.put_change(:r_reserved, fmt_str(next_allocation))
       |> Changeset.put_change(:last_checkpoint_time, DateTime.utc_now())
       |> Changeset.force_change(:processed, proc.processed)
 
@@ -291,5 +291,29 @@ defmodule Helix.Process.Model.TOP.Scheduler do
     else
       candidate
     end
+  end
+
+  docp """
+  `l_reserved` and `r_reserved`, when using KV-like resources, may have Helix.ID
+  as their corresponding keys. Example: %{dlk: %{%Network.ID{} => "0.0"}} is a
+  possible value.
+
+  After updating to Ecto 3.0 / Elixir 1.7 / OTP 21.0, Poison no longer encodes
+  this scenario (not sure why). This is a workaround, essentially converting the
+  Helix.ID to binary, so it can be safely stored in the database without blowing
+  Poison up.
+  """
+  defp fmt_str(allocation) do
+    allocation
+    |> Enum.map(fn {key, alloc} ->
+      if is_map(alloc) and not Enum.empty?(alloc) do
+        [alloc_key] = Map.keys(alloc)
+
+        {key, Map.put(%{}, to_string(alloc_key), alloc[alloc_key])}
+      else
+        {key, alloc}
+      end
+    end)
+    |> Enum.into(%{})
   end
 end

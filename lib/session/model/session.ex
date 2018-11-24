@@ -7,9 +7,13 @@ defmodule Helix.Session.Model.Session do
 
   alias Ecto.Changeset
   alias HELL.MapUtils
-  alias HELL.Utils
+  alias HELL.DateUtils
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
+  alias Helix.Network.Model.Bounce
+  alias Helix.Network.Model.Connection
+  alias Helix.Network.Model.Network
+  alias Helix.Network.Model.Tunnel
   alias Helix.Server.Model.Server
   alias __MODULE__, as: Session
 
@@ -102,7 +106,7 @@ defmodule Helix.Session.Model.Session do
   def create_changeset(params) do
     %__MODULE__{}
     |> cast(params, @creation_fields)
-    |> put_change(:expiration_date, Utils.date_after(@expiration_ttl))
+    |> put_change(:expiration_date, DateUtils.date_after(@expiration_ttl))
     |> validate_required(@required_fields)
     |> unique_constraint(:session_id, name: :sessions_pkey)
   end
@@ -136,25 +140,52 @@ defmodule Helix.Session.Model.Session do
     }
   end
 
-  def format_server_data(server = %{"meta" => %{"access" => "local"}}) do
-    server_id = Server.ID.cast!(server["gateway"]["server_id"])
-    entity_id = Entity.ID.cast!(server["gateway"]["entity_id"])
+  def format_tunnel(tunnel = %Tunnel{}),
+    do: Map.take(tunnel, [:tunnel_id, :bounce_id, :network_id])
+  def format_ssh(ssh = %Connection{}),
+    do: Map.take(ssh, [:connection_id])
 
-    gather_gateway_data(server_id, entity_id)
+  defp format_server_data(server = %{"access" => "local"}) do
+    gateway_data = %{
+      server_id: Server.ID.cast!(server["server_id"]),
+      entity_id: Entity.ID.cast!(server["entity_id"])
+    }
+
+    %{
+      gateway: gateway_data,
+      endpoint: gateway_data,
+      access: :local
+    }
   end
 
-  # def format_server(server = %{meta: %{access: "remote"}}) do
-  # end
-
-  def gather_gateway_data(server_id, entity_id) do
-    gateway_data = %{server_id: server_id, entity_id: entity_id}
-    server_data =
-      %{
-        gateway: gateway_data,
-        endpoint: gateway_data,
-        meta: %{access: :local}
-      }
+  defp format_server_data(data = %{"access" => "remote"}) do
+    %{
+      gateway: %{
+        entity_id: Entity.ID.cast!(data["gateway"]["entity_id"]),
+        server_id: Server.ID.cast!(data["gateway"]["server_id"]),
+        ip: data["gateway"]["ip"]
+      },
+      endpoint: %{
+        entity_id: Entity.ID.cast!(data["endpoint"]["entity_id"]),
+        server_id: Server.ID.cast!(data["endpoint"]["server_id"]),
+        ip: data["endpoint"]["ip"]
+      },
+      tunnel: %{
+        tunnel_id: Tunnel.ID.cast!(data["tunnel"]["tunnel_id"]),
+        network_id: Network.ID.cast!(data["tunnel"]["network_id"]),
+        bounce_id: get_bounce_id(data["tunnel"]["bounce_id"])
+      },
+      ssh: %{
+        connection_id: Connection.ID.cast!(data["ssh"]["connection_id"])
+      },
+      access: :remote
+    }
   end
+
+  defp get_bounce_id(nil),
+    do: nil
+  defp get_bounce_id(bounce_id = %Bounce.ID{}),
+    do: Bounce.ID.cast!(bounce_id)
 
   query do
 

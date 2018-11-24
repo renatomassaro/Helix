@@ -241,9 +241,10 @@ defmodule Helix.Server.Public.Index do
   """
   def gateway(server = %Server{}, entity_id) do
     index = %{
+      hardware: HardwareIndex.index(server, :local),
+      tunnels: NetworkIndex.index(:gateway, server.server_id),
       password: server.password,
       name: server.hostname,
-      hardware: HardwareIndex.index(server, :local),
       type: server.type
     }
 
@@ -258,6 +259,7 @@ defmodule Helix.Server.Public.Index do
   def render_gateway(bootstrap_gateway, server, entity_id) do
     partial =
       %{
+        tunnels: NetworkIndex.render_index(:gateway, bootstrap_gateway.tunnels),
         password: bootstrap_gateway.password,
         name: bootstrap_gateway.name,
         server_type: to_string(bootstrap_gateway.type)
@@ -268,7 +270,7 @@ defmodule Helix.Server.Public.Index do
     |> Map.merge(partial)
   end
 
-  @spec remote(Server.t, Entity.id) ::
+  @spec remote(Server.t, Server.id, Entity.id) ::
     remote
   @doc """
   Generates one server entry under the context of endpoint (i.e. this server
@@ -278,10 +280,11 @@ defmodule Helix.Server.Public.Index do
   - On Server join, return information about the endpoint
   - Resync client data with `bootstrap` request
   """
-  def remote(server = %Server{}, entity_id) do
+  def remote(server = %Server{}, gateway_id = %Server.ID{}, entity_id) do
     index =
       %{
-        hardware: HardwareIndex.index(server, :remote)
+        hardware: HardwareIndex.index(server, :remote),
+        tunnels: NetworkIndex.index(:remote, server.server_id, gateway_id),
       }
 
     Map.merge(bootstrap_common(server, entity_id), index)
@@ -293,7 +296,14 @@ defmodule Helix.Server.Public.Index do
   Renderer for `remote/2`
   """
   def render_remote(bootstrap_remote, server, entity_id) do
-    render_bootstrap_common(bootstrap_remote, server, entity_id)
+    partial =
+      %{
+        tunnels: NetworkIndex.render_index(:remote, bootstrap_remote.tunnels)
+      }
+
+    bootstrap_remote
+    |> render_bootstrap_common(server, entity_id)
+    |> Map.merge(partial)
   end
 
   @spec bootstrap_common(Server.t, Entity.id) ::
@@ -318,7 +328,6 @@ defmodule Helix.Server.Public.Index do
       logs: LogIndex.index(server_id),
       storages: FileIndex.index(server_id),
       processes: ProcessIndex.index(server_id, entity_id),
-      tunnels: NetworkIndex.index(server_id),
       notifications: ServerNotificationIndex.index(server_id, account_id)
     }
   end
@@ -340,10 +349,7 @@ defmodule Helix.Server.Public.Index do
       logs: LogIndex.render_index(bootstrap.logs),
       storages: FileIndex.render_index(bootstrap.storages),
       hardware: HardwareIndex.render_index(bootstrap.hardware),
-      processes: ProcessIndex.render_index(
-        bootstrap.processes, server.server_id, entity_id
-      ),
-      tunnels: NetworkIndex.render_index(bootstrap.tunnels),
+      processes: ProcessIndex.render_index(bootstrap.processes, entity_id),
       notifications: ServerNotificationIndex.render_index(
         bootstrap.notifications
       )

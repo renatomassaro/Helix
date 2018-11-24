@@ -1,6 +1,6 @@
 defmodule Helix.Account.Requests.Test do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias Helix.Event
   alias Helix.Log.Event.Log.Created, as: LogCreatedEvent

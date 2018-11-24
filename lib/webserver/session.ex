@@ -34,6 +34,12 @@ defmodule Helix.Webserver.Session do
     end
   end
 
+  def trim_session(session, context) do
+    session
+    |> Map.put(:context, context)
+    |> Map.drop([:servers, :account])
+  end
+
   def endpoint_requires_auth?(_, [_, "register"]),
     do: false
   def endpoint_requires_auth?(_, [_, "login"]),
@@ -96,7 +102,7 @@ defmodule Helix.Webserver.Session do
   defp get_server_id(server_cid) do
     server_cid
     |> parse_server_cid()
-    |> get_server_id
+    |> get_server_id()
   end
 
   ### Parse cid

@@ -61,7 +61,7 @@ defmodule Helix.Log.Model.Revision do
     field :forge_version, :integer,
       default: nil
 
-    field :creation_time, :utc_datetime
+    field :creation_time, :utc_datetime_usec
 
     belongs_to :log, Log,
       foreign_key: :log_id,

@@ -270,6 +270,11 @@ defmodule Helix.Network.Model.Tunnel do
         select: connections
     end
 
+    def preload_connections(query) do
+      from tunnel in query,
+        preload: [:connections]
+    end
+
     @spec get_remote_endpoints([Server.idtb]) ::
       Queryable.t
     @doc """

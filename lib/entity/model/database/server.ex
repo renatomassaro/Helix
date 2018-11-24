@@ -6,6 +6,7 @@ defmodule Helix.Entity.Model.Database.Server do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
+  alias HELL.DateUtils
   alias HELL.Constant
   alias HELL.IPv4
   alias Helix.Entity.Model.Entity
@@ -114,7 +115,7 @@ defmodule Helix.Entity.Model.Database.Server do
   end
 
   defp update_last_update(changeset),
-    do: put_change(changeset, :last_update, DateTime.utc_now())
+    do: put_change(changeset, :last_update, DateUtils.utc_now(:second))
 
   query do
 

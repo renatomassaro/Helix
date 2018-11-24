@@ -17,6 +17,7 @@ defmodule Helix.Session.State.SSE.Monitor do
   process.
   """
   def start_and_monitor(session_id, conn_pid) do
+    # FIXME: Atom exhaustion warning: This leaks 1 atom per user login.
     sse_name = SSEStateAPI.get_process_name(session_id)
     name = "sse_monitor_" <> session_id |> String.to_atom()
 

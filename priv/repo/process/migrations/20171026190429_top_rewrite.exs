@@ -42,10 +42,10 @@ defmodule Helix.Process.Repo.Migrations.TOPRewrite do
       add :r_dynamic, {:array, :string}
 
       add :static, :jsonb, null: false
-      add :last_checkpoint_time, :utc_datetime
+      add :last_checkpoint_time, :utc_datetime_usec
 
       # Metadata
-      add :creation_time, :utc_datetime, null: false
+      add :creation_time, :utc_datetime_usec, null: false
     end
     # Used to identify all processes of #{type} on #{server}
     # Also used when fetching all processes on #{server}

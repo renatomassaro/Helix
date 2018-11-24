@@ -7,6 +7,7 @@ defmodule Helix.Universe.Bank.Model.BankToken do
 
   alias Ecto.Changeset
   alias Ecto.UUID
+  alias HELL.DateUtils
   alias Helix.Network.Model.Connection
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.Bank.Model.BankAccount
@@ -62,12 +63,7 @@ defmodule Helix.Universe.Bank.Model.BankToken do
   @spec set_expiration_date(t) ::
     Changeset.t
   def set_expiration_date(token) do
-    # TODO: Move to a utils
-    expiration_date =
-      DateTime.utc_now()
-      |> DateTime.to_unix(:second)
-      |> Kernel.+(@token_ttl)
-      |> DateTime.from_unix!(:second)
+    expiration_date = DateUtils.date_after(@token_ttl)
 
     token
     |> change()

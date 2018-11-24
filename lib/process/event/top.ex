@@ -71,8 +71,11 @@ defmodule Helix.Process.Event.TOP do
 
       event_name :top_recalcado
 
-      def generate_payload(event, socket) do
-        data = ProcessIndex.index(event.server_id, socket.assigns.entity_id)
+      def generate_payload(event, session) do
+        data =
+          event.server_id
+          |> ProcessIndex.index(session.entity_id)
+          |> ProcessIndex.render_index(session.entity_id)
 
         {:ok, data}
       end

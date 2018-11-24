@@ -20,11 +20,11 @@ defmodule Helix.Process.Public.Index do
     |> ProcessQuery.get_processes_from_entity_on_server(entity_id)
   end
 
-  @spec render_index(index, Server.id, Entity.id) ::
+  @spec render_index(index, Entity.id) ::
     rendered_index
-  def render_index(index, server_id, entity_id) do
+  def render_index(index, entity_id) do
     index
-    |> Enum.map(&ProcessView.render(&1, server_id, entity_id))
+    |> Enum.map(&ProcessView.render(&1, entity_id))
     |> Enum.reject(&(&1 == nil))
   end
 end

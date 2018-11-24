@@ -1,6 +1,6 @@
 defmodule Helix.Account.Requests.Login do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias Helix.Core.Validator
   alias Helix.Session.Action.Session, as: SessionAction

@@ -44,7 +44,7 @@ defmodule Helix.Log.Model.Log do
     # Stores the exact moment the log was created. This value is immutable! Even
     # if several revisions occurred at a later time, the `creation_time` of the
     # log object remains unchanged.
-    field :creation_time, :utc_datetime
+    field :creation_time, :utc_datetime_usec
 
     field :revision, :map,
       virtual: true,

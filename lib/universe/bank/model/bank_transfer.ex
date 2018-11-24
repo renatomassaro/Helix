@@ -6,6 +6,7 @@ defmodule Helix.Universe.Bank.Model.BankTransfer do
   import Ecto.Changeset
   import HELL.Ecto.Macros
 
+  alias HELL.DateUtils
   alias Helix.Account.Model.Account
   alias Helix.Universe.Bank.Model.BankAccount
   alias Helix.Universe.Bank.Model.ATM
@@ -82,7 +83,7 @@ defmodule Helix.Universe.Bank.Model.BankTransfer do
   end
 
   defp add_time_information(changeset),
-    do: put_change(changeset, :started_time, DateTime.utc_now())
+    do: put_change(changeset, :started_time, DateUtils.utc_now(:second))
 
   query do
 

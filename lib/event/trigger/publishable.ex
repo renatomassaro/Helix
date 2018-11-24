@@ -9,7 +9,7 @@ defmodule Helix.Event.Trigger.Publishable do
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
   alias Helix.Server.Model.Server
-  alias Helix.Session.State.SSE.Pub, as: SSEPub
+  alias Helix.Session.State.SSE.PubSub, as: SSEPubSub
 
   @type whom_to_publish ::
     %{
@@ -25,30 +25,72 @@ defmodule Helix.Event.Trigger.Publishable do
   def flow(event) do
     event = add_event_identifier(event)
 
-    {:ok, event_payload} = generate_event(event, %{})
+    domains =
+      event
+      |> Trigger.get_data(:whom_to_publish, @trigger)
+      |> channel_mapper()
 
-    event
-    |> Trigger.get_data(:whom_to_publish, @trigger)
-    |> channel_mapper()
-    |> SSEPub.publish(event_payload)
+    event_payload = get_event_payload(event)
+
+    case get_event_payload(event) do
+      {dispatch_type, payload} ->
+        SSEPubSub.publish(domains, {dispatch_type, payload})
+
+      :noreply ->
+        :noop
+    end
   end
 
-  def generate_event(event, socket) do
-    case Trigger.get_data([event, socket], :generate_payload, @trigger) do
-      {:ok, data} ->
-        payload =
-          %{
-            data: data,
-            event: Trigger.get_data(event, :event_name, @trigger),
-            meta: Event.Meta.render(event)
-          }
+  def get_event_payload(event) do
+    try do
+      case Trigger.get_data([event], :generate_payload, @trigger) do
+        {:ok, data} ->
+          payload = render_event_payload(event, data)
+          {:static, payload}
 
-        {:ok, payload}
+        noreply ->
+          noreply
+      end
+    rescue
+      UndefinedFunctionError ->
+        {:dynamic, event}
+    end
+  end
+
+  def get_event_payload(event, session) do
+    case Trigger.get_data([event, session], :generate_payload, @trigger) do
+      {:ok, data} ->
+        render_event_payload(event, data)
 
       noreply ->
         noreply
     end
   end
+
+  defp render_event_payload(event, data) do
+    %{
+      data: data,
+      event: Trigger.get_data(event, :event_name, @trigger),
+      meta: Event.Meta.render(event)
+    }
+  end
+
+  # def generate_event(event, socket) do
+  #   case Trigger.get_data([event, socket], :generate_payload, @trigger) do
+  #     {:ok, data} ->
+  #       payload =
+  #         %{
+  #           data: data,
+  #           event: Trigger.get_data(event, :event_name, @trigger),
+  #           meta: Event.Meta.render(event)
+  #         }
+
+  #       {:ok, payload}
+
+  #     noreply ->
+  #       noreply
+  #   end
+  # end
 
   defp channel_mapper(whom_to_publish, acc \\ [])
   defp channel_mapper(:everyone, _),
@@ -72,7 +114,12 @@ defmodule Helix.Event.Trigger.Publishable do
       |> Utils.ensure_list()
       |> Enum.uniq()
       |> Enum.reduce(acc, fn account_id, acc ->
-        [{:account, account_id} | acc]
+        casted_account_id =
+          with %Entity.ID{} <- account_id do
+            Account.ID.cast!(to_string(account_id))
+          end
+
+        [{:account, casted_account_id} | acc]
       end)
 
     channel_mapper(Map.delete(publish, :account), acc)

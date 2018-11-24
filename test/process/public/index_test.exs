@@ -96,7 +96,7 @@ defmodule Helix.Process.Public.IndexTest do
       rendered =
         server.server_id
         |> ProcessIndex.index(entity.entity_id)
-        |> ProcessIndex.render_index(server.server_id, entity.entity_id)
+        |> ProcessIndex.render_index(entity.entity_id)
 
       # There are three processes total
       assert length(rendered) == 2

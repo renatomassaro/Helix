@@ -1,6 +1,6 @@
 defmodule Helix.Software.Internal.Virus do
 
-  alias HELL.Utils
+  alias HELL.DateUtils
   alias Helix.Entity.Model.Entity
   alias Helix.Software.Model.File
   alias Helix.Software.Model.Storage
@@ -149,7 +149,7 @@ defmodule Helix.Software.Internal.Virus do
   for compensating a failed virus collect (albeit uncommon).
   """
   def set_running_time(virus = %Virus{}, seconds) do
-    new_time = Utils.date_before(seconds)
+    new_time = DateUtils.date_before(seconds)
 
     case update_activation_time(virus, new_time) do
       {1, _} ->

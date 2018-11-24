@@ -16,8 +16,8 @@ defmodule Helix.Process.Repo.Migrations.InitialSetup do
       add :processed, :jsonb, null: false
       add :allocated, :jsonb, null: false
       add :limitations, :jsonb, null: false
-      add :creation_time, :utc_datetime, null: false
-      add :updated_time, :utc_datetime, null: false
+      add :creation_time, :utc_datetime_usec, null: false
+      add :updated_time, :utc_datetime_usec, null: false
       add :connection_id, :inet
       add :source_entity_id, :inet
     end

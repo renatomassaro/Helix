@@ -44,7 +44,9 @@ defmodule Helix.Mixfile do
   def application do
     [
       mod: {Helix.Application, []},
-      extra_applications: [:phoenix, :logger, :runtime_tools, :crypto, :hevent]
+      extra_applications: [
+        :phoenix, :logger, :runtime_tools, :crypto, :hevent
+      ]
     ]
   end
 

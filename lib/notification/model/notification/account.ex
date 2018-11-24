@@ -12,6 +12,7 @@ defmodule Helix.Notification.Model.Notification.Account do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
+  alias HELL.DateUtils
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
   alias Helix.Notification.Model.Code.Account.CodeEnum
@@ -82,7 +83,7 @@ defmodule Helix.Notification.Model.Notification.Account do
     changeset
   defp put_defaults(changeset) do
     changeset
-    |> put_change(:creation_time, DateTime.utc_now())
+    |> put_change(:creation_time, DateUtils.utc_now(:second))
   end
 
   query do

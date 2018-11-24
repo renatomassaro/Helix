@@ -2,14 +2,16 @@ defmodule Helix.Session.State.SSE.PubSub do
 
   use GenServer
 
+  alias Helix.Event.Trigger.Publishable, as: PublishableTrigger
+  alias Helix.Core.Node.Manager, as: NodeManager
+  alias Helix.MQ
   alias Helix.Session.Action.SSE, as: SSEAction
   alias Helix.Session.Model.SSE
   alias Helix.Session.Query.Session, as: SessionQuery
   alias Helix.Session.State.Session.API, as: SessionStateAPI
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
-  alias Helix.Session.Repo
 
-  @node_id "todo"
+  @node_id NodeManager.get_node_name()
 
   @registry_name :sse_pubsub
 
@@ -32,9 +34,9 @@ defmodule Helix.Session.State.SSE.PubSub do
     do: GenServer.start_link(__MODULE__, [], name: @registry_name)
 
   def publish(:global, payload),
-    do: pg_notify("sse_queue_all", payload)
+    do: Helix.MQ.multicast("sse_queue_global", payload)
 
-  def publish(domains, event) do
+  def publish(domains, {dispatch_type, event}) do
     message_id = SSE.Queue.generate_message_id()
 
     nodes =
@@ -45,12 +47,29 @@ defmodule Helix.Session.State.SSE.PubSub do
     cluster_queue_data =
       Enum.reduce(nodes, %{}, fn {node_id, sessions}, acc ->
         notifications =
-          Enum.map(sessions, fn session_id ->
-            %{
-              session_id: session_id,
-              message_id: SSE.Queue.generate_message_id(),
-              event: event
-            }
+          sessions
+          |> Enum.reduce([], fn session_id, acc ->
+            session = SessionStateAPI.fetch(session_id)
+
+            payload =
+              if dispatch_type == :static do
+                event
+              else
+                PublishableTrigger.get_event_payload(event, session)
+              end
+
+            if payload == :noreply do
+              acc
+            else
+              notification =
+                %{
+                  session_id: session_id,
+                  message_id: SSE.Queue.generate_message_id(),
+                  event: payload
+                }
+
+              [notification | acc]
+            end
           end)
 
         node_queue_data =
@@ -58,7 +77,10 @@ defmodule Helix.Session.State.SSE.PubSub do
             [{notification.message_id, notification.session_id} | acc]
           end)
 
-        pg_notify("sse_queue_" <> node_id, notifications)
+        unless Enum.empty?(notifications) do
+          MQ.publish(node_id, "sse_queue", notifications)
+        end
+
         Map.put(acc, node_id, node_queue_data)
       end)
 
@@ -72,18 +94,16 @@ defmodule Helix.Session.State.SSE.PubSub do
     end)
   end
 
-  defp pg_notify(channel, notification) do
-    notification_str = Poison.encode!(notification)
-    Ecto.Adapters.SQL.query(
-      Repo, "NOTIFY \"#{channel}\", '#{notification_str}'"
-    )
-  end
+  defp on_sse_msg(raw),
+    do: GenServer.cast(@registry_name, {:notification, :sse_queue, raw})
+  defp on_global_sse_msg(raw),
+    do: GenServer.cast(@registry_name, {:notification, :sse_queue_global, raw})
 
   # Callbacks
 
   def init(_) do
-    {:ok, _, _} = Repo.listen("sse_queue_all")
-    {:ok, _, _} = Repo.listen("sse_queue_" <> @node_id)
+    MQ.subscribe("sse_queue", &on_sse_msg/1)
+    MQ.subscribe("sse_queue_global", &on_global_sse_msg/1)
 
     start_deletion_loop()
 
@@ -92,17 +112,16 @@ defmodule Helix.Session.State.SSE.PubSub do
 
   def handle_cast({:request_resync, session_id}, state) do
     IO.puts "Reqeust requsync"
+    # TODO: Resync won't fix anything here, as the SSE channel is closed.
+    # Simply remove any indicative that the SSE could be working.
 
     {:noreply, state}
   end
 
-  def handle_info({:notification, _, _, "sse_queue_all", raw}, state) do
-    notification = parse_notification(raw)
-
+  def handle_cast({:notification, :sse_queue_global, notification}, state) do
     {action, new_state} =
       case notification.event do
         "_online" ->
-          # Limit once every 10s
           rate_limit(:online, state, notification)
 
         _ ->
@@ -116,11 +135,7 @@ defmodule Helix.Session.State.SSE.PubSub do
     {:noreply, new_state}
   end
 
-  def handle_info({:notification, _, _, _channel_name, raw}, state) do
-    IO.puts "WILL NOTIFY FY FY"
-    notifications = parse_notification(raw)
-    IO.inspect(notifications)
-
+  def handle_cast({:notification, :sse_queue, notifications}, state) do
     ids_sent =
       Enum.reduce(notifications, [], fn notification, acc ->
         spawn fn ->
@@ -240,11 +255,5 @@ defmodule Helix.Session.State.SSE.PubSub do
 
       {:wait, new_state}
     end
-  end
-
-  defp parse_notification(payload) do
-    payload
-    |> Poison.decode(keys: :atoms)
-    |> elem(1)
   end
 end

@@ -206,6 +206,23 @@ defmodule Helix.Network.Internal.Tunnel do
     |> Enum.map(&Tunnel.format/1)
   end
 
+  def tunnels_targeting(gateway_id, target_id) do
+    gateway_id
+    |> Tunnel.Query.by_gateway()
+    |> Tunnel.Query.by_target(target_id)
+    |> Tunnel.Query.preload_connections()
+    |> Repo.all()
+    |> Enum.map(&Tunnel.format/1)
+  end
+
+  def tunnels_originating(gateway_id) do
+    gateway_id
+    |> Tunnel.Query.by_gateway()
+    |> Tunnel.Query.preload_connections()
+    |> Repo.all()
+    |> Enum.map(&Tunnel.format/1)
+  end
+
   @spec connections_through_node(Server.idt) ::
     [Connection.t]
   @doc """

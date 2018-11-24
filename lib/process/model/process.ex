@@ -458,7 +458,7 @@ defmodule Helix.Process.Model.Process do
       default: %{}
 
     # Date when the process was last simulated during a `TOPAction.recalque/2`
-    field :last_checkpoint_time, :utc_datetime
+    field :last_checkpoint_time, :utc_datetime_usec
 
     # Static amount of resources used by the process
     field :static, :map
@@ -487,7 +487,7 @@ defmodule Helix.Process.Model.Process do
     field :state, Constant,
       virtual: true
 
-    field :creation_time, :utc_datetime
+    field :creation_time, :utc_datetime_usec
 
     # Estimated time left for completion of the process. Seconds.
     field :time_left, :float,
@@ -499,7 +499,7 @@ defmodule Helix.Process.Model.Process do
       default: 0.0
 
     # Estimated completion date for the process.
-    field :completion_date, :utc_datetime,
+    field :completion_date, :utc_datetime_usec,
       virtual: true
   end
 

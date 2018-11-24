@@ -43,7 +43,7 @@ defmodule Helix.Story.Event.Email do
 
       event_name :story_email_sent
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         contact_id = Step.get_contact(event.step) |> to_string()
         replies =
           event.step

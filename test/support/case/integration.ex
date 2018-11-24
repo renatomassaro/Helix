@@ -6,7 +6,7 @@ defmodule Helix.Test.Case.Integration do
     quote do
       @moduletag :integration
 
-      setup do
+      setup_all do
         # IO.inspect(__ENV__.module)
         # IO.inspect(self())
         repos = Application.get_env(:helix, :ecto_repos)

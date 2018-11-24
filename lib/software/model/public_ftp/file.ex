@@ -6,6 +6,7 @@ defmodule Helix.Software.Model.PublicFTP.File do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
+  alias HELL.DateUtils
   alias Helix.Server.Model.Server
   alias Helix.Software.Model.File
   alias Helix.Software.Model.PublicFTP
@@ -71,7 +72,7 @@ defmodule Helix.Software.Model.PublicFTP.File do
   @spec add_timestamp(changeset) ::
     changeset
   defp add_timestamp(changeset),
-    do: put_change(changeset, :inserted_at, DateTime.utc_now())
+    do: put_change(changeset, :inserted_at, DateUtils.utc_now(:second))
 
   query do
 

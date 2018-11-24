@@ -56,6 +56,14 @@ defmodule Helix.Webserver.Router do
       post "/", HelixController, :index
       post "/join", HelixController, :index
 
+      scope "/log" do
+        route(:post, "/", Helix.Log.Requests.Forge.Create)
+
+        scope "/:log_id" do
+          route(:post, "/edit", Helix.Log.Requests.Forge.Edit)
+        end
+      end
+
       route(:get, "/test", Helix.Account.Requests.Test)
     end
   end

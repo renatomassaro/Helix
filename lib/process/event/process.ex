@@ -97,11 +97,10 @@ defmodule Helix.Process.Event.Process do
       All this logic is handled by `ProcessView` and, under the hood,
       `ProcessViewable`.
       """
-      def generate_payload(event = %_{confirmed: true}, socket) do
-        server_id = socket.assigns.destination.server_id
-        entity_id = socket.assigns.gateway.entity_id
+      def generate_payload(event = %{confirmed: true}, session) do
+        entity_id = session.entity_id  # REVIEW
 
-        data = ProcessView.render(event.process, server_id, entity_id)
+        data = ProcessView.render(event.process, entity_id)
 
         if data do
           {:ok, data}
@@ -111,7 +110,7 @@ defmodule Helix.Process.Event.Process do
       end
 
       # Internal event used for optimistic (asynchronous) processing
-      def generate_payload(%_{confirmed: false}, _),
+      def generate_payload(%{confirmed: false}, _),
         do: :noreply
 
       @doc """

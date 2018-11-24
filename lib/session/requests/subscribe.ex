@@ -1,6 +1,6 @@
 defmodule Helix.Session.Requests.Subscribe do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
 

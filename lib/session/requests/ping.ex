@@ -1,6 +1,6 @@
 defmodule Helix.Session.Requests.Ping do
 
-  import Helix.Webserver.Utils
+  import Helix.Webserver.Request
 
   alias HELL.Utils
   alias Helix.Session.State.SSE.API, as: SSEStateAPI

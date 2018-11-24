@@ -1,3 +1,5 @@
+# TODO: Most methods exposed here are not used, which makes maintenance and
+# testing a lot harder. Identify the ones which are used and remove the rest.
 defmodule Helix.Network.Query.Tunnel do
 
   alias Helix.Server.Model.Server
@@ -12,6 +14,12 @@ defmodule Helix.Network.Query.Tunnel do
     Tunnel.t
     | nil
   defdelegate fetch(id),
+    to: TunnelInternal
+
+  @spec fetch_connection(Connection.idt) ::
+    Connection.t
+    | nil
+  defdelegate fetch_connection(connection),
     to: TunnelInternal
 
   @spec fetch_from_connection(Connection.t) ::
@@ -35,6 +43,16 @@ defmodule Helix.Network.Query.Tunnel do
   defdelegate tunnels_between(gateway_id, endpoint_id, network_id \\ nil),
     to: TunnelInternal
 
+  @spec tunnels_targeting(Server.id, Server.id) ::
+    [Tunnel.t]
+  defdelegate tunnels_targeting(gateway_id, endpoint_id),
+    to: TunnelInternal
+
+  @spec tunnels_originating(Server.id) ::
+    [Tunnel.t]
+  defdelegate tunnels_originating(gateway_id),
+    to: TunnelInternal
+
   @spec get_connections(Tunnel.t) ::
     [Connection.t]
   defdelegate get_connections(tunnel),
@@ -43,12 +61,6 @@ defmodule Helix.Network.Query.Tunnel do
   @spec get_tunnel(Connection.t) ::
     Tunnel.t
   defdelegate get_tunnel(connection),
-    to: TunnelInternal
-
-  @spec fetch_connection(Connection.idt) ::
-    Connection.t
-    | nil
-  defdelegate fetch_connection(connection),
     to: TunnelInternal
 
   @spec connections_through_node(Server.idt) ::

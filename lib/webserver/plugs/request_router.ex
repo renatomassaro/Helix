@@ -9,26 +9,18 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
     do: opts
 
   def call(conn, _opts) do
-    # TODO: Check req-hearders for `content-type` json. Deny otherwise.
     unless conn.assigns.request_authenticated?,
       do: raise "unhandled_request"
 
-    unsafe_params =
-      if conn.method == "GET" do
-        conn.params
-      else
-        conn.body_params
-      end
-
     initial_request =
       %{
-        unsafe: unsafe_params,
+        unsafe: Map.merge(conn.params, conn.body_params),
         params: %{},
         meta: %{},
         response: %{},
         status: nil,
         __special__: []
-       }
+      }
 
     conn
     |> assign(:helix_request, initial_request)

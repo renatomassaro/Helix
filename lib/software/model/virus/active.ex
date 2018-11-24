@@ -17,6 +17,7 @@ defmodule Helix.Software.Model.Virus.Active do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
+  alias HELL.DateUtils
   alias Helix.Entity.Model.Entity
   alias Helix.Software.Model.Storage
   alias Helix.Software.Model.Virus
@@ -70,7 +71,7 @@ defmodule Helix.Software.Model.Virus.Active do
     changeset
   defp put_defaults(changeset) do
     changeset
-    |> put_change(:activation_time, DateTime.utc_now())
+    |> put_change(:activation_time, DateUtils.utc_now(:second))
   end
 
   query do

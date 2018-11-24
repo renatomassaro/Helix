@@ -2,14 +2,15 @@ defmodule Helix.Webserver.SSE do
 
   import Plug.Conn
 
+  alias Helix.Core.Node.Manager, as: NodeManager
   alias Helix.Session.State.SSE.API, as: SSEStateAPI
   alias Helix.Session.State.SSE.Monitor, as: SSEStateMonitor
   alias Helix.Webserver.Session, as: SessionWeb
 
-  @node_id "todo"
+  @node_id NodeManager.get_node_name()
   @keepalive_ttl 100000
 
-  def stream(conn) do
+  def stream(conn, listen_callback \\ nil) do
     conn =
       conn
       |> put_resp_header("content-type", "text/event-stream")
@@ -31,24 +32,26 @@ defmodule Helix.Webserver.SSE do
     SSEStateMonitor.start_and_monitor(session_id, self())
 
     conn
-    |> listen()
+    |> listen(listen_callback)
     |> halt()
   end
 
-  defp listen(conn) do
+  defp listen(conn, cb) do
     receive do
-      {:event, payload} ->
+      msg = {:event, payload} ->
+        execute_callback(cb, msg)
         conn
         |> sse_push(prepare_msg(payload))
-        |> listen()
+        |> listen(cb)
 
-      {:ping, count} ->
+      msg = {:ping, count} ->
+        execute_callback(cb, msg)
         conn
         |> sse_push(ping_msg(count))
-        |> listen()
+        |> listen(cb)
 
       {:plug_conn, :sent} ->
-        listen(conn)
+        listen(conn, cb)
 
       e ->
         IO.puts "Unexpected message: #{inspect e}"
@@ -75,4 +78,9 @@ defmodule Helix.Webserver.SSE do
     retry_interval = Enum.random(2000..10000)
     "retry: #{retry_interval}\ndata: {\"phoebe\": \"rulez\"}\n\n"
   end
+
+  defp execute_callback(nil, _),
+    do: :noop
+  defp execute_callback(callback, msg) when is_function(callback),
+    do: spawn fn -> callback.(msg) end
 end

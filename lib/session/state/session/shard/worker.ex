@@ -67,7 +67,6 @@ defmodule Helix.Session.State.Session.Shard.Worker do
 
   def handle_call({:save, session_id, session}, _from, state) do
     Process.send_after(self(), {:reset, session_id}, @session_ttl)
-    |> IO.inspect()
 
     {:reply, :ok, Map.put(state, session_id, session)}
   end

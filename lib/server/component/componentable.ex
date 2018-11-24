@@ -176,7 +176,7 @@ defmodule Helix.Server.Componentable do
           # /\ The component is being linked to the correct slot type
 
         # The mobo has that requested slot
-        true <- real_id in all_slots_ids || {:error, :bad_slot},
+        true <- to_string(real_id) in all_slots_ids || {:error, :bad_slot},
 
         # The requested slot is not being used by any other component
         true <-

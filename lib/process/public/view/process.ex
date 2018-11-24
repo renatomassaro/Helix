@@ -8,7 +8,6 @@ defmodule Helix.Process.Public.View.Process do
   alias HELL.HETypes
   alias Helix.Entity.Model.Entity
   alias Helix.Network.Model.Network
-  alias Helix.Server.Model.Server
   alias Helix.Process.Model.Process
   alias Helix.Process.Viewable
 
@@ -58,17 +57,11 @@ defmodule Helix.Process.Public.View.Process do
       absolute: non_neg_integer
     }
 
-  @spec render(Process.t, Server.id, Entity.id) ::
+  @spec render(Process.t, Entity.id) ::
     process
     | nil
-  def render(
-    process = %Process{source_entity_id: entity_id}, _server_id, entity_id)
-  do
-    Viewable.render(process)
-  end
-
-  def render(_process, _server_id, _entity_id) do
-    #raise "wut"
-    nil
-  end
+  def render(process = %Process{source_entity_id: entity_id}, entity_id),
+    do: Viewable.render(process)
+  def render(_process, _entity_id),
+    do: nil
 end

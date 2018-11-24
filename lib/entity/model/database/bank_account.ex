@@ -7,6 +7,7 @@ defmodule Helix.Entity.Model.Database.BankAccount do
 
   alias Ecto.Changeset
   alias Ecto.UUID
+  alias HELL.DateUtils
   alias HELL.IPv4
   alias Helix.Universe.Bank.Model.ATM
   alias Helix.Universe.Bank.Model.BankAccount
@@ -92,7 +93,7 @@ defmodule Helix.Entity.Model.Database.BankAccount do
   end
 
   defp update_last_update(changeset),
-    do: put_change(changeset, :last_update, DateTime.utc_now())
+    do: put_change(changeset, :last_update, DateUtils.utc_now(:second))
 
   query do
 

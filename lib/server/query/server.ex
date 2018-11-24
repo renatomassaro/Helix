@@ -43,6 +43,18 @@ defmodule Helix.Server.Query.Server do
     end
   end
 
+  def fetch_from_nip(network_id, ip) do
+    network_id
+    |> CacheQuery.from_nip_get_server(ip)
+    |> case do
+         {:ok, server_id = %Server.ID{}} ->
+           fetch(server_id)
+
+         {:error, _} ->
+           nil
+       end
+  end
+
   @spec get_password(Server.idt) ::
     {:ok, Server.password}
     | {:error, {:server, :notfound}}
