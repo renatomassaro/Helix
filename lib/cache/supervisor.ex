@@ -3,6 +3,7 @@ defmodule Helix.Cache.Supervisor do
   use Supervisor
 
   alias Helix.Cache.Repo
+  alias Helix.Cache.Local.Supervisor, as: CacheLocalSupervisor
   alias Helix.Cache.State.Supervisor, as: SupervisorState
 
   @doc false
@@ -14,7 +15,8 @@ defmodule Helix.Cache.Supervisor do
   def init(_) do
     children = [
       supervisor(Repo, []),
-      supervisor(SupervisorState, [])
+      supervisor(SupervisorState, []),
+      supervisor(CacheLocalSupervisor, [])
     ]
 
     supervise(children, strategy: :rest_for_one)

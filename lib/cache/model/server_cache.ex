@@ -87,6 +87,7 @@ defmodule Helix.Cache.Model.ServerCache do
       |> DateTime.to_unix(:millisecond)
       |> Kernel.+(@cache_duration)
       |> DateTime.from_unix!(:millisecond)
+      |> DateTime.truncate(:second)
 
     put_change(changeset, :expiration_date, expire_date)
   end
