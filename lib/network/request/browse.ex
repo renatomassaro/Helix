@@ -1,6 +1,6 @@
-import Helix.Websocket.Request
+defmodule Helix.Network.Request.Browse do
 
-request Helix.Network.Websocket.Requests.Browse do
+  use Helix.Webserver.Request
 
   alias Helix.Server.Model.Server
   alias Helix.Software.Public.PFTP, as: PFTPPublic
@@ -8,58 +8,64 @@ request Helix.Network.Websocket.Requests.Browse do
   alias Helix.Network.Henforcer.Network, as: NetworkHenforcer
   alias Helix.Network.Public.Network, as: NetworkPublic
 
-  def check_params(request, socket) do
-    gateway_id = socket.assigns.gateway.server_id
-    destination_id = socket.assigns.destination.server_id
+  @internet_id Network.internet_id()
+
+  def check_params(request, session) do
+    gateway_id = session.context.gateway.server_id
+    endpoint_id = session.context.endpoint.server_id
 
     origin_id =
       if Map.has_key?(request.unsafe, "origin") do
         request.unsafe["origin"]
       else
-        socket.assigns.destination.server_id
+        session.context.endpoint.server_id
       end
 
     with \
-      {:ok, network_id} <-
-        Network.ID.cast(request.unsafe["network_id"]),
+      {:ok, address} <- validate_address(request.unsafe["address"]),
       {:ok, origin_id} <- Server.ID.cast(origin_id),
       true <-
-        NetworkHenforcer.valid_origin?(origin_id, gateway_id, destination_id)
-        || :badorigin
+        NetworkHenforcer.valid_origin?(origin_id, gateway_id, endpoint_id)
+        || :bad_origin
     do
-      validated_params = %{
-        network_id: network_id,
-        address: request.unsafe["address"],
-        origin: origin_id
-      }
-
-      update_params(request, validated_params, reply: true)
+      params = %{address: address, origin: origin_id}
+      reply_ok(request, params: params)
     else
-      :badorigin ->
-        reply_error(request, "bad_origin")
+      :bad_address ->
+        bad_request(request, :bad_address)
+
+      :bad_origin ->
+        bad_request(request, :bad_origin)
+
       _ ->
         bad_request(request)
     end
   end
 
-  def check_permissions(request, _socket),
+  def check_permissions(request, _session),
     do: {:ok, request}
 
-  def handle_request(request, _socket) do
-    network_id = request.params.network_id
+  def handle_request(request, session) do
     origin_id = request.params.origin
     address = request.params.address
 
+    network_id =
+      if session.context.access == :local do
+        @internet_id
+      else
+        session.context.tunnel.network_id
+      end
+
     case NetworkPublic.browse(network_id, address, origin_id) do
       {:ok, web, relay} ->
-        update_meta(request, %{web: web, relay: relay}, reply: true)
+        reply_ok(request, meta: %{web: web, relay: relay})
 
-      {:error, %{message: reason}} ->
-        reply_error(request, reason)
+      {:error, _} ->
+        not_found(request)
     end
   end
 
-  render(request, _socket) do
+  def render_response(request, _session) do
     web = request.meta.web
     server_id = request.meta.relay.server_id
 
@@ -87,6 +93,14 @@ request Helix.Network.Websocket.Requests.Browse do
       }
     }
 
-    {:ok, data}
+    respond_ok(request, data)
   end
+
+  defp validate_address(address) when is_binary(address) do
+    # TODO: At least apply a regex here
+    {:ok, address}
+  end
+
+  defp validate_address(_),
+    do: :bad_request
 end

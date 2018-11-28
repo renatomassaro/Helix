@@ -1,32 +1,31 @@
-import Helix.Websocket.Request
+defmodule Helix.Network.Request.Bounce.Create do
 
-request Helix.Network.Websocket.Requests.Bounce.Create do
+  use Helix.Webserver.Request
 
   import HELL.Macros
 
   alias Helix.Network.Henforcer.Bounce, as: BounceHenforcer
   alias Helix.Network.Public.Bounce, as: BouncePublic
-  alias Helix.Network.Websocket.Requests.Bounce.Utils, as: BounceRequestUtils
+  alias Helix.Network.Request.Bounce.Utils, as: BounceRequestUtils
 
-  def check_params(request, _socket) do
+  def check_params(request, _session) do
     with \
       {:ok, name} <- validate_input(request.unsafe["name"], :bounce_name),
       {:ok, links} <- BounceRequestUtils.cast_links(request.unsafe["links"])
     do
       params = %{name: name, links: links}
-
-      update_params(request, params, reply: true)
+      reply_ok(request, params: params)
     else
       reason = :bad_link ->
-        reply_error(request, reason)
+        bad_request(request, reason)
 
       _ ->
         bad_request(request)
     end
   end
 
-  def check_permissions(request, socket) do
-    entity_id = socket.assigns.entity_id
+  def check_permissions(request, session) do
+    entity_id = session.entity_id
     name = request.params.name
     links = request.params.links
 
@@ -35,15 +34,15 @@ request Helix.Network.Websocket.Requests.Bounce.Create do
 
     case can_create_bounce do
       {true, relay} ->
-        update_meta(request, %{servers: relay.servers}, reply: true)
+        reply_ok(request, meta: %{servers: relay.servers})
 
       {false, reason, _} ->
-        reply_error(request, reason)
+        forbidden(request, reason)
     end
   end
 
-  def handle_request(request, socket) do
-    entity_id = socket.assigns.entity_id
+  def handle_request(request, session) do
+    entity_id = session.entity_id
     name = request.params.name
     links = request.params.links
     servers = request.meta.servers
@@ -59,11 +58,4 @@ request Helix.Network.Websocket.Requests.Bounce.Create do
   end
 
   render_empty()
-
-  docp """
-  Custom error handler for the request. Unmatched terms will get handled by
-  general-purpose error translator at `WebsocketUtils.get_error/1`.
-  """
-  defp get_error(:bad_link),
-    do: "bad_link"
 end

@@ -73,6 +73,9 @@ defmodule Helix.Test.Session.Setup do
     create(local: [account: account])
   end
 
+  def create_local!(opts \\ []),
+    do: create_local(opts) |> Map.fetch!(:session)
+
   @doc """
   """
   def create_remote(opts \\ []) do
@@ -81,6 +84,9 @@ defmodule Helix.Test.Session.Setup do
 
     create(local: [account: local_account], remote: [account: remote_account])
   end
+
+  def create_remote!(opts \\ []),
+    do: create_remote(opts) |> Map.fetch!(:session)
 
   defp create_config(nil, _),
     do: nil

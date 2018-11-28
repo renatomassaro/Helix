@@ -1,33 +1,31 @@
-defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
+defmodule Helix.Network.Request.Bounce.UpdateTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Websocket.Requestable
+  alias Helix.Network.Request.Bounce.Update, as: BounceUpdateRequest
   alias Helix.Network.Query.Bounce, as: BounceQuery
-  alias Helix.Network.Websocket.Requests.Bounce.Update, as: BounceUpdateRequest
 
   alias HELL.TestHelper.Random
-  alias Helix.Test.Channel.Setup, as: ChannelSetup
-  alias Helix.Test.Entity.Setup, as: EntitySetup
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Server.Setup, as: ServerSetup
+  alias Helix.Test.Session.Helper, as: SessionHelper
+  alias Helix.Test.Session.Setup, as: SessionSetup
+  alias Helix.Test.Webserver.Request.Helper, as: RequestHelper
   alias Helix.Test.Network.Helper, as: NetworkHelper
   alias Helix.Test.Network.Setup, as: NetworkSetup
 
-  @socket ChannelSetup.mock_account_socket()
-
+  @session SessionHelper.mock_session!(:server_local)
   @internet_id NetworkHelper.internet_id()
   @internet_id_str to_string(@internet_id)
 
   describe "check_params/2" do
     test "casts params" do
-      {bounce, _} =
-        NetworkSetup.Bounce.bounce(entity_id: @socket.assigns.entity_id)
+      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: @session.entity_id)
 
       # `p1` has both `name` and `links` set
+      url1 = %{"bounce_id" => to_string(bounce.bounce_id)}
       p1 =
         %{
-          "bounce_id" => to_string(bounce.bounce_id),
           "name" => NetworkHelper.Bounce.name(),
           "links" => [
             %{"network_id" => "::", "ip" => "1.2.3.4", "password" => "abc"},
@@ -36,29 +34,29 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         }
 
       # `p2` only has `name` set
+      url2 = %{"bounce_id" => to_string(bounce.bounce_id)}
       p2 =
         %{
-          "bounce_id" => to_string(bounce.bounce_id),
           "name" => NetworkHelper.Bounce.name()
         }
 
       # `p3` only has `links` set
+      url3 = %{"bounce_id" => to_string(bounce.bounce_id)}
       p3 =
         %{
-          "bounce_id" => to_string(bounce.bounce_id),
           "links" => [
             %{"network_id" => "::", "ip" => "1.2.3.4", "password" => "abc"},
             %{"network_id" => "::", "ip" => "4.3.2.1", "password" => "cba"}
           ]
         }
 
-      req1 = BounceUpdateRequest.new(p1)
-      req2 = BounceUpdateRequest.new(p2)
-      req3 = BounceUpdateRequest.new(p3)
+      req1 = RequestHelper.mock_request(unsafe: p1, url_params: url1)
+      req2 = RequestHelper.mock_request(unsafe: p2, url_params: url2)
+      req3 = RequestHelper.mock_request(unsafe: p3, url_params: url3)
 
-      assert {:ok, req1} = Requestable.check_params(req1, @socket)
-      assert {:ok, req2} = Requestable.check_params(req2, @socket)
-      assert {:ok, req3} = Requestable.check_params(req3, @socket)
+      assert {:ok, req1} = BounceUpdateRequest.check_params(req1, @session)
+      assert {:ok, req2} = BounceUpdateRequest.check_params(req2, @session)
+      assert {:ok, req3} = BounceUpdateRequest.check_params(req3, @session)
 
       # req1 must update both `name` and `links`
       assert req1.params.bounce_id == bounce.bounce_id
@@ -85,63 +83,50 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
     end
 
     test "requires bounce ID" do
-      p1 =
-        %{
-          "bounce_id" => "not_an_id",
-          "name" => "blar"
-        }
+      url1 = %{"bounce_id" => "not_an_id"}
+      p1 = %{"name" => "blar"}
 
-      p2 =
-        %{
-          "name" => "wut"
-        }
+      p2 = %{"name" => "wit"}
 
-      req1 = BounceUpdateRequest.new(p1)
-      req2 = BounceUpdateRequest.new(p2)
+      req1 = RequestHelper.mock_request(unsafe: p1, url_params: url1)
+      req2 = RequestHelper.mock_request(unsafe: p2)
 
-      assert {:error, reason1, _} = Requestable.check_params(req1, @socket)
-      assert {:error, reason2, _} = Requestable.check_params(req2, @socket)
+      assert {:error, _, er1} = BounceUpdateRequest.check_params(req1, @session)
+      assert {:error, _, er2} = BounceUpdateRequest.check_params(req2, @session)
 
-      assert reason1 == %{message: "bad_request"}
-      assert reason2 == reason1
+      assert er1 == :bad_request
+      assert er2 == er1
     end
 
     test "requires at least one change (`name` or `links`)" do
-      {bounce, _} =
-        NetworkSetup.Bounce.bounce(entity_id: @socket.assigns.entity_id)
+      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: @session.entity_id)
 
-      params =
-        %{
-          "bounce_id" => to_string(bounce.bounce_id)
-        }
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
 
-      request = BounceUpdateRequest.new(params)
+      request = RequestHelper.mock_request(url_params: url)
 
-      assert {:error, reason, _} = Requestable.check_params(request, @socket)
-      assert reason == %{message: "no_changes"}
+      assert {:error, _, reason} =
+        BounceUpdateRequest.check_params(request, @session)
+      assert reason == :no_changes
     end
 
     test "validates bounce name" do
-      {bounce, _} =
-        NetworkSetup.Bounce.bounce(entity_id: @socket.assigns.entity_id)
+      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: @session.entity_id)
 
-      params =
-        %{
-          "bounce_id" => to_string(bounce.bounce_id),
-          "name" => "($*%(@$*&%(@$%*&#@)))"
-        }
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
+      params = %{"name" => "($*%(@$*&%(@$%*&#@)))"}
 
-      request = BounceUpdateRequest.new(params)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
 
-      assert {:error, reason, _} = Requestable.check_params(request, @socket)
-      assert reason == %{message: "bad_request"}
+      assert {:error, _, reason} =
+        BounceUpdateRequest.check_params(request, @session)
+      assert reason == :bad_request
     end
 
     test "validates links" do
-      {bounce, _} =
-        NetworkSetup.Bounce.bounce(entity_id: @socket.assigns.entity_id)
+      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: @session.entity_id)
 
-      base_params = %{"bounce_id" => to_string(bounce.bounce_id)}
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
 
       p1 = %{
         "name" => NetworkHelper.Bounce.name(),
@@ -149,58 +134,61 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
           %{"network_id" => "invalid", "ip" => "1.2.3.4", "password" => "abc"},
           %{"network_id" => "::", "ip" => "4.3.2.1", "password" => "cba"}
         ]
-      } |> Map.merge(base_params)
+      }
 
       p2 = %{
         "links" => [
           %{"network_id" => "::", "ip" => "invalid", "password" => "abc"},
           %{"network_id" => "::", "ip" => "4.3.2.1", "password" => "cba"}
         ]
-      } |> Map.merge(base_params)
+      }
 
       p3 = %{
         "links" => [
           %{"network_id" => "::", "ip" => "1.2.3.4", "password" => nil},
           %{"network_id" => "::", "ip" => "4.3.2.1", "password" => "cba"}
         ]
-      } |> Map.merge(base_params)
+      }
 
       p4 = %{
         "links" => [%{"network_id" => "::"}, %{"foo" => true}]
-      } |> Map.merge(base_params)
+      }
 
-      req1 = BounceUpdateRequest.new(p1)
-      req2 = BounceUpdateRequest.new(p2)
-      req3 = BounceUpdateRequest.new(p3)
-      req4 = BounceUpdateRequest.new(p4)
+      req1 = RequestHelper.mock_request(unsafe: p1, url_params: url)
+      req2 = RequestHelper.mock_request(unsafe: p2, url_params: url)
+      req3 = RequestHelper.mock_request(unsafe: p3, url_params: url)
+      req4 = RequestHelper.mock_request(unsafe: p4, url_params: url)
 
-      assert {:error, r1, _} = Requestable.check_params(req1, @socket)
-      assert {:error, r2, _} = Requestable.check_params(req2, @socket)
-      assert {:error, r3, _} = Requestable.check_params(req3, @socket)
-      assert {:error, r4, _} = Requestable.check_params(req4, @socket)
+      assert {:error, _, reason1} =
+        BounceUpdateRequest.check_params(req1, @session)
+      assert {:error, _, reason2} =
+        BounceUpdateRequest.check_params(req2, @session)
+      assert {:error, _, reason3} =
+        BounceUpdateRequest.check_params(req3, @session)
+      assert {:error, _, reason4} =
+        BounceUpdateRequest.check_params(req4, @session)
 
-      assert r1 == %{message: "bad_link"}
-      assert r2 == r1
-      assert r3 == r2
-      assert r4 == r3
+      assert reason1 == :bad_link
+      assert reason2 == reason1
+      assert reason3 == reason2
+      assert reason4 == reason3
     end
   end
 
   describe "check_permissions/2" do
     test "accepts when everything is OK" do
-      {entity, _} = EntitySetup.entity()
-      socket =
-        ChannelSetup.mock_account_socket(
-          connect_opts: [entity_id: entity.entity_id]
-        )
+      %{
+        local: %{entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
-      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: entity.entity_id)
+      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: session.entity_id)
 
       {server, _} = ServerSetup.server()
       ip = ServerHelper.get_ip(server)
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -211,9 +199,10 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, socket)
-      assert {:ok, request} = Requestable.check_permissions(request, socket)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
+
+      assert {:ok, request} =
+        RequestHelper.check_permissions(BounceUpdateRequest, request, session)
 
       assert request.meta.entity == entity
       assert request.meta.bounce == bounce
@@ -226,8 +215,8 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
       {server, _} = ServerSetup.server()
       ip = ServerHelper.get_ip(server)
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -238,20 +227,19 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, @socket)
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_permissions(request, @socket)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
 
-      assert reason == "entity_not_found"
+      assert {:error, _, reason} =
+        RequestHelper.check_permissions(BounceUpdateRequest, request, @session)
+
+      assert reason == {:entity, :not_found}
     end
 
     test "rejects when bounce is being used" do
-      {entity, _} = EntitySetup.entity()
-      socket =
-        ChannelSetup.mock_account_socket(
-          connect_opts: [entity_id: entity.entity_id]
-        )
+      %{
+        local: %{entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
       {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: entity.entity_id)
 
@@ -261,8 +249,8 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
       {server, _} = ServerSetup.server()
       ip = ServerHelper.get_ip(server)
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -273,20 +261,19 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, socket)
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_permissions(request, socket)
+    request = RequestHelper.mock_request(unsafe: params, url_params: url)
 
-     assert reason == "bounce_in_use"
+    assert {:error, _, reason} =
+      RequestHelper.check_permissions(BounceUpdateRequest, request, session)
+
+     assert reason == {:bounce, :in_use}
     end
 
     test "rejects when password is wrong" do
-      {entity, _} = EntitySetup.entity()
-      socket =
-        ChannelSetup.mock_account_socket(
-          connect_opts: [entity_id: entity.entity_id]
-        )
+      %{
+        local: %{entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
       {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: entity.entity_id)
 
@@ -296,8 +283,8 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
       ip1 = ServerHelper.get_ip(server1)
       ip2 = ServerHelper.get_ip(server2)
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -313,27 +300,26 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, socket)
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_permissions(request, socket)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
 
-      assert reason == "bounce_no_access"
+      assert {:error, _, reason} =
+        RequestHelper.check_permissions(BounceUpdateRequest, request, session)
+
+      assert reason == {:bounce, :no_access}
     end
 
     test "rejects when NIP is wrong" do
-      {entity, _} = EntitySetup.entity()
-      socket =
-        ChannelSetup.mock_account_socket(
-          connect_opts: [entity_id: entity.entity_id]
-        )
+      %{
+        local: %{entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
       {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: entity.entity_id)
 
       {server, _} = ServerSetup.server()
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -344,30 +330,29 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, socket)
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_permissions(request, socket)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
 
-      assert reason == "nip_not_found"
+      assert {:error, _, reason} =
+        RequestHelper.check_permissions(BounceUpdateRequest, request, session)
+
+      assert reason == {:nip, :not_found}
     end
   end
 
   describe "handle_request/2" do
     test "updates the bounce when everything is ok" do
-      {entity, _} = EntitySetup.entity()
-      socket =
-        ChannelSetup.mock_account_socket(
-          connect_opts: [entity_id: entity.entity_id]
-        )
+      %{
+        local: %{entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
       {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: entity.entity_id)
 
       {server, _} = ServerSetup.server()
       ip = ServerHelper.get_ip(server)
 
+      url = %{"bounce_id" => to_string(bounce.bounce_id)}
       params = %{
-        "bounce_id" => to_string(bounce.bounce_id),
         "name" => "lula_preso_amanha",
         "links" => [
           %{
@@ -378,10 +363,10 @@ defmodule Helix.Network.Websocket.Requests.Bounce.UpdateTest do
         ]
       }
 
-      request = BounceUpdateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, socket)
-      assert {:ok, request} = Requestable.check_permissions(request, socket)
-      assert {:ok, _request} = Requestable.handle_request(request, socket)
+      request = RequestHelper.mock_request(unsafe: params, url_params: url)
+
+      assert {:ok, _request} =
+        RequestHelper.handle_request(BounceUpdateRequest, request, session)
 
       new_bounce = BounceQuery.fetch(bounce.bounce_id)
 

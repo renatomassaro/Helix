@@ -86,4 +86,12 @@ defmodule Helix.Network.Model.Bounce.Sorted do
     def by_bounce(query \\ Bounce.Sorted, bounce_id),
       do: where(query, [bs], bs.bounce_id == ^bounce_id)
   end
+
+  select do
+
+    @spec all(Queryable.t) ::
+      Queryable.t
+    def all(query),
+      do: select(query, [bs], bs)
+  end
 end

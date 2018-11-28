@@ -38,6 +38,13 @@ defmodule Helix.Network.Model.Network do
 
   @network_types [:internet, :story, :mission, :lan]
 
+  @internet %{
+    __struct__: __MODULE__,
+    name: "Internet",
+    type: :internet,
+    network_id: ID.cast!("::")
+  }
+
   schema "networks" do
     field :network_id, id(),
       primary_key: true
@@ -55,6 +62,22 @@ defmodule Helix.Network.Model.Network do
     |> validate_required(@required_fields)
     |> put_pk(%{}, {:network, params.type})
   end
+
+  @spec internet() ::
+    t
+  @doc """
+  Returns the record for the global network called "Internet"
+  """
+  def internet,
+    do: @internet
+
+  @spec internet_id() ::
+    id
+  @doc """
+  Returns the Internet's ID
+  """
+  def internet_id,
+    do: @internet.network_id
 
   @spec possible_types() ::
     [type]

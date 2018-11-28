@@ -20,4 +20,22 @@ defmodule Helix.Webserver.Router.Macros do
         assigns: %{module: unquote(request)}
     end
   end
+
+  defp do_route(:put, path, request) do
+    quote do
+      put unquote(path),
+        Helix.Webserver.HelixController,
+        :index,
+        assigns: %{module: unquote(request)}
+    end
+  end
+
+  defp do_route(:delete, path, request) do
+    quote do
+      delete unquote(path),
+        Helix.Webserver.HelixController,
+        :index,
+        assigns: %{module: unquote(request)}
+    end
+  end
 end

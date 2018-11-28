@@ -82,8 +82,8 @@ defmodule Helix.Test.Webserver.Conn do
 
   def put_body(conn, body) do
     %{conn|
-      params: body,
-      body_params: body
+      params: Map.merge(conn.params, body),
+      body_params: Map.merge(conn.body_params, body)
     }
   end
 

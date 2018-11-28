@@ -35,7 +35,7 @@ defmodule Helix.Webserver.Request.Utils do
   @doc """
   Delegates the input validation to `Validator`.
   """
-  def validate_input(input, type, opts) do
+  def validate_input(input, type, opts \\ []) do
     case Validator.validate_input(input, type, opts) do
       {:ok, valid_input} ->
         {:ok, valid_input}

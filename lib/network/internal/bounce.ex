@@ -213,6 +213,7 @@ defmodule Helix.Network.Internal.Bounce do
 
     bounce.bounce_id
     |> Bounce.Sorted.Query.by_bounce()
-    |> Repo.update_all([set: [sorted_nips: sorted_nips]], [returning: true])
+    |> Bounce.Sorted.Select.all()
+    |> Repo.update_all([set: [sorted_nips: sorted_nips]])
   end
 end

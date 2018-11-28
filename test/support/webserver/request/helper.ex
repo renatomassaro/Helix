@@ -40,6 +40,8 @@ defmodule Helix.Test.Webserver.Request.Helper do
   def mock_request(opts \\ []) do
     if opts[:params],
       do: raise "`:params` is invalid. Use either `:unsafe` or `:req_params`"
+    if opts[:url],
+        do: raise "Surely you meant `url_params`?"
 
     unsafe_params =
       Map.merge(

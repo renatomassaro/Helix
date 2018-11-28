@@ -11,7 +11,7 @@ defmodule Helix.Network.Public.Network do
 
   @spec browse(Network.idt, String.t | Network.ip, Server.idt) ::
     {:ok, term, relay :: %{server_id: Server.id}}
-    | {:error, %{message: String.t}}
+    | {:error, :web_not_found}
   @doc """
   Browses to an address (website or IP).  Regardless of the address type, the
   network ID must be specified. The ID of the server making the request must
@@ -54,7 +54,7 @@ defmodule Helix.Network.Public.Network do
       {:ok, web_data, relay}
     else
       _ ->
-        {:error, %{message: "web_not_found"}}
+        {:error, :web_not_found}
     end
   end
 

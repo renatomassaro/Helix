@@ -52,4 +52,13 @@ defmodule Helix.Webserver.Request do
     do: respond(request, 201, response)
   def respond_empty(request, status \\ 200),
     do: respond(request, status, %{})
+
+  defmacro render_empty do
+    quote do
+
+      def render_response(request, _),
+        do: respond_empty(request)
+
+    end
+  end
 end

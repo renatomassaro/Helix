@@ -41,7 +41,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_created
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = ClientRenderer.render_bounce(event.bounce)
 
         {:ok, data}
@@ -87,7 +87,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_create_failed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{reason: to_string(event.reason)}
 
         {:ok, data}
@@ -136,7 +136,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_updated
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = ClientRenderer.render_bounce(event.bounce)
 
         {:ok, data}
@@ -182,7 +182,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_update_failed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{reason: to_string(event.reason)}
 
         {:ok, data}
@@ -228,7 +228,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_removed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{bounce_id: to_string(event.bounce_id)}
 
         {:ok, data}
@@ -274,7 +274,7 @@ defmodule Helix.Network.Event.Bounce do
 
       event_name :bounce_remove_failed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{reason: to_string(event.reason)}
 
         {:ok, data}

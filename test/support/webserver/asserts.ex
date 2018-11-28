@@ -21,4 +21,11 @@ defmodule Helix.Test.Webserver.Asserts do
       assert_status unquote(conn), unquote(status)
     end
   end
+
+  defmacro assert_empty_response(conn, status \\ quote(do: 200)) do
+    quote do
+      assert Enum.empty?(get_response(unquote(conn)))
+      assert_status unquote(conn), unquote(status)
+    end
+  end
 end

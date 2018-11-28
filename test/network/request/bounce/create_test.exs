@@ -1,18 +1,17 @@
-defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
+defmodule Helix.Network.Request.Bounce.CreateTest do
 
   use Helix.Test.Case.Integration
 
-  alias Helix.Websocket.Requestable
   alias Helix.Entity.Query.Entity, as: EntityQuery
-  alias Helix.Network.Websocket.Requests.Bounce.Create, as: BounceCreateRequest
+  alias Helix.Network.Request.Bounce.Create, as: BounceCreateRequest
 
-  alias Helix.Test.Channel.Setup, as: ChannelSetup
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Server.Setup, as: ServerSetup
+  alias Helix.Test.Session.Helper, as: SessionHelper
+  alias Helix.Test.Webserver.Request.Helper, as: RequestHelper
   alias Helix.Test.Network.Helper, as: NetworkHelper
 
-  @socket ChannelSetup.mock_account_socket()
-
+  @session SessionHelper.mock_session!(:server_local)
   @internet_id NetworkHelper.internet_id()
   @internet_id_str to_string(@internet_id)
 
@@ -26,8 +25,9 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         ]
       }
 
-      request = BounceCreateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, @socket)
+      request = RequestHelper.mock_request(unsafe: params)
+      assert {:ok, request} =
+        BounceCreateRequest.check_params(request, @session)
 
       assert request.params.name == params["name"]
       Enum.each(request.params.links, fn link ->
@@ -46,11 +46,11 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         ]
       }
 
-      request = BounceCreateRequest.new(params)
+      request = RequestHelper.mock_request(unsafe: params)
 
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_params(request, @socket)
-      assert reason == "bad_request"
+      assert {:error, _, reason} =
+        BounceCreateRequest.check_params(request, @session)
+      assert reason == :bad_request
     end
 
     test "validates links" do
@@ -81,17 +81,17 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         "links" => [%{"network_id" => "::"}, %{"foo" => true}]
       } |> Map.merge(base_params)
 
-      req1 = BounceCreateRequest.new(p1)
-      req2 = BounceCreateRequest.new(p2)
-      req3 = BounceCreateRequest.new(p3)
-      req4 = BounceCreateRequest.new(p4)
+      req1 = RequestHelper.mock_request(unsafe: p1)
+      req2 = RequestHelper.mock_request(unsafe: p2)
+      req3 = RequestHelper.mock_request(unsafe: p3)
+      req4 = RequestHelper.mock_request(unsafe: p4)
 
-      assert {:error, r1, _} = Requestable.check_params(req1, @socket)
-      assert {:error, r2, _} = Requestable.check_params(req2, @socket)
-      assert {:error, r3, _} = Requestable.check_params(req3, @socket)
-      assert {:error, r4, _} = Requestable.check_params(req4, @socket)
+      assert {:error, _, r1} = BounceCreateRequest.check_params(req1, @session)
+      assert {:error, _, r2} = BounceCreateRequest.check_params(req2, @session)
+      assert {:error, _, r3} = BounceCreateRequest.check_params(req3, @session)
+      assert {:error, _, r4} = BounceCreateRequest.check_params(req4, @session)
 
-      assert r1 == %{message: "bad_link"}
+      assert r1 == :bad_link
       assert r2 == r1
       assert r3 == r2
       assert r4 == r3
@@ -106,25 +106,27 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
       ip1 = ServerHelper.get_ip(server1)
       ip2 = ServerHelper.get_ip(server2)
 
-      params = %{
-        "name" => "lula_preso_amanha",
-        "links" => [
-          %{
-            "network_id" => @internet_id_str,
-            "ip" => ip1,
-            "password" => server1.password
-          },
-          %{
-            "network_id" => @internet_id_str,
-            "ip" => ip2,
-            "password" => server2.password
-          }
-        ]
-      }
+      params =
+        %{
+          "name" => "lula_preso_amanha",
+          "links" => [
+            %{
+              "network_id" => @internet_id_str,
+              "ip" => ip1,
+              "password" => server1.password
+            },
+            %{
+              "network_id" => @internet_id_str,
+              "ip" => ip2,
+              "password" => server2.password
+            }
+          ]
+        }
 
-      request = BounceCreateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, @socket)
-      assert {:ok, request} = Requestable.check_permissions(request, @socket)
+      request = RequestHelper.mock_request(unsafe: params)
+
+      assert {:ok, request} =
+        RequestHelper.check_permissions(BounceCreateRequest, request, @session)
 
       assert request.meta.servers == [server1, server2]
     end
@@ -152,12 +154,12 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         ]
       }
 
-      request = BounceCreateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, @socket)
-      assert {:error, %{message: reason}, _} =
-        Requestable.check_permissions(request, @socket)
+      request = RequestHelper.mock_request(unsafe: params)
 
-      assert reason == "bounce_no_access"
+      assert {:error, _, reason} =
+        RequestHelper.check_permissions(BounceCreateRequest, request, @session)
+
+      assert reason == {:bounce, :no_access}
     end
 
     test "rejects when NIP is wrong" do
@@ -186,18 +188,15 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         ]
       } |> Map.merge(base_params)
 
-      req1 = BounceCreateRequest.new(p1)
-      req2 = BounceCreateRequest.new(p2)
+      req1 = RequestHelper.mock_request(unsafe: p1)
+      req2 = RequestHelper.mock_request(unsafe: p2)
 
-      assert {:ok, req1} = Requestable.check_params(req1, @socket)
-      assert {:ok, req2} = Requestable.check_params(req2, @socket)
+      assert {:error, _, reason1} =
+        RequestHelper.check_permissions(BounceCreateRequest, req1, @session)
+      assert {:error, _, reason2} =
+        RequestHelper.check_permissions(BounceCreateRequest, req2, @session)
 
-      assert {:error, %{message: reason1}, _} =
-        Requestable.check_permissions(req1, @socket)
-      assert {:error, %{message: reason2}, _} =
-        Requestable.check_permissions(req2, @socket)
-
-      assert reason1 == "nip_not_found"
+      assert reason1 == {:nip, :not_found}
       assert reason2 == reason1
     end
   end
@@ -226,17 +225,16 @@ defmodule Helix.Network.Websocket.Requests.Bounce.CreateTest do
         ]
       }
 
-      request = BounceCreateRequest.new(params)
-      assert {:ok, request} = Requestable.check_params(request, @socket)
-      assert {:ok, request} = Requestable.check_permissions(request, @socket)
+      request = RequestHelper.mock_request(unsafe: params)
 
       # Bounce creation upon request is asynchronous (and we don't have a
       # channel to listen for events), so we can't verify the bounce creation
       # through the returned request (as it doesn't return anything)
-      assert {:ok, _request} = Requestable.handle_request(request, @socket)
+      assert {:ok, _request} =
+        RequestHelper.handle_request(BounceCreateRequest, request, @session)
 
       # Entity has one bounce assigned to her
-      assert [bounce] = EntityQuery.get_bounces(@socket.assigns.entity_id)
+      assert [bounce] = EntityQuery.get_bounces(@session.entity_id)
 
       # Links and name are valid
       assert [

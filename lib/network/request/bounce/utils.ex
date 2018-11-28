@@ -1,4 +1,4 @@
-defmodule Helix.Network.Websocket.Requests.Bounce.Utils do
+defmodule Helix.Network.Request.Bounce.Utils do
 
   alias HELL.IPv4
   alias Helix.Core.Validator
