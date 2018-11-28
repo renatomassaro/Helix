@@ -9,7 +9,7 @@ defmodule Helix.Log.Event.LogTest do
   @mocked_socket ChannelSetup.mock_server_socket()
 
   describe "LogCreatedEvent" do
-    test "Publishable.generate_payload/2" do
+    test "Publishable.generate_payload/1" do
       event = EventSetup.Log.created()
 
       # Generates the payload
@@ -34,7 +34,7 @@ defmodule Helix.Log.Event.LogTest do
   end
 
   describe "LogRevisedEvent" do
-    test "Publishable.generate_payload/2" do
+    test "Publishable.generate_payload/1" do
       event = EventSetup.Log.revised()
 
       # Generates the payload
@@ -53,7 +53,7 @@ defmodule Helix.Log.Event.LogTest do
   end
 
   describe "LogRecoveredEvent" do
-    test "Publishable.generate_payload/2" do
+    test "Publishable.generate_payload/1" do
       event = EventSetup.Log.recovered()
 
       # Generates the payload
@@ -72,7 +72,7 @@ defmodule Helix.Log.Event.LogTest do
   end
 
   describe "LogDestroyedEvent" do
-    test "Publishable.generate_payload/2" do
+    test "Publishable.generate_payload/1" do
       event = EventSetup.Log.destroyed()
 
       # Generates the payload

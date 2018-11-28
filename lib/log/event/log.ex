@@ -37,7 +37,7 @@ defmodule Helix.Log.Event.Log do
 
       event_name :log_created
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = LogIndex.render_log(event.log)
 
         {:ok, data}
@@ -100,7 +100,7 @@ defmodule Helix.Log.Event.Log do
 
       event_name :log_revised
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = LogIndex.render_log(event.log)
 
         {:ok, data}
@@ -159,7 +159,7 @@ defmodule Helix.Log.Event.Log do
 
       event_name :log_recovered
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = LogIndex.render_log(event.log)
 
         {:ok, data}
@@ -216,7 +216,7 @@ defmodule Helix.Log.Event.Log do
 
       event_name :log_destroyed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           log_id: to_string(event.log.log_id)
         }

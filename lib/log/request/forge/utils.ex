@@ -1,4 +1,4 @@
-defmodule Helix.Log.Requests.Forge.Utils do
+defmodule Helix.Log.Request.Forge.Utils do
 
   alias Helix.Webserver.Request.Utils, as: RequestUtils
   alias Helix.Log.Model.Log

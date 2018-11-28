@@ -220,6 +220,6 @@ defmodule Helix.Log.Model.Log do
     Orders the resulting set by the log id (newest first).
     """
     def by_id(query),
-      do: order_by(query, [l], desc: l.log_id)
+      do: order_by(query, [l], asc: l.log_id)
   end
 end

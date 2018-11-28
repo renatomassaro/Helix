@@ -1,35 +1,42 @@
-defmodule Helix.Log.Requests.Forge.Create do
+defmodule Helix.Log.Request.Forge.Edit do
 
-  use Helix.Webserver.Request
+  import Helix.Webserver.Request
 
   import HELL.Macros
 
   alias Helix.Cache.Local, as: LocalCache
   alias Helix.Server.Query.Server, as: ServerQuery
+  alias Helix.Log.Model.Log
   alias Helix.Log.Henforcer.Log.Forge, as: LogForgeHenforcer
   alias Helix.Log.Public.Forge, as: ForgePublic
-  alias Helix.Log.Requests.Forge.Utils, as: ForgeRequestUtils
+  alias Helix.Log.Request.Forge.Utils, as: ForgeRequestUtils
 
   def check_params(request, _session) do
     with \
+      {:ok, log_id} <- Log.ID.cast(request.unsafe["log_id"]),
       {:ok, log_info} <-
         ForgeRequestUtils.cast_log_info(
           request.unsafe["log_type"], request.unsafe["log_data"]
         )
     do
-      reply_ok(request, params: %{log_info: log_info})
+      reply_ok(request, params: %{log_id: log_id, log_info: log_info})
     else
       {:error, reason} ->
         bad_request(request, reason)
+
+      _ ->
+        bad_request(request)
     end
   end
 
   def check_permissions(request, session) do
+    log_id = request.params.log_id
     gateway_id = session.context.gateway.server_id
+    target_id = session.context.endpoint.server_id
 
-    case LogForgeHenforcer.can_create?(gateway_id) do
+    case LogForgeHenforcer.can_edit?(log_id, gateway_id, target_id) do
       {true, relay} ->
-        meta = %{gateway: relay.gateway, forger: relay.forger}
+        meta = %{gateway: relay.gateway, forger: relay.forger, log: relay.log}
         reply_ok(request, meta: meta)
 
       {false, reason, _} ->
@@ -41,8 +48,7 @@ defmodule Helix.Log.Requests.Forge.Create do
     log_info = request.params.log_info
     forger = request.meta.forger
     gateway = request.meta.gateway
-    relay = nil  # TODO
-    # relay = request.relay
+    relay = request.relay
 
     {target, conn_info} =
       if session.context.access == :local do
@@ -56,7 +62,12 @@ defmodule Helix.Log.Requests.Forge.Create do
       end
 
     hespawn fn ->
-      ForgePublic.create(gateway, target, log_info, forger, conn_info, relay)
+      entity_id = session.entity_id
+      log = request.meta.log
+
+      ForgePublic.edit(
+        gateway, target, log, log_info, forger, entity_id, conn_info, relay
+      )
     end
 
     reply_ok(request)
