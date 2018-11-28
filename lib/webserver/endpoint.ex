@@ -3,10 +3,10 @@ defmodule Helix.Webserver.Endpoint do
 
   plug Corsica,
     origins: Application.get_env(:helix, Helix.Webserver.Endpoint)[:allowed_cors],
-    allow_headers: ["content-type", "x-request-id"],
+    allow_headers: ["content-type"],
+    expose_headers: ["x-request-id"],
     allow_credentials: true
 
-  plug Plug.RequestId
   plug Plug.Logger
 
   plug Plug.Parsers,

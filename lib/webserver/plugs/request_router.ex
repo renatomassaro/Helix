@@ -2,6 +2,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
 
   import Plug.Conn
 
+  alias Helix.Webserver.Request, as: RequestWeb
   alias Helix.Webserver.Session, as: SessionWeb
   alias Helix.Webserver.SSE, as: SSEWeb
 
@@ -19,6 +20,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
         meta: %{},
         response: %{},
         status: nil,
+        relay: RequestWeb.Relay.new(conn),
         __special__: []
       }
 

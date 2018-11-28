@@ -1,21 +1,24 @@
 defmodule Helix.Webserver.HelixController do
   use Helix.Webserver, :controller
 
-  def index(conn = %Plug.Conn{status: code}, _) when is_integer(code),
-    do: json(conn, conn.assigns.helix_response)
+  import Plug.Conn
 
-  # defp generate_payload(conn) do
-  #   conn.assigns.helix_response
-  #   |> wrap_data()
-  #   |> Map.merge(%{meta: generate_meta(conn)})
-  # end
+  @prefix ")]}'\n"
 
-  # defp generate_meta(conn) do
-  #   %{request_id: :todo}
-  # end
+  def index(conn = %Plug.Conn{status: code}, _) when is_integer(code) do
+    response =
+      Phoenix.json_library().encode_to_iodata!(conn.assigns.helix_response)
 
-  # defp wrap_data(data = %{data: _}),
-  #   do: data
-  # defp wrap_data(data),
-  #   do: %{data: data}
+    response =
+      if response == "{}" do
+        response
+      else
+        prepend_loop(response)
+      end
+
+    send_resp(conn, conn.status, response)
+  end
+
+  defp prepend_loop([first | rest]),
+    do: [@prefix <> first | rest]
 end

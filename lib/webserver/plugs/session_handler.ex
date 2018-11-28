@@ -46,10 +46,4 @@ defmodule Helix.Webserver.Plugs.SessionHandler do
 
   defp flag_as_authenticated(conn),
     do: assign(conn, :request_authenticated?, true)
-
-  defp halt_error(conn, reason, status \\ 403) do
-    conn
-    |> resp(status, json_body(%{error: %{reason: reason}}))
-    |> halt()
-  end
 end

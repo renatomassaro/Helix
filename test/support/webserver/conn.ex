@@ -3,14 +3,33 @@ defmodule Helix.Test.Webserver.Conn do
   import Plug.Conn
 
   alias Plug.Conn
+  alias HELL.ClientUtils
   alias HELL.Utils
   alias Helix.Session.Model.Session
 
   alias Helix.Test.Webserver.Helper, as: WebserverHelper
 
-  # Conn handling
+  @pipelines %{
+    api: [
+      :entrypoint,
+      :request_id,
+      :csrf_handler,
+      :session_handler,
+      :request_id,
+      :request_router
+    ]
+  }
 
-  # Creates a brand new conn
+  # Conn query
+
+  def get_request_id(conn),
+    do: conn.assigns.request_id
+
+  def get_response(conn),
+    do: conn.assigns.helix_response
+
+  # Conn setup
+
   def conn do
     Plug.Adapters.Test.Conn.conn(%Conn{}, "GET", "placeholder", %{})
     |> Map.put(:host, initial_host())
@@ -36,12 +55,8 @@ defmodule Helix.Test.Webserver.Conn do
   def set_module(conn, module),
     do: assign(conn, :module, module)
 
-  def set_session(conn, session = %Session{}),
-    do: raise "Not this session"
-  def set_session(conn, session) do
-    conn
-    |> put_cookie("sHEssion", session.session_id)
-  end
+  def set_session(conn, session),
+    do: put_cookie(conn, "sHEssion", session.session_id)
 
   def set_session_id(conn, session_id) do
     conn
@@ -73,10 +88,6 @@ defmodule Helix.Test.Webserver.Conn do
   end
 
   # Request handling
-
-  @pipelines %{
-    api: [:entrypoint, :csrf_handler, :session_handler, :request_router]
-  }
 
   def execute(conn, pipeline \\ :api) do
     Enum.reduce(@pipelines[pipeline], conn, fn plug_id, conn ->
@@ -123,12 +134,21 @@ defmodule Helix.Test.Webserver.Conn do
     |> elem(0)
   end
 
+  # Utils
+
+  defdelegate to_cid(id),
+    to: ClientUtils
+
+  # Private
+
   defp get_plug(:entrypoint),
     do: Helix.Webserver.Plugs.Entrypoint
   defp get_plug(:csrf_handler),
     do: Helix.Webserver.Plugs.CSRFHandler
   defp get_plug(:session_handler),
     do: Helix.Webserver.Plugs.SessionHandler
+  defp get_plug(:request_id),
+    do: Helix.Webserver.Plugs.RequestID
   defp get_plug(:request_router),
     do: Helix.Webserver.Plugs.RequestRouter
 
@@ -141,8 +161,6 @@ defmodule Helix.Test.Webserver.Conn do
     do: true
   defp skip_session?(_),
     do: false
-
-  # Private
 
   defp initial_headers do
     [

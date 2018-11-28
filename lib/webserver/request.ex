@@ -16,6 +16,7 @@ defmodule Helix.Webserver.Request do
        params: Map.merge(request.params, opts[:params] || %{}),
        response: Map.merge(request.response, opts[:response] || %{}),
        status: opts[:status] || request.status,
+       relay: request.relay,
        __special__: request.__special__
      }
     }

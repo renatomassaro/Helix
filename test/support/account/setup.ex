@@ -24,6 +24,8 @@ defmodule Helix.Test.Account.Setup do
     if opts[:with_server] do
       {server, %{entity: entity}} = ServerSetup.server()
 
+      # {server, %{entity: entity}} = ServerSetup.server()
+
       account =
         %Account.ID{id: entity.entity_id.id}
         |> AccountQuery.fetch()

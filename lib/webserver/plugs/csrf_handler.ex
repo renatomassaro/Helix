@@ -47,10 +47,4 @@ defmodule Helix.Webserver.Plugs.CSRFHandler do
         halt_error(conn, error)
     end
   end
-
-  defp halt_error(conn, reason, status \\ 403) do
-    conn
-    |> resp(status, json_body(%{error: %{reason: reason}}))
-    |> halt()
-  end
 end

@@ -86,16 +86,11 @@ defmodule Helix.Test.Network.Setup do
         target_id: target_id
       }
 
-    changeset = Tunnel.create(tunnel_params, bounce)
-    tunnel = Changeset.apply_changes(changeset)
-
-    # Insert the tunnel_id, if specified
     tunnel =
-      if opts[:tunnel_id] do
-        %{tunnel| tunnel_id: tunnel_id}
-      else
-        tunnel
-      end
+      tunnel_params
+      |> Tunnel.create(bounce)
+      |> Changeset.apply_changes()
+      |> Map.replace!(:tunnel_id, tunnel_id)
 
     {tunnel, related}
   end

@@ -8,10 +8,13 @@ defmodule Helix.Test.Webserver do
       import Helix.Test.Webserver.Asserts
       import Helix.Test.Webserver.Conn
 
+      alias Helix.Test.Network.Helper, as: NetworkHelper
       alias Helix.Test.Session.Setup, as: SessionSetup
       alias Helix.Test.Webserver.Helper, as: WebserverHelper
       alias Helix.Test.Webserver.Setup, as: WebserverSetup
       alias Helix.Test.Webserver.SSEClient
+
+      @internet_id NetworkHelper.internet_id()
     end
   end
 

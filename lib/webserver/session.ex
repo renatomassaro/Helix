@@ -126,6 +126,7 @@ defmodule Helix.Webserver.Session do
     do: parse_server_nip([unsafe_ip, "::"])
   defp parse_server_nip([unsafe_ip, unsafe_network_id]) do
     with \
+      unsafe_network_id = String.replace(unsafe_network_id, ",", ":"),
       {:ok, ip} <- Validator.validate_input(unsafe_ip, :ipv4),
       {:ok, network_id} <- Network.ID.cast(unsafe_network_id)
     do

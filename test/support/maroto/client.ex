@@ -109,7 +109,7 @@ defmodule Helix.Maroto.ClientTools do
   NOTE: The actual event received by the Client will be wrapped into the
   expected format, so it would become something like:
 
-    %{data: `payload`, meta: %{request_id: _, event_id: _, process_id: _}}
+    %{data: `payload`, meta: %{request_id: _, process_id: _}}
 
   # Opts
 
@@ -117,7 +117,6 @@ defmodule Helix.Maroto.ClientTools do
   you may specify some metadata.
 
   - request_id: Set the `request_id` value within `meta`
-  - event_id: Set the `event_id` value within `meta`
   - process_id: Set the `process_id` value within `meta`
 
   Missing something? Let me know!
@@ -224,13 +223,11 @@ defmodule Helix.Maroto.ClientTools do
 
   defp merge_meta(event = %{meta: meta}, opts) do
     request_id = Keyword.get(opts, :request_id, meta.request_id)
-    event_id = Keyword.get(opts, :event_id, meta.event_id)
     process_id = Keyword.get(opts, :process_id, meta.process_id)
 
     new_meta =
       %{
         request_id: request_id,
-        event_id: event_id,
         process_id: process_id,
       }
 

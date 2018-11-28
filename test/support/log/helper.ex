@@ -37,6 +37,28 @@ defmodule Helix.Test.Log.Helper do
   def log_info(opts \\ []),
     do: LogTypeSetup.log_info(opts)
 
+  @doc """
+  `Log.info`, but formatted as Phoenix input (%{"map" => "string"})
+  """
+  def request_log_info(opts \\ []) do
+    log_info = {log_type, log_data} = log_info(opts)
+
+    stringified_log_data =
+      log_data
+      |> Map.from_struct()
+      |> Enum.reduce([], fn {k, v}, acc ->
+        [{to_string(k), to_string(v)} | acc]
+      end)
+      |> Enum.into(%{})
+
+    req_log_info = {to_string(log_type), stringified_log_data}
+
+    {req_log_info, log_info}
+  end
+
+  def request_log_info!(opts \\ []),
+    do: request_log_info(opts) |> elem(0)
+
   def log_file_name(file),
     do: LoggableUtils.get_file_name(file)
 

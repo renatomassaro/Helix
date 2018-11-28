@@ -1,6 +1,6 @@
 defmodule Helix.Test.Session.Setup do
 
-  alias Helix.Account.Requests.Sync, as: SyncRequest
+  alias Helix.Account.Request.Sync, as: SyncRequest
   alias Helix.Entity.Query.Entity, as: EntityQuery
   alias Helix.Server.Public.Server, as: ServerPublic
   alias Helix.Server.Query.Server, as: ServerQuery
@@ -131,6 +131,7 @@ defmodule Helix.Test.Session.Setup do
       params: opts[:params] || %{},
       response: opts[:response] || %{},
       status: opts[:status] || nil,
+      relay: opts[:relay] || nil,
       __special__: []
     }
   end

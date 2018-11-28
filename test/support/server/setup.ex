@@ -4,10 +4,12 @@ defmodule Helix.Test.Server.Setup do
   alias Helix.Account.Action.Flow.Account, as: AccountFlow
   alias Helix.Server.Model.Server
   alias Helix.Server.Query.Server, as: ServerQuery
+  alias Helix.Server.Repo, as: ServerRepo
 
   alias Helix.Test.Account.Setup, as: AccountSetup
   alias Helix.Test.Cache.Helper, as: CacheHelper
   alias Helix.Test.Entity.Helper, as: EntityHelper
+  alias Helix.Test.Entity.Setup, as: EntitySetup
   alias Helix.Test.Server.Helper, as: ServerHelper
   alias Helix.Test.Server.Component.Helper, as: ComponentHelper
 
@@ -50,17 +52,20 @@ defmodule Helix.Test.Server.Setup do
   - server_id: set the server_id.
   - motherboard_id: set the motherboard_id.
   - password: set the password.
+  - type: Server type (:desktop, :desktop_story, :npc)
   """
   def fake_server(opts \\ []) do
-    server_id = Access.get(opts, :server_id, ServerHelper.id())
-    motherboard_id = Access.get(opts, :mobo_id, ComponentHelper.id())
-    password = Access.get(opts, :password, Password.generate(:server))
+    server_id = Keyword.get(opts, :server_id, ServerHelper.id())
+    motherboard_id = Keyword.get(opts, :mobo_id, ComponentHelper.id())
+    password = Keyword.get(opts, :password, Password.generate(:server))
+    type = Keyword.get(opts, :type, :desktop)
 
     server =
       %Server{
         server_id: server_id,
         motherboard_id: motherboard_id,
-        password: password
+        password: password,
+        type: type
       }
 
     {server, %{}}
