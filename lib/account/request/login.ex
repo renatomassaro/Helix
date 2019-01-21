@@ -1,4 +1,4 @@
-defmodule Helix.Account.Requests.Login do
+defmodule Helix.Account.Request.Login do
 
   import Helix.Webserver.Request
 
@@ -8,6 +8,7 @@ defmodule Helix.Account.Requests.Login do
   alias Helix.Account.Query.Account, as: AccountQuery
 
   def check_params(request, _session) do
+    request = %{request| unsafe: %{"username" => "asdf", "password" => "asdfasdf"}}
     with \
       {:ok, username} <-
         Validator.validate_input(request.unsafe["username"], :username),

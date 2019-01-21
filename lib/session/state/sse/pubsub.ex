@@ -2,6 +2,7 @@ defmodule Helix.Session.State.SSE.PubSub do
 
   use GenServer
 
+  alias HELL.ClientUtils
   alias Helix.Event.Trigger.Publishable, as: PublishableTrigger
   alias Helix.Core.Node.Manager, as: NodeManager
   alias Helix.MQ
@@ -45,10 +46,11 @@ defmodule Helix.Session.State.SSE.PubSub do
       |> sort_by_node()
 
     cluster_queue_data =
-      Enum.reduce(nodes, %{}, fn {node_id, sessions}, acc ->
+      Enum.reduce(nodes, %{}, fn {node_id, sessions_domains}, acc ->
         notifications =
-          sessions
-          |> Enum.reduce([], fn session_id, acc ->
+          sessions_domains
+          |> Enum.reduce([], fn {session_id, domain_info}, acc ->
+            # TODO: Force synchronous cache
             session = SessionStateAPI.fetch(session_id)
 
             payload =
@@ -57,6 +59,7 @@ defmodule Helix.Session.State.SSE.PubSub do
               else
                 PublishableTrigger.get_event_payload(event, session)
               end
+              |> put_domain(domain_info, session)
 
             if payload == :noreply do
               acc
@@ -88,10 +91,28 @@ defmodule Helix.Session.State.SSE.PubSub do
   end
 
   defp sort_by_node(domains_sessions) do
-    Enum.reduce(domains_sessions, %{}, fn {node_id, session_id}, acc ->
+    Enum.reduce(domains_sessions, %{}, fn {domain, node_id, session_id, domain_id}, acc ->
       current = acc[node_id] || []
-      Map.put(acc, node_id, [session_id | current])
+      Map.put(acc, node_id, [{session_id, {domain, domain_id}} | current])
     end)
+  end
+
+  defp put_domain(event, {:account, account_id}, _),
+    do: Map.merge(event, %{domain: :account, domain_id: account_id})
+  defp put_domain(event, {:server, server_id}, session) do
+    {:ok, _, context} =
+      SessionStateAPI.get_server(session.session_id, to_string(server_id))
+
+    domain_id =
+      case context do
+        %{access: :local} ->
+          server_id
+
+        %{access: :remote} ->
+          ClientUtils.to_nip(context.tunnel.network_id, context.endpoint.ip)
+      end
+
+    Map.merge(event, %{domain: :server, domain_id: domain_id})
   end
 
   defp on_sse_msg(raw),

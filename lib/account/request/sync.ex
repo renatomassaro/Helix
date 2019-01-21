@@ -1,4 +1,4 @@
-defmodule Helix.Account.Requests.Sync do
+defmodule Helix.Account.Request.Sync do
 
   import Helix.Webserver.Request
 

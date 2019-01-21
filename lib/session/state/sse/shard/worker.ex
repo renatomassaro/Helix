@@ -5,19 +5,11 @@ defmodule Helix.Session.State.SSE.Shard.Worker do
   def start_link(shard_id),
     do: GenServer.start_link(__MODULE__, [], name: shard_id)
 
-  def get(shard_id, session_id) do
-    IO.puts "getting on shard #{inspect shard_id} (#{inspect session_id})"
-    GenServer.call(shard_id, {:get, session_id})
-  end
+  def get(shard_id, session_id),
+    do: GenServer.call(shard_id, {:get, session_id})
 
-  def get_all(shard_id) do
-    GenServer.call(shard_id, :get_all)
-  end
-
-  def put(shard_id, session_id, pid) do
-    IO.puts "putting on shard #{inspect shard_id} (#{inspect session_id})"
-    GenServer.call(shard_id, {:put, session_id, pid})
-  end
+  def put(shard_id, session_id, pid),
+    do: GenServer.call(shard_id, {:put, session_id, pid})
 
   def remove(shard_id, session_id),
     do: GenServer.call(shard_id, {:remove, session_id})
@@ -38,10 +30,6 @@ defmodule Helix.Session.State.SSE.Shard.Worker do
       end
 
     {:reply, result, state}
-  end
-
-  def handle_call(:get_all, _from, state) do
-    {:reply, state, state}
   end
 
   def handle_call({:put, session_id, pid}, _from, state),

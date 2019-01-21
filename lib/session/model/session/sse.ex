@@ -52,7 +52,9 @@ defmodule Helix.Session.Model.Session.SSE do
       from session in Session,
         inner_join: session_sse in assoc(session, :sse),
         where: session.account_id in ^accounts,
-        select: {session_sse.node_id, session_sse.session_id}
+        select: {
+          session_sse.node_id, session_sse.session_id, session.account_id
+        }
     end
 
     def get_server_domain(query \\ Session, servers) do
@@ -60,7 +62,9 @@ defmodule Helix.Session.Model.Session.SSE do
         inner_join: session_servers in assoc(session, :servers),
         inner_join: session_sse in assoc(session, :sse),
         where: session_servers.server_id in ^servers,
-        select: {session_sse.node_id, session_sse.session_id}
+        select: {
+          session_sse.node_id, session_sse.session_id, session_servers.server_id
+        }
     end
   end
 end

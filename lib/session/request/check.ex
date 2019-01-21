@@ -1,4 +1,4 @@
-defmodule Helix.Session.Requests.Check do
+defmodule Helix.Session.Request.Check do
 
   import Helix.Webserver.Request
 

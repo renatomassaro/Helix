@@ -1,4 +1,4 @@
-defmodule Helix.Session.Requests.Ping do
+defmodule Helix.Session.Request.Ping do
 
   import Helix.Webserver.Request
 

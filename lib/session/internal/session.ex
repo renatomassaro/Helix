@@ -52,12 +52,14 @@ defmodule Helix.Session.Internal.Session do
     accounts
     |> Session.SSE.Query.get_account_domain()
     |> Repo.all()
+    |> Enum.map(&(Tuple.insert_at(&1, 0, :account)))
   end
 
   def get_server_domain(servers) do
     servers
     |> Session.SSE.Query.get_server_domain()
     |> Repo.all()
+    |> Enum.map(&(Tuple.insert_at(&1, 0, :server)))
   end
 
   def create(session_id, session_data) do

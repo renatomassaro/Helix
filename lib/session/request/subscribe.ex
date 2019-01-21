@@ -1,4 +1,4 @@
-defmodule Helix.Session.Requests.Subscribe do
+defmodule Helix.Session.Request.Subscribe do
 
   import Helix.Webserver.Request
 

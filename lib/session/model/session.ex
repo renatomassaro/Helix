@@ -199,11 +199,6 @@ defmodule Helix.Session.Model.Session do
         preload: [:servers]
     end
 
-    def join_session_sse(query) do
-      from s in query,
-        preload: [:session_sse]
-    end
-
     def filter_expired(query) do
       query
       |> where([s], s.expiration_date >= fragment("now() AT TIME ZONE 'UTC'"))

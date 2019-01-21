@@ -40,11 +40,9 @@ defmodule Helix.Session.State.Session.API do
       {:error, _} <- retrieve_cache(id_tuple, synced?: synced?),
       found = {:ok, session, context} <- retrieve_db(id_tuple, synced?: synced?)
     do
-      IO.puts "from db"
       found
     else
       cache_hit = {:ok, session, context} ->
-        IO.puts "From cache"
         cache_hit
 
       error = {:error, reason} ->

@@ -1,4 +1,4 @@
-defmodule Helix.Account.Requests.Logout do
+defmodule Helix.Account.Request.Logout do
 
   import Helix.Webserver.Request
 
@@ -25,7 +25,7 @@ defmodule Helix.Account.Requests.Logout do
     # That means that, if we do not notify other Helix nodes, the session may
     # still be marked as valid for up to 10 minutes.
     # This is sort-of OK for now, but can easily be fixed in the future if we
-    # deem necessary by using `pg_notify` or something like that.
+    # deem necessary by using Helix.MQ.
 
     request
 
