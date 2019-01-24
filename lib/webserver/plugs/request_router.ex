@@ -15,7 +15,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
 
     initial_request =
       %{
-        unsafe: Map.merge(conn.params, conn.body_params),
+        unsafe: get_unsafe_params(conn),
         params: %{},
         meta: %{},
         response: %{},
@@ -71,8 +71,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
     |> Enum.reduce(conn, &(handle_special(&1, &2)))
   end
 
-  # Move somewhere lese?
-  #
+  # Move somewhere else?
   defp handle_special(%{action: :create, session_id: session_id}, conn),
     do: SessionWeb.create_session(conn, session_id)
   defp handle_special(%{action: :destroy}, conn),
@@ -90,11 +89,28 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
 
   defp handle_result({:ok, request}, conn),
     do: assign(conn, :helix_request, request)
-
   defp handle_result({:error, request, reason}, conn) do
     conn
     |> put_status(request.status)
     |> assign(:helix_request, request)
     |> assign(:helix_response, %{error: %{reason: reason}})
   end
+
+  defp get_unsafe_params(conn) do
+    # TODO: Check this. It seems params is a superset of body_params. If so,
+    # this merge is unnecessary
+    conn.params
+    |> Map.merge(conn.body_params)
+    |> replace_server_cid()
+  end
+
+  defp replace_server_cid(params = %{"server_cid" => server_cid}) do
+    if String.contains?(server_cid, "$") do
+      %{params| "server_cid" => SessionWeb.parse_server_cid(server_cid)}
+    else
+      params
+    end
+  end
+  defp replace_server_cid(params),
+    do: params
 end

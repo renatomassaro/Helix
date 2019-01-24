@@ -16,7 +16,7 @@ defmodule Helix.Software.Henforcer.File.Transfer do
   @type can_transfer_relay ::
     %{
       gateway: Server.t,
-      destination: Server.t,
+      endpoint: Server.t,
       file: File.t,
       storage: Storage.t
     }
@@ -44,12 +44,12 @@ defmodule Helix.Software.Henforcer.File.Transfer do
     # Within the transfer context, `origin` is the server which owns the file,
     # and `target` is the server which the file is being transferred to.
     # However, outside this context, the caller only works with `gateway` and
-    # `destination`, which depending on the transfer type (download/upload) can
+    # `endpoint`, which depending on the transfer type (download/upload) can
     # act as both `origin` and `target`. Hence we need to "map in", from
-    # gateway/destination to origin/target and, once we are returning to the
-    # caller we have to "map out", returning the contextless gateway/destination
+    # gateway/endpoint to origin/target and, once we are returning to the
+    # caller we have to "map out", returning the contextless gateway/endpoint
 
-    # "Maps in", from gateway/destination to origin/target.
+    # "Maps in", from gateway/endpoint to origin/target.
     {origin_id, target_id} =
       if type == :download do
         {endpoint_id, gateway_id}
@@ -57,16 +57,16 @@ defmodule Helix.Software.Henforcer.File.Transfer do
         {gateway_id, endpoint_id}
       end
 
-    # "Maps out", from origin/target to gateway/destination.
+    # "Maps out", from origin/target to gateway/endpoint.
     assign_to_servers = fn origin, target ->
-      {gateway, destination} =
+      {gateway, endpoint} =
         if type == :download do
           {target, origin}
         else
           {origin, target}
         end
 
-      %{gateway: gateway, destination: destination}
+      %{gateway: gateway, endpoint: endpoint}
     end
 
     with \
@@ -78,12 +78,12 @@ defmodule Helix.Software.Henforcer.File.Transfer do
       file = r1.file,
       {r1, origin} = get_and_drop(r1, :server),
 
-      # The destination storage belongs to the server
+      # The endpoint storage belongs to the server
       {true, r2} <- StorageHenforcer.belongs_to_server?(storage_id, target_id),
       storage = r2.storage,
       {r2, target} = get_and_drop(r2, :server),
 
-      # The destination storage has enough room for the file
+      # The endpoint storage has enough room for the file
       {true, r3} <- StorageHenforcer.has_enough_space?(storage, file)
     do
       r = assign_to_servers.(origin, target)

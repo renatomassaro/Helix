@@ -13,16 +13,16 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
   describe "can_transfer?/5" do
     test "verifies whether the transfer is local" do
       {gateway, _} = ServerSetup.server()
-      {destination, _} = ServerSetup.server()
+      {endpoint, _} = ServerSetup.server()
 
       storage_id = SoftwareHelper.get_storage_id(gateway.server_id)
-      {file, _} = SoftwareSetup.file(server_id: destination.server_id)
+      {file, _} = SoftwareSetup.file(server_id: endpoint.server_id)
 
       assert {true, relay} =
         FileTransferHenforcer.can_transfer?(
           :download,
           gateway.server_id,
-          destination.server_id,
+          endpoint.server_id,
           storage_id,
           file.file_id
         )
@@ -30,9 +30,9 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
       assert relay.storage.storage_id == storage_id
       assert relay.file.file_id == file.file_id
       assert relay.gateway == gateway
-      assert relay.destination == destination
+      assert relay.endpoint == endpoint
 
-      assert_relay relay, [:storage, :file, :gateway, :destination]
+      assert_relay relay, [:storage, :file, :gateway, :endpoint]
 
       # Trying to transfer a file on the same server
       assert {false, reason, _} =
@@ -48,35 +48,35 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
 
     test "verifies whether the file belongs to the server" do
       {gateway, _} = ServerSetup.server()
-      {destination, _} = ServerSetup.server()
+      {endpoint, _} = ServerSetup.server()
 
       gateway_storage_id = SoftwareHelper.get_storage_id(gateway.server_id)
-      destination_storage_id =
-        SoftwareHelper.get_storage_id(destination.server_id)
+      endpoint_storage_id =
+        SoftwareHelper.get_storage_id(endpoint.server_id)
 
       gateway_file = SoftwareSetup.file!(server_id: gateway.server_id)
-      destination_file = SoftwareSetup.file!(server_id: destination.server_id)
+      endpoint_file = SoftwareSetup.file!(server_id: endpoint.server_id)
 
-      # Downloading a file from `destination`
+      # Downloading a file from `endpoint`
       assert {true, relay_download} =
         FileTransferHenforcer.can_transfer?(
           :download,
           gateway.server_id,
-          destination.server_id,
+          endpoint.server_id,
           gateway_storage_id,
-          destination_file.file_id
+          endpoint_file.file_id
         )
 
       assert relay_download.gateway == gateway
-      assert relay_download.destination == destination
-      assert_relay relay_download, [:storage, :file, :gateway, :destination]
+      assert relay_download.endpoint == endpoint
+      assert_relay relay_download, [:storage, :file, :gateway, :endpoint]
 
       # Trying to download a file that belongs to the gateway...
       assert {false, reason1, _} =
         FileTransferHenforcer.can_transfer?(
           :download,
           gateway.server_id,
-          destination.server_id,
+          endpoint.server_id,
           gateway_storage_id,
           gateway_file.file_id
         )
@@ -86,23 +86,23 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
         FileTransferHenforcer.can_transfer?(
           :upload,
           gateway.server_id,
-          destination.server_id,
-          destination_storage_id,
+          endpoint.server_id,
+          endpoint_storage_id,
           gateway_file.file_id
         )
 
       assert relay_upload.gateway == gateway
-      assert relay_upload.destination == destination
-      assert_relay relay_upload, [:storage, :file, :gateway, :destination]
+      assert relay_upload.endpoint == endpoint
+      assert_relay relay_upload, [:storage, :file, :gateway, :endpoint]
 
-      # Trying to upload a file that belongs to the destination...
+      # Trying to upload a file that belongs to the endpoint...
       assert {false, reason2, _} =
         FileTransferHenforcer.can_transfer?(
           :upload,
           gateway.server_id,
-          destination.server_id,
-          destination_storage_id,
-          destination_file.file_id
+          endpoint.server_id,
+          endpoint_storage_id,
+          endpoint_file.file_id
         )
 
       assert reason1 == {:file, :not_belongs}
@@ -111,23 +111,23 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
 
     test "verifies whether the storage belongs to the server" do
       {gateway, _} = ServerSetup.server()
-      {destination, _} = ServerSetup.server()
+      {endpoint, _} = ServerSetup.server()
 
-      destination_storage_id =
-        SoftwareHelper.get_storage_id(destination.server_id)
+      endpoint_storage_id =
+        SoftwareHelper.get_storage_id(endpoint.server_id)
       gateway_storage_id = SoftwareHelper.get_storage_id(gateway.server_id)
 
       gateway_file = SoftwareSetup.file!(server_id: gateway.server_id)
-      destination_file = SoftwareSetup.file!(server_id: destination.server_id)
+      endpoint_file = SoftwareSetup.file!(server_id: endpoint.server_id)
 
       # Valid file download with valid storage
       assert {true, _} =
         FileTransferHenforcer.can_transfer?(
           :download,
           gateway.server_id,
-          destination.server_id,
+          endpoint.server_id,
           gateway_storage_id,
-          destination_file.file_id
+          endpoint_file.file_id
         )
 
       # Downloading valid file but with wrong storage
@@ -135,9 +135,9 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
         FileTransferHenforcer.can_transfer?(
           :download,
           gateway.server_id,
-          destination.server_id,
-          destination_storage_id,
-          destination_file.file_id
+          endpoint.server_id,
+          endpoint_storage_id,
+          endpoint_file.file_id
         )
 
       # Valid file upload with valid storage
@@ -145,8 +145,8 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
         FileTransferHenforcer.can_transfer?(
           :upload,
           gateway.server_id,
-          destination.server_id,
-          destination_storage_id,
+          endpoint.server_id,
+          endpoint_storage_id,
           gateway_file.file_id
         )
 
@@ -155,7 +155,7 @@ defmodule Helix.Software.Henforcer.FileTransferTest do
         FileTransferHenforcer.can_transfer?(
           :upload,
           gateway.server_id,
-          destination.server_id,
+          endpoint.server_id,
           gateway_storage_id,
           gateway_file.file_id
         )

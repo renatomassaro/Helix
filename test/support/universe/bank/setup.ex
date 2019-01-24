@@ -1,6 +1,7 @@
 # credo:disable-for-this-file Credo.Check.Refactor.CyclomaticComplexity
 defmodule Helix.Test.Universe.Bank.Setup do
 
+  alias HELL.DateUtils
   alias Helix.Account.Model.Account
   alias Helix.Account.Model.Account
   alias Helix.Entity.Model.Entity
@@ -89,7 +90,7 @@ defmodule Helix.Test.Universe.Bank.Setup do
         atm_id: atm_id,
         password: "secret",
         owner_id: owner_id,
-        creation_date: DateTime.utc_now()
+        creation_date: DateUtils.utc_now(:second)
       }
 
     {acc, %{}}

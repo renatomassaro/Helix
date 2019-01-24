@@ -75,6 +75,20 @@ defmodule Helix.Software.Henforcer.File.PublicFTPTest do
       assert_relay relay, [:file, :pftp_file, :server]
     end
 
+    @tag :regression
+    test "rejects when file exists NOT on the given server" do
+      {pftp1, _} = SoftwareSetup.PFTP.pftp(real_server: true)
+      {pftp2, _} = SoftwareSetup.PFTP.pftp(real_server: true)
+      {pftp_file2, _} = SoftwareSetup.PFTP.file(server_id: pftp2.server_id)
+
+      server_id = pftp1.server_id
+      file_id = pftp_file2.file_id
+
+      # Asking if pftp1 has pftp_file2. Should reject.
+      assert {false, reason, _} = PFTPHenforcer.file_exists?(server_id, file_id)
+      assert reason == {:pftp_file, :not_belongs}
+    end
+
     test "rejects when pftp is disabled" do
       {pftp, _} = SoftwareSetup.PFTP.pftp(real_server: true, active: false)
       {pftp_file, _} = SoftwareSetup.PFTP.file(server_id: pftp.server_id)

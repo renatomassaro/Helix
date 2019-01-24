@@ -86,7 +86,7 @@ defmodule Helix.Process.Action.TOPTest do
 
       # At the very least, state and `l_reserved` must match
       assert proc_db.state == :running
-      assert proc_db.l_reserved == proc_recalque.l_reserved
+      assert Process.fmt_str(proc_db.l_reserved) == proc_recalque.l_reserved
 
       # Still hasn't processed anything
       # refute proc_db.processed

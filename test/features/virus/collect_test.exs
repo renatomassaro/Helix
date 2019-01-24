@@ -1,10 +1,7 @@
 defmodule Helix.Test.Features.Virus.CollectTest do
 
   use Helix.Test.Case.Integration
-
-  import Phoenix.ChannelTest
-  import Helix.Test.Macros
-  import Helix.Test.Channel.Macros
+  use Helix.Test.Webserver
 
   alias Helix.Network.Query.Tunnel, as: TunnelQuery
   alias Helix.Process.Query.Process, as: ProcessQuery
@@ -12,11 +9,8 @@ defmodule Helix.Test.Features.Virus.CollectTest do
   alias Helix.Software.Query.Virus, as: VirusQuery
   alias Helix.Universe.Bank.Query.Bank, as: BankQuery
 
-  alias Helix.Test.Channel.Setup, as: ChannelSetup
-  alias Helix.Test.Channel.Request.Helper, as: RequestHelper
   alias Helix.Test.Network.Setup, as: NetworkSetup
   alias Helix.Test.Process.TOPHelper
-  alias Helix.Test.Server.Setup, as: ServerSetup
   alias Helix.Test.Software.Setup, as: SoftwareSetup
   alias Helix.Test.Universe.Bank.Setup, as: BankSetup
 
@@ -24,18 +18,15 @@ defmodule Helix.Test.Features.Virus.CollectTest do
 
   describe "virus.collect" do
     # NOTE: Install lifecycle tested at `File.InstallTest`
-    test "collect lifecycle" do
-      {socket, %{entity_id: entity_id}} = ChannelSetup.join_account()
-      {gateway, _} = ServerSetup.server(entity_id: entity_id)
+    test "life cycle" do
+      %{local: %{gateway: gateway, entity: entity}, session: session} =
+        SessionSetup.create_local()
 
-      # Subscribe to the `server` channel, as `ProcessCreatedEvent`s go there
-      ChannelSetup.join_server(
-        own_server: true, gateway_id: gateway.server_id, socket: socket
-      )
+      sse_subscribe(session)
 
       {virus1, %{file: file1}} =
         SoftwareSetup.Virus.virus(
-          entity_id: entity_id,
+          entity_id: entity.entity_id,
           is_active?: true,
           real_file?: true,
           running_time: 600
@@ -43,14 +34,15 @@ defmodule Helix.Test.Features.Virus.CollectTest do
 
       {virus2, %{file: file2}} =
         SoftwareSetup.Virus.virus(
-          entity_id: entity_id,
+          entity_id: entity.entity_id,
           is_active?: true,
           real_file?: true,
           running_time: 6000
         )
 
-      bounce = NetworkSetup.Bounce.bounce!(entity_id: entity_id)
-      bank_acc = BankSetup.account!(owner_id: entity_id, balance: :random)
+      bounce = NetworkSetup.Bounce.bounce!(entity_id: entity.entity_id)
+      bank_acc =
+        BankSetup.account!(owner_id: entity.entity_id, balance: :random)
       wallet = nil  # #244
 
       params =
@@ -60,17 +52,23 @@ defmodule Helix.Test.Features.Virus.CollectTest do
           "bounce_id" => to_string(bounce.bounce_id),
           "atm_id" => to_string(bank_acc.atm_id),
           "account_number" => bank_acc.account_number,
-          "wallet" => wallet,
-          "request_id" => RequestHelper.id()
+          "wallet" => wallet
         }
 
-      # Request to collect the earnings of `virus1` and `virus2`
-      ref = push socket, "virus.collect", params
-      assert_reply ref, :ok, response, timeout(:slow)
+      conn =
+        conn()
+        |> infer_path(:virus_collect)
+        |> set_session(session)
+        |> put_body(params)
+        |> execute()
 
-      # Installation is acknowledge (`:ok`). Contains the `request_id`.
-      assert response.meta.request_id == params["request_id"]
-      assert response.data == %{}
+      # Request to collect the earnings of `virus1` and `virus2`
+      assert_empty_response conn
+      request_id = get_request_id(conn)
+      response = get_response(conn)
+
+      # Installation is acknowledge (`:ok`).
+      assert response == %{}
 
       # After a while, client receives the new process through top recalque
       [process_created1, process_created2] =
@@ -78,9 +76,9 @@ defmodule Helix.Test.Features.Virus.CollectTest do
 
       # Publications seem OK
       assert process_created1.data.type == "virus_collect"
-      assert process_created1.meta.request_id == params["request_id"]
+      assert process_created1.meta.request_id == request_id
       assert process_created2.data.type == "virus_collect"
-      assert process_created2.meta.request_id == params["request_id"]
+      assert process_created2.meta.request_id == request_id
 
       # Ensure that both processes were created
       processes = ProcessQuery.get_processes_on_server(gateway)
@@ -89,7 +87,7 @@ defmodule Helix.Test.Features.Virus.CollectTest do
 
       # Process 1 is OK
       assert process1.gateway_id == gateway.server_id
-      assert process1.source_entity_id == entity_id
+      assert process1.source_entity_id == entity.entity_id
       assert process1.src_connection_id
       assert process1.src_file_id == file1.file_id
       assert process1.bounce_id == bounce.bounce_id
@@ -99,7 +97,7 @@ defmodule Helix.Test.Features.Virus.CollectTest do
 
       # Process 2 is OK
       assert process2.gateway_id == gateway.server_id
-      assert process2.source_entity_id == entity_id
+      assert process2.source_entity_id == entity.entity_id
       assert process2.src_connection_id
       assert process2.src_file_id == file2.file_id
       assert process2.bounce_id == bounce.bounce_id

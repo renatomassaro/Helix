@@ -39,7 +39,7 @@ defmodule Helix.Software.Event.File do
 
       event_name :file_added
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           file: SoftwareIndex.render_file(event.file)
         }
@@ -87,7 +87,7 @@ defmodule Helix.Software.Event.File do
 
       event_name :file_deleted
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           file_id: to_string(event.file_id)
         }
@@ -174,7 +174,7 @@ defmodule Helix.Software.Event.File do
 
       event_name :file_downloaded
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           file: SoftwareIndex.render_file(event.file)
         }
@@ -260,7 +260,7 @@ defmodule Helix.Software.Event.File do
       notification?
 
       We've decided to shown on *both* servers, however if the player reads the
-      notification from one server, the other one is automatically mark as read.
+      notification on one server, the other one is automatically marked as read.
 
       The implementation of this Mirrored Notification is made exclusively on
       the client, however I'm explaining it here for the sake of documentation.
@@ -401,7 +401,7 @@ defmodule Helix.Software.Event.File do
 
       event_name :file_uploaded
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           file: SoftwareIndex.render_file(event.file)
         }
@@ -442,6 +442,17 @@ defmodule Helix.Software.Event.File do
           data_both: %{network_id: event.network_id, file_name: file_name}
         }
       end
+    end
+
+    trigger Notificable do
+      use Helix.Event.Trigger.Notificable.Macros
+
+      @class :server
+      @code :file_uploaded
+
+      # Mirrored notification
+      def whom_to_notify(event),
+        do: %{account_id: event.entity_id, server_id: event.to_server_id}
     end
   end
 

@@ -560,6 +560,33 @@ defmodule Helix.Process.Model.Process do
     |> estimate_duration()
   end
 
+  @spec fmt_str(map) ::
+    map
+  @doc """
+  `l_reserved`, `r_reserved`, `processed` and `objective`, when using KV-like
+  resources, may have Helix.ID as their corresponding keys.
+
+  Example: %{dlk: %{%Network.ID{} => "0.0"}} is a possible value.
+
+  After updating to Ecto 3.0 / Elixir 1.7 / OTP 21.0, Poison no longer encodes
+  this scenario (not sure why). This is a workaround, essentially converting the
+  Helix.ID to binary, so it can be safely stored in the database without blowing
+  Poison up.
+  """
+  def fmt_str(unsafe_map) do
+    unsafe_map
+    |> Enum.map(fn {key, map} ->
+      if is_map(map) and not Enum.empty?(map) do
+        [map_key] = Map.keys(map)
+
+        {key, Map.put(%{}, to_string(map_key), map[map_key])}
+      else
+        {key, map}
+      end
+    end)
+    |> Enum.into(%{})
+  end
+
   @spec get_dynamic(t) ::
     [resource]
   @doc """

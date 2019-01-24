@@ -42,7 +42,7 @@ defmodule Helix.Test.Process.TOPHelper do
     process
     |> Changeset.change()
     |> Changeset.put_change(:allocated, %{})  # Avoids `:waiting_alloc` status
-    |> Changeset.put_change(:processed, process.objective)
+    |> Changeset.put_change(:processed, Process.fmt_str(process.objective))
     |> ProcessRepo.update()
 
     # Force a recalque on the server

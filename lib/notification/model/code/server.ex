@@ -35,6 +35,38 @@ defmodule Helix.Notification.Model.Code.Server do
       do: data
   end
 
+  code :file_uploaded, 1 do
+    @moduledoc """
+    `FileUploadedNotification` notifies the player that their upload has just
+    finished successfully.
+    """
+
+    alias Helix.Software.Model.File
+    alias Helix.Software.Public.Index, as: FileIndex
+
+    @doc false
+    def generate_data(event) do
+      event.file
+      |> FileIndex.render_file()
+      |> Map.drop([:path, :size, :modules, :meta])
+    end
+
+    @doc false
+    def after_read_hook(data) do
+      %{
+        id: File.ID.cast!(data.id),
+        type: data.type,
+        version: data.version,
+        name: data.name,
+        extension: data.extension
+      }
+    end
+
+    @doc false
+    def render_data(data),
+      do: data
+  end
+
   code :log_created, 4 do
     @moduledoc """
     `LogCreatedNotification` notifies the player that the LogForge.Create

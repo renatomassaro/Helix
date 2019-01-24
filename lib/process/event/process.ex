@@ -97,8 +97,10 @@ defmodule Helix.Process.Event.Process do
       All this logic is handled by `ProcessView` and, under the hood,
       `ProcessViewable`.
       """
+      def generate_payload(%{confirmed: true}),
+        do: :dynamic
       def generate_payload(event = %{confirmed: true}, session) do
-        entity_id = session.entity_id  # REVIEW
+        entity_id = session.entity_id
 
         data = ProcessView.render(event.process, entity_id)
 
@@ -110,7 +112,7 @@ defmodule Helix.Process.Event.Process do
       end
 
       # Internal event used for optimistic (asynchronous) processing
-      def generate_payload(%{confirmed: false}, _),
+      def generate_payload(%{confirmed: false}),
         do: :noreply
 
       @doc """
@@ -158,7 +160,7 @@ defmodule Helix.Process.Event.Process do
 
       event_name :process_completed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           process_id: event.process.process_id |> to_string()
         }
@@ -234,7 +236,7 @@ defmodule Helix.Process.Event.Process do
       event_name :process_killed
 
       @doc false
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           process_id: event.process.process_id |> to_string(),
           reason: event.reason |> to_string()

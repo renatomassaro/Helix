@@ -16,7 +16,7 @@ defmodule Helix.Story.Event.ReplyTest do
     end
   end
 
-  describe "Publishable.generate_payload/2" do
+  describe "Publishable.generate_payload/1" do
     test "generates the payload" do
       socket = ChannelSetup.mock_account_socket()
 

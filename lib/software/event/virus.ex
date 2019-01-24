@@ -45,7 +45,7 @@ defmodule Helix.Software.Event.Virus do
       event_name :virus_collected
 
       @doc false
-      def generate_payload(event = %{}, _socket) do
+      def generate_payload(event = %{}) do
         data =
           event
           |> payment_data()
@@ -109,7 +109,7 @@ defmodule Helix.Software.Event.Virus do
 
       event_name :virus_installed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           file: SoftwareIndex.render_file(event.file)
         }
@@ -192,7 +192,7 @@ defmodule Helix.Software.Event.Virus do
 
       event_name :virus_install_failed
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           reason: to_string(event.reason)
         }

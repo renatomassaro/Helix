@@ -231,7 +231,7 @@ defmodule Helix.Server.Public.IndexTest do
       {entity, _} = EntitySetup.entity()
       server_nips = ServerHelper.get_all_nips(server)
 
-      remote = ServerIndex.remote(server, ServerHelper.id() entity.entity_id)
+      remote = ServerIndex.remote(server, ServerHelper.id(), entity.entity_id)
 
       # ServerIndex info
       assert remote.nips == server_nips

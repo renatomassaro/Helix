@@ -9,6 +9,7 @@ defmodule Helix.Test.Session.Setup do
 
   alias Helix.Test.Account.Setup, as: AccountSetup
   alias Helix.Test.Network.Helper, as: NetworkHelper
+  alias Helix.Test.Network.Setup, as: NetworkSetup
 
   @internet_id NetworkHelper.internet_id()
   @relay nil
@@ -19,9 +20,17 @@ defmodule Helix.Test.Session.Setup do
     local_config = create_config(local_opts, true)
     remote_config = create_config(remote_opts, false)
 
+    bounce =
+      if remote_opts[:with_bounce] do
+        NetworkSetup.Bounce.bounce!(
+          total: 3, entity_id: local_config.entity.entity_id
+        )
+      else
+          nil
+      end
+
     unless is_nil(remote_config) do
       network_id = Keyword.get(remote_opts, :network_id, @internet_id)
-      bounce = Keyword.get(remote_opts, :bounce, nil)
 
       # Setup SSH connection between gateway and endpoint
       {:ok, _, _} =
@@ -53,7 +62,8 @@ defmodule Helix.Test.Session.Setup do
       session: session,
       context: context,
       local: local_config,
-      remote: remote_config
+      remote: remote_config,
+      bounce: bounce
     }
   end
 
@@ -82,7 +92,18 @@ defmodule Helix.Test.Session.Setup do
     local_account = AccountSetup.account!(with_server: true)
     remote_account = AccountSetup.account!(with_server: true)
 
-    create(local: [account: local_account], remote: [account: remote_account])
+    local_base_opts = [account: local_account]
+    remote_base_opts = [account: remote_account]
+
+    local_opts = local_base_opts
+    remote_opts =
+      if opts[:with_bounce] do
+        remote_base_opts ++ [with_bounce: true]
+      else
+        remote_base_opts
+      end
+
+    create(local: local_opts, remote: remote_opts)
   end
 
   def create_remote!(opts \\ []),

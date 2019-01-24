@@ -50,7 +50,7 @@ defmodule Helix.Log.Request.Forge.EditTest do
         "log_id" => "w00t"
       }
 
-      r_invalid = RequestHelper.mock_request(unsafe: params, url: url)
+      r_invalid = RequestHelper.mock_request(unsafe: params, url_params: url)
       r_missing = RequestHelper.mock_request(unsafe: params)
 
       assert {:error, _, reason1} =
@@ -272,6 +272,8 @@ defmodule Helix.Log.Request.Forge.EditTest do
         RequestHelper.execute_until(
           ForgeEditRequest, :handle_request, request, session
         )
+
+      assert false
 
       assert [process] = ProcessQuery.get_processes_on_server(gateway.server_id)
 

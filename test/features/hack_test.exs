@@ -1,13 +1,12 @@
 defmodule Helix.Test.Features.Hack do
 
   use Helix.Test.Case.Integration
+  use Helix.Test.Webserver
 
-  import Phoenix.ChannelTest
   import Helix.Test.Case.ID
-  import Helix.Test.Channel.Macros
   import Helix.Test.Macros
 
-  alias HELL.Utils
+  alias HELL.DateUtils
   alias Helix.Entity.Query.Database, as: DatabaseQuery
   alias Helix.Network.Model.Connection
   alias Helix.Network.Query.Tunnel, as: TunnelQuery
@@ -15,8 +14,6 @@ defmodule Helix.Test.Features.Hack do
   alias Helix.Process.Query.Process, as: ProcessQuery
   alias Helix.Server.Websocket.Channel.Server, as: ServerChannel
 
-  alias Helix.Test.Channel.Helper, as: ChannelHelper
-  alias Helix.Test.Channel.Setup, as: ChannelSetup
   alias Helix.Test.Network.Setup, as: NetworkSetup
   alias Helix.Test.Process.TOPHelper
   alias Helix.Test.Software.Setup, as: SoftwareSetup
@@ -27,41 +24,46 @@ defmodule Helix.Test.Features.Hack do
 
   describe "crack" do
     test "crack (bruteforce) life cycle" do
-      {socket, %{gateway: gateway, account: account}} =
-        ChannelSetup.join_server([own_server: true])
+      %{
+        local: %{gateway: gateway, entity: entity},
+        session: session
+      } = SessionSetup.create_local()
 
-      player_entity_id = socket.assigns.gateway.entity_id
+      sse_subscribe(session)
 
-      # Ensure we are listening to events on the Account channel too.
-      ChannelSetup.join_account(
-        [account_id: account.account_id, socket: socket])
-
-      {target, _} = ServerSetup.server()
-
+      target = ServerSetup.server!()
       target_nip = ServerHelper.get_nip(target)
 
-      SoftwareSetup.file([type: :cracker, server_id: gateway.server_id])
+      SoftwareSetup.cracker(server_id: gateway.server_id)
 
-      {bounce, _} = NetworkSetup.Bounce.bounce(entity_id: player_entity_id)
+      bounce = NetworkSetup.Bounce.bounce!(entity_id: entity.entity_id)
 
       params = %{
-        network_id: to_string(target_nip.network_id),
-        ip: target_nip.ip,
-        bounce_id: to_string(bounce.bounce_id)
+        "bounce_id" => to_string(bounce.bounce_id)
       }
 
-      # Start the Bruteforce attack
-      ref = push socket, "cracker.bruteforce", params
+      base_conn =
+        conn()
+        |> infer_path(:bruteforce, [gateway.server_id, target_nip])
+        |> set_session(session)
+        |> put_body(params)
 
-      # Wait for response
-      assert_reply ref, :ok, %{data: %{}}, timeout(:slow)
+      conn = execute(base_conn)
+      request_id = get_request_id(conn)
 
-      # Wait for generic ProcessCreatedEvent
+      # It worked!
+      assert_status conn, 200
+
       [process_created] = wait_events [:process_created]
 
-      assert process_created.event == "process_created"
+      assert process_created.data.type == "cracker_bruteforce"
+      assert process_created.meta.request_id == request_id
+      assert process_created.domain == "server"
+      assert process_created.domain_id == to_string(gateway.server_id)
 
       process_id = Process.ID.cast!(process_created.data.process_id)
+      process = ProcessQuery.fetch(process_id)
+
       connection_id =
         Connection.ID.cast!(process_created.data.source_connection_id)
 
@@ -109,77 +111,53 @@ defmodule Helix.Test.Features.Hack do
 
       db_server =
         DatabaseQuery.fetch_server(
-          player_entity_id, target_nip.network_id, target_nip.ip
+          entity.entity_id, target_nip.network_id, target_nip.ip
         )
 
       # The hacked server has been added to my Database
       assert db_server
       assert db_server.password == password_acquired.data.password
-      assert db_server.last_update > Utils.date_before(-1)
-
-      # And I can actually login into the recently hacked server
-      gateway_ip = ServerHelper.get_ip(gateway)
-
-      topic =
-        ChannelHelper.server_topic_name(target_nip.network_id, target_nip.ip)
-      params = %{
-        "gateway_ip" => gateway_ip,
-        "password" => password_acquired.data.password
-      }
-
-      {:ok, %{data: bootstrap}, new_socket} =
-        subscribe_and_join(socket, ServerChannel, topic, params)
-
-      # I'm in!
-      assert new_socket.topic == topic
-      assert new_socket.assigns.gateway.server_id == gateway.server_id
-      assert new_socket.assigns.destination.server_id == target.server_id
-
-      # Logging in returns local server data, through bootstrap
-      assert bootstrap.main_storage
-      assert bootstrap.storages
-      assert bootstrap.logs
-      assert bootstrap.processes
+      assert db_server.last_update > DateUtils.date_before(1)
 
       TOPHelper.top_stop(gateway)
     end
   end
 
-  describe "remote login" do
-    test "player can login another server when correct password is given" do
-      {socket, %{gateway: gateway}} =
-        ChannelSetup.join_server([own_server: true])
+  # describe "remote login" do
+  #   test "player can login another server when correct password is given" do
+  #     {socket, %{gateway: gateway}} =
+  #       ChannelSetup.join_server([own_server: true])
 
-      {target, _} = ServerSetup.server()
+  #     {target, _} = ServerSetup.server()
 
-      target_nip = ServerHelper.get_nip(target)
+  #     target_nip = ServerHelper.get_nip(target)
 
-      gateway_ip = ServerHelper.get_ip(gateway)
+  #     gateway_ip = ServerHelper.get_ip(gateway)
 
-      topic =
-        ChannelHelper.server_topic_name(target_nip.network_id, target_nip.ip)
-      params = %{
-        "gateway_ip" => gateway_ip,
-        "password" => target.password
-      }
+  #     topic =
+  #       ChannelHelper.server_topic_name(target_nip.network_id, target_nip.ip)
+  #     params = %{
+  #       "gateway_ip" => gateway_ip,
+  #       "password" => target.password
+  #     }
 
-      # So, let's login!
-      {:ok, %{data: bootstrap}, new_socket} =
-        subscribe_and_join(socket, ServerChannel, topic, params)
+  #     # So, let's login!
+  #     {:ok, %{data: bootstrap}, new_socket} =
+  #       subscribe_and_join(socket, ServerChannel, topic, params)
 
-      # Successfully joined the remote server channel
-      assert new_socket.topic == topic
-      assert new_socket.assigns.gateway.server_id == gateway.server_id
-      assert new_socket.assigns.destination.server_id == target.server_id
+  #     # Successfully joined the remote server channel
+  #     assert new_socket.topic == topic
+  #     assert new_socket.assigns.gateway.server_id == gateway.server_id
+  #     assert new_socket.assigns.destination.server_id == target.server_id
 
-      # Logging in returns the remote server data
-      assert bootstrap.main_storage
-      assert bootstrap.storages
-      assert bootstrap.logs
-      assert bootstrap.processes
-    end
+  #     # Logging in returns the remote server data
+  #     assert bootstrap.main_storage
+  #     assert bootstrap.storages
+  #     assert bootstrap.logs
+  #     assert bootstrap.processes
+  #   end
 
-    @tag :pending
-    test "server password is stored on the DB in case it wasn't already"
-  end
+  #   @tag :pending
+  #   test "server password is stored on the DB in case it wasn't already"
+  # end
 end

@@ -1,6 +1,5 @@
 defmodule Helix.Software.Internal.PublicFTP do
 
-  alias Hector
   alias Helix.Server.Model.Server
   alias Helix.Software.Internal.File, as: FileInternal
   alias Helix.Software.Model.File

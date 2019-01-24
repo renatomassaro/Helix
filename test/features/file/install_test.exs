@@ -1,55 +1,66 @@
 defmodule Helix.Test.Features.File.InstallTest do
 
   use Helix.Test.Case.Integration
+  use Helix.Test.Webserver
 
-  import Phoenix.ChannelTest
   import Helix.Test.Case.ID
-  import Helix.Test.Macros
-  import Helix.Test.Channel.Macros
 
   alias Helix.Process.Query.Process, as: ProcessQuery
   alias Helix.Software.Model.Virus
   alias Helix.Software.Query.File, as: FileQuery
   alias Helix.Software.Query.Virus, as: VirusQuery
 
-  alias HELL.TestHelper.Random
-  alias Helix.Test.Channel.Setup, as: ChannelSetup
   alias Helix.Test.Process.TOPHelper
+  alias Helix.Test.Server.Helper, as: ServerHelper
+  alias Helix.Test.Software.Helper, as: SoftwareHelper
   alias Helix.Test.Software.Setup, as: SoftwareSetup
 
   @moduletag :feature
 
   describe "file.install" do
+
+    # TODO: Test locally
     test "install lifecycle (virus)" do
-      {
-        socket,
-        %{gateway: gateway, destination: destination, gateway_entity: entity}
-      } = ChannelSetup.join_server()
+      %{
+        local: %{gateway: gateway, entity: entity},
+        remote: %{endpoint: endpoint},
+        session: session,
+      } = SessionSetup.create_remote()
 
-      # Connect to the account channel so we can receive Account publications
-      ChannelSetup.join_account(account_id: entity.entity_id, socket: socket)
+      sse_subscribe(session)
 
-      file = SoftwareSetup.virus!(server_id: destination.server_id)
-      request_id = Random.string(max: 256)
+      endpoint_nip = ServerHelper.get_nip(endpoint)
 
-      params =
-        %{
-          "file_id" => file.file_id |> to_string(),
-          "request_id" => request_id
-        }
+      # First, let's attempt to install a virus that does not exist!
+      conn =
+        conn()
+        |> infer_path(:file_install, [endpoint_nip, SoftwareHelper.id()])
+        |> set_session(session)
+        |> execute()
 
-      ref = push socket, "file.install", params
-      assert_reply ref, :ok, response, timeout(:slow)
+      # It failed, as expected!
+      assert_resp_error conn, {:file, :not_found}
 
-      # Installation is acknowledge (`:ok`). Contains the `request_id`.
-      assert response.meta.request_id == request_id
-      assert response.data == %{}
+      # Now let's try again with an actual file (virus)!
+      file = SoftwareSetup.virus!(server_id: endpoint.server_id)
+
+      conn =
+        conn()
+        |> infer_path(:file_install, [endpoint_nip, file.file_id])
+        |> set_session(session)
+        |> execute()
+
+      # It worked!
+      assert_status conn, 200
 
       # After a while, client receives the new process through top recalque
-      [l_process_created_event] = wait_events [:process_created]
+      [process_created_event] = wait_events [:process_created]
+
+      assert process_created_event.domain == "server"
+      assert process_created_event.data.type == "install_virus"
 
       # Force completion of the process
-      process = ProcessQuery.fetch(l_process_created_event.data.process_id)
+      process = ProcessQuery.fetch(process_created_event.data.process_id)
       TOPHelper.force_completion(process)
 
       # Process no longer exists

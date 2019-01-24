@@ -7,6 +7,7 @@ defmodule Helix.Webserver.Request.Utils do
   alias Helix.Core.Validator
   alias Helix.Network.Model.Bounce
   alias Helix.Network.Model.Network
+  alias Helix.Webserver.Session, as: SessionWeb
 
   @spec validate_nip(unsafe :: String.t | Network.id, unsafe_ip :: String.t) ::
     {:ok, Network.id, Network.ip}
@@ -50,7 +51,7 @@ defmodule Helix.Webserver.Request.Utils do
     | {:ok, Bounce.id}
     | :bad_request
   @doc """
-  Ensures the given bounce is valid. It may either be nil (i.e. no bounce) or 
+  Ensures the given bounce is valid. It may either be nil (i.e. no bounce) or
   a valid Bounce.ID.
 
   NOTE: This function does not check whether the bounce exists.
@@ -91,11 +92,12 @@ defmodule Helix.Webserver.Request.Utils do
   Helper that casts optional parameters, falling back to `default` when they
   have not been specified.
   """
-  def cast_optional(unsafe, key, cast_function, default) when is_atom(key),
-    do: cast_optional(unsafe, to_string(key), cast_function, default)
-  def cast_optional(unsafe, key, cast_function, default) do
-    if Map.has_key?(unsafe, key) do
-      cast_function.(unsafe[key])
+  def cast_optional(request, key, cast_function, default \\ nil)
+  def cast_optional(request, key, cast_function, default) when is_atom(key),
+    do: cast_optional(request, to_string(key), cast_function, default)
+  def cast_optional(request, key, cast_function, default) do
+    if Map.has_key?(request.unsafe, key) do
+      cast_function.(request.unsafe[key])
     else
       default
     end
@@ -135,4 +137,14 @@ defmodule Helix.Webserver.Request.Utils do
     do: {:ok, input}
   def ensure_type(:binary, _),
     do: :error
+
+  def parse_nip(nip) when is_binary(nip) do
+    case SessionWeb.parse_server_cid(nip) do
+      {:nip, parsed_nip} ->
+        {:ok, parsed_nip}
+
+      _ ->
+        :error
+    end
+  end
 end

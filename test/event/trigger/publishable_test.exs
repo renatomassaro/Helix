@@ -67,10 +67,6 @@ defmodule Helix.Event.Trigger.PublishableTest do
       assert_id process.network_id, event.process.network_id
       assert process.target_ip
 
-      # Event id was generated
-      assert publication.meta.event_id
-      assert is_binary(publication.meta.event_id)
-
       # No process ID
       refute publication.meta.process_id
     end
@@ -115,10 +111,6 @@ defmodule Helix.Event.Trigger.PublishableTest do
       assert_id process.source_connection_id, event.process.src_connection_id
       assert_id process.network_id, event.process.network_id
       assert process.target_ip
-
-      # Event id was generated
-      assert publication.meta.event_id
-      assert is_binary(publication.meta.event_id)
 
       # No process id
       refute publication.meta.process_id

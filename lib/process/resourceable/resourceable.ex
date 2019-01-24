@@ -93,6 +93,8 @@ defmodule Helix.Process.Resourceable do
   download files instantaneously :-).
   """
 
+  alias Helix.Process.Model.Process
+
   @type resource_usage :: number
 
   @empty_resource 0
@@ -124,6 +126,7 @@ defmodule Helix.Process.Resourceable do
     |> Enum.reject(fn {_, total} -> total == %{} end)
     |> Enum.reject(fn {_, total} -> total == 0 end)
     |> Enum.into(%{})
+    |> Process.fmt_str()
   end
 
   defp static(resourceable, %{static: 0}, _),

@@ -45,7 +45,8 @@ defmodule Helix.Account.Action.AccountTest do
     test "fails when provided with incorrect password" do
       {account, _} = AccountSetup.account()
 
-      assert {:error, _} = AccountAction.login(account.username, "incorrect pass")
+      assert {:error, _} =
+        AccountAction.login(account.username, "incorrect pass")
     end
 
     test "cannot use email as login credential" do

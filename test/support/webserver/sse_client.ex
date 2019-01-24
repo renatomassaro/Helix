@@ -103,7 +103,7 @@ defmodule Helix.Test.Webserver.SSEClient do
            matched_events
            |> Enum.reduce(state, fn event, new_state ->
              %{new_state|
-              events: Enum.reject(new_state.events, &(&1 == event))}
+               events: Enum.reject(new_state.events, &(&1 == event))}
            end)
 
          {matched_events, missing_events} ->

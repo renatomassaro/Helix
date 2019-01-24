@@ -42,6 +42,7 @@ defmodule Helix.Network.Request.Browse do
     end
   end
 
+  # TODO: `origin` is unauthenticated
   def check_permissions(request, _session),
     do: {:ok, request}
 

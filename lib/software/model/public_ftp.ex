@@ -9,7 +9,6 @@ defmodule Helix.Software.Model.PublicFTP do
   import HELL.Ecto.Macros
 
   alias Ecto.Changeset
-  alias Hector
   alias Helix.Server.Model.Server
   alias __MODULE__, as: PublicFTP
 

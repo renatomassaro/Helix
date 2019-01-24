@@ -21,10 +21,20 @@ defmodule Helix.Webserver.Plugs.Entrypoint do
     |> SessionWeb.fetch_session()
   end
 
+  defp put_url_params(conn, [_, "server", server_cid, "file", file_id | _]),
+    do: put_params(conn, [{:server_cid, server_cid}, {:file_id, file_id}])
   defp put_url_params(conn, [_, "server", server_cid, "log", log_id | _]),
     do: put_params(conn, [{:server_cid, server_cid}, {:log_id, log_id}])
   defp put_url_params(conn, [_, "server", server_cid | _]),
     do: put_params(conn, [{:server_cid, server_cid}])
+  defp put_url_params(conn, [_, "gateway", gtw_id, "bruteforce", target_nip]),
+    do: put_params(conn, [{:gateway_id, gtw_id}, {:target_nip, target_nip}])
+  defp put_url_params(conn, [_, "gateway", gateway_id]),
+    do: put_params(conn, [{:gateway_id, gateway_id}])
+  defp put_url_params(conn, [_, "endpoint", endpoint_nip, "file", file_id | _]),
+    do: put_params(conn, [{:endpoint_nip, endpoint_nip}, {:file_id, file_id}])
+  defp put_url_params(conn, [_, "endpoint", endpoint_nip]),
+    do: put_params(conn, [{:endpoint_nip, endpoint_nip}])
   defp put_url_params(conn, _),
     do: conn
 

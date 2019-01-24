@@ -37,7 +37,7 @@ defmodule Helix.Software.Query.PublicFTP do
   @doc """
   Returns a list of all files that exist on the given PublicFTP server.
 
-  Returns an empty list if the server is disabled, even if there are files on it 
+  Returns an empty list if the server is disabled, even if there are files on it
   """
   def list_files(server = %Server{}),
     do: list_files(server.server_id)

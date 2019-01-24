@@ -52,17 +52,24 @@ defmodule Helix.Webserver.Session do
   def is_sync_request?(_, _),
     do: false
 
-  # def get_identifier_tuple([_, "server", server_cid | _], conn),
-  #   do: {get_session_id(conn), get_server_id(server_cid)}
-  # def get_identifier_tuple(_, conn),
-  #   do: {get_session_id(conn)}
-
   def get_identifier_tuple([_, "server", server_cid | _], conn),
     do: get_identifier_tuple({:server, get_server_id(server_cid)}, conn)
-  def get_identifier_tuple({:server, {:ok, server_id}}, conn),
+  def get_identifier_tuple([_, "gateway", gateway_id | _], conn),
+    do: get_identifier_tuple({:gateway, get_server_id(gateway_id)}, conn)
+  def get_identifier_tuple([_, "endpoint", endpoint_nip | _], conn),
+    do: get_identifier_tuple({:endpoint, get_server_id(endpoint_nip)}, conn)
+  def get_identifier_tuple({:server, {:ok, _, server_id}}, conn),
     do: {:ok, {get_session_id(conn), server_id}}
   def get_identifier_tuple({:server, {:error, _}}, conn),
     do: {:error, :nxnip}
+  def get_identifier_tuple({:gateway, {:ok, :id, gateway_id}}, conn),
+    do: {:ok, {get_session_id(conn), gateway_id}}
+  def get_identifier_tuple({:gateway, _}, conn),
+    do: {:error, :invalid_id}
+  def get_identifier_tuple({:endpoint, {:ok, :nip, endpoint_id}}, conn),
+    do: {:ok, {get_session_id(conn), endpoint_id}}
+  def get_identifier_tuple({:endpoint, _}, conn),
+    do: {:error, :invalid_nip}
   def get_identifier_tuple(_, conn),
     do: {:ok, {get_session_id(conn)}}
 
@@ -96,9 +103,17 @@ defmodule Helix.Webserver.Session do
     do: nil
 
   defp get_server_id({:id, server_id = %Server.ID{}}),
-    do: {:ok, server_id}
-  defp get_server_id({:nip, {ip, network_id = %Network.ID{}}}),
-    do: CacheQuery.from_nip_get_server(network_id, ip)
+    do: {:ok, :id, server_id}
+
+  defp get_server_id({:nip, {network_id = %Network.ID{}, ip}}) do
+    case CacheQuery.from_nip_get_server(network_id, ip) do
+      {:ok, server_id} ->
+        {:ok, :nip, server_id}
+      _ ->
+        {:error, :nxnip}
+    end
+  end
+
   defp get_server_id(server_cid) do
     server_cid
     |> parse_server_cid()
@@ -130,7 +145,7 @@ defmodule Helix.Webserver.Session do
       {:ok, ip} <- Validator.validate_input(unsafe_ip, :ipv4),
       {:ok, network_id} <- Network.ID.cast(unsafe_network_id)
     do
-      {:nip, {ip, network_id}}
+      {:nip, {network_id, ip}}
     else
       _ ->
         {:error, :invalid_server_nip}

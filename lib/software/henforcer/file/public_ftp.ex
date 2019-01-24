@@ -47,6 +47,7 @@ defmodule Helix.Software.Henforcer.File.PublicFTP do
   @type file_exists_relay_partial :: %{file: File.t, server: Server.t}
   @type file_exists_error ::
     {false, {:pftp_file, :not_found}, file_exists_relay_partial}
+    | {false, {:pftp_file, :not_belongs}, file_exists_relay_partial}
     | FileHenforcer.file_exists_error
     | ServerHenforcer.server_exists_error
 
@@ -75,7 +76,11 @@ defmodule Helix.Software.Henforcer.File.PublicFTP do
   def file_exists?(server = %Server{}, file = %File{}) do
     case PublicFTPQuery.fetch_file(file) do
       pftp_file = %PublicFTP.File{} ->
-        reply_ok(%{pftp_file: pftp_file})
+        if pftp_file.server_id == server.server_id do
+          reply_ok(%{pftp_file: pftp_file})
+        else
+          reply_error({:pftp_file, :not_belongs})
+        end
 
       _ ->
         reply_error({:pftp_file, :not_found})
