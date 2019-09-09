@@ -1,7 +1,10 @@
 defmodule Helix.Account.Internal.Account do
 
+  alias Helix.Account.Internal.Email, as: EmailInternal
+  alias Helix.Account.Internal.Document, as: DocumentInternal
   alias Helix.Account.Model.Account
   alias Helix.Account.Model.AccountSetting
+  alias Helix.Account.Model.Document
   alias Helix.Account.Model.Setting
   alias Helix.Account.Repo
 
@@ -43,28 +46,74 @@ defmodule Helix.Account.Internal.Account do
 
   @spec create(Account.creation_params) ::
     {:ok, Account.t}
-    | {:error, Ecto.Changeset.t}
+    | {:error, Account.changeset}
   def create(params) do
-    params
-    |> Account.create_changeset()
-    |> Repo.insert()
+    Repo.transaction(fn ->
+      account_changeset = Account.create_changeset(params)
+
+      with \
+        {:ok, account} <- Repo.insert(account_changeset),
+        {:ok, email_verification} <- EmailInternal.create_verification(account)
+      do
+        account
+      else
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
   end
 
   @spec update(Account.t, Account.update_params) ::
     {:ok, Account.t}
-    | {:error, Ecto.Changeset.t}
+    | {:error, Account.changeset}
   def update(account, params) do
     account
     |> Account.update_changeset(params)
     |> Repo.update()
   end
 
-  @spec delete(Account.t) ::
-    :ok
-  def delete(account) do
-    Repo.delete(account)
+  # @spec delete(Account.t) ::
+  #   :ok
+  # def delete(account) do
+  #   Repo.delete(account)
 
-    :ok
+  #   :ok
+  # end
+
+  @spec verify(Account.t, Email.Verification.t) ::
+    {:ok, Account.t}
+    | {:error, Account.changeset | Email.Verification.changeset}
+  def verify(account, email_verification) do
+    Repo.transaction(fn ->
+      with \
+        account_changeset = Account.mark_as_verified(account),
+        {:ok, account} <- Repo.update(account_changeset),
+        :ok <- EmailInternal.remove_entries(account.account_id)
+      do
+        account
+      else
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
+  end
+
+  @spec sign_document(Account.t, Document.t, Document.Signature.info) ::
+    {:ok, Account.t}
+    | {:error, Account.changeset | Document.Signature.changeset}
+  def sign_document(account = %Account{}, document = %Document{}, info) do
+    Repo.transaction(fn ->
+      with \
+        account_changeset = Account.mark_as_signed(account, document),
+        {:ok, account} <- Repo.update(account_changeset),
+        {:ok, _} <- DocumentInternal.sign(account, document, info)
+      do
+        account
+      else
+        {:error, changeset} ->
+          Repo.rollback(changeset)
+      end
+    end)
   end
 
   @spec put_settings(Account.t, map) ::

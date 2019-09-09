@@ -42,12 +42,21 @@ defmodule Helix.Story.Event.Reply do
 
       event_name :story_reply_sent
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         contact_id = Step.get_contact(event.step) |> to_string()
         replies =
           event.step
           |> Step.get_replies_of(event.reply.id)
           |> Enum.map(&to_string/1)
+
+        progress =
+          case Step.get_reply(event.step, event.reply.id) do
+            reply = %{} ->
+              reply.progress
+
+            nil ->
+              nil
+          end
 
         data = %{
           step: to_string(event.step.name),
@@ -55,7 +64,8 @@ defmodule Helix.Story.Event.Reply do
           reply_to: event.reply_to,
           reply_id: event.reply.id,
           replies: replies,
-          timestamp: ClientUtils.to_timestamp(event.reply.timestamp),
+          progress: progress,
+          timestamp: ClientUtils.to_timestamp(event.reply.timestamp)
         }
 
         {:ok, data}

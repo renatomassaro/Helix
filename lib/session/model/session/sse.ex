@@ -48,20 +48,24 @@ defmodule Helix.Session.Model.Session.SSE do
     def by_id(query \\ Session.SSE, id),
       do: where(query, [ss], ss.session_id == ^id)
 
+    # TODO: I think `expiration_date` is queried without a proper index
     def get_account_domain(query \\ Session, accounts) do
       from session in Session,
         inner_join: session_sse in assoc(session, :sse),
         where: session.account_id in ^accounts,
+        where: session.expiration_date >= fragment("now() AT TIME ZONE 'UTC'"),
         select: {
           session_sse.node_id, session_sse.session_id, session.account_id
         }
     end
 
+    # TODO: I think `expiration_date` is queried without a proper index
     def get_server_domain(query \\ Session, servers) do
       from session in Session,
         inner_join: session_servers in assoc(session, :servers),
         inner_join: session_sse in assoc(session, :sse),
         where: session_servers.server_id in ^servers,
+        where: session.expiration_date >= fragment("now() AT TIME ZONE 'UTC'"),
         select: {
           session_sse.node_id, session_sse.session_id, session_servers.server_id
         }

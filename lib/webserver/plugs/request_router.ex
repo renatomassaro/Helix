@@ -21,6 +21,7 @@ defmodule Helix.Webserver.Plugs.RequestRouter do
         response: %{},
         status: nil,
         relay: RequestWeb.Relay.new(conn),
+        conn: conn,
         __special__: []
       }
 

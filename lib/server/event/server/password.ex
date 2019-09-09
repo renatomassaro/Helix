@@ -47,7 +47,7 @@ defmodule Helix.Server.Event.Server.Password do
 
       event_name :server_password_acquired
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           network_id: to_string(event.network_id),
           server_ip: event.server_ip,

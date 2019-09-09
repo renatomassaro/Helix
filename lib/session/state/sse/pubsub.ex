@@ -68,7 +68,7 @@ defmodule Helix.Session.State.SSE.PubSub do
                 %{
                   session_id: session_id,
                   message_id: SSE.Queue.generate_message_id(),
-                  event: payload
+                  payload: payload
                 }
 
               [notification | acc]
@@ -141,7 +141,7 @@ defmodule Helix.Session.State.SSE.PubSub do
 
   def handle_cast({:notification, :sse_queue_global, notification}, state) do
     {action, new_state} =
-      case notification.event do
+      case notification.payload do
         "_online" ->
           rate_limit(:online, state, notification)
 

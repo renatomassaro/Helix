@@ -7,7 +7,6 @@ defmodule Helix.Event.Meta do
   alias Helix.Process.Model.Process
 
   @type t :: %{
-    event_id: id | nil,
     process_id: Process.id | nil,
     process: Process.t | nil,
     stack: [Event.t] | nil,
@@ -18,19 +17,12 @@ defmodule Helix.Event.Meta do
   @type id :: HETypes.uuid
 
   @type rendered :: %{
-    event_id: String.t | nil,
     process_id: String.t | nil,
     request_id: binary | nil
   }
 
   @meta_key :__meta__
   @meta_fields [
-    # The `event_id` field is an unique identifier *per event*, used by the
-    # Client to identify whether that specific event has already been received
-    # by the player (may happen if there are multiple subscribers (channels) to
-    # on the same server)
-    :event_id,
-
     # The `process_id` field is used to identify which process (if any) was
     # responsible for the emission of the current event. Useful to correlate
     # processes side-effects to their process ids on the Client.
@@ -88,7 +80,6 @@ defmodule Helix.Event.Meta do
   """
   def render(event) do
     %{
-      event_id: get_event_id(event),
       process_id: get_process_id(event) |> Utils.stringify(),
       request_id: get_request_id(event)
     }

@@ -200,7 +200,7 @@
   "missions": {
     "Tutorial": {
       "steps": {
-        "SetupPC": {
+        "Welcome": {
           "filters": [],
           "emits": ["Story.Email.Sent"]
         },

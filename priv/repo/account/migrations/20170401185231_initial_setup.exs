@@ -8,7 +8,7 @@ defmodule Helix.Account.Repo.Migrations.InitialSetup do
       add :password, :string, null: false
       add :display_name, :string, null: false
       add :email, :string, null: false
-      add :confirmed, :boolean, default: false
+      add :verified, :boolean, default: false
 
       timestamps()
     end

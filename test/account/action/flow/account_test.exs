@@ -9,6 +9,7 @@ defmodule Helix.Account.Action.Flow.AccountTest do
 
   alias Helix.Test.Cache.Helper, as: CacheHelper
   alias Helix.Test.Network.Helper, as: NetworkHelper
+  alias Helix.Test.Account.Helper, as: AccountHelper
   alias Helix.Test.Account.Setup, as: AccountSetup
 
   @internet_id NetworkHelper.internet_id()
@@ -46,6 +47,30 @@ defmodule Helix.Account.Action.Flow.AccountTest do
       assert nc.network_id == @internet_id
       assert nc.ip
       assert nc.nic_id == nic.component_id
+    end
+  end
+
+  describe "verify/1" do
+    test "verifies the key and sets up the player servers" do
+      {email_verification, %{account: account}} =
+        AccountSetup.Email.email_verification()
+
+      # There is no entity created yet, since account is not verified
+      entity_id = EntityQuery.get_entity_id(account)
+      refute EntityQuery.fetch(entity_id)
+
+      assert {:ok, new_account} = AccountFlow.verify(email_verification.key)
+
+      # Account is verified!
+      assert new_account.verified
+
+      # Now there is an entity, meaning the account was set up.
+      assert EntityQuery.fetch(entity_id)
+    end
+
+    test "does nothing when key is not found/wrong" do
+      key = AccountHelper.Email.verification_key()
+      assert {:error, :wrong_key} == AccountFlow.verify(key)
     end
   end
 end

@@ -213,7 +213,7 @@ defmodule Helix.Websocket.Flow.Utils do
     | {:ok, Bounce.id}
     | :bad_request
   @doc """
-  Ensures the given bounce is valid. It may either be nil (i.e. no bounce) or 
+  Ensures the given bounce is valid. It may either be nil (i.e. no bounce) or
   a valid Bounce.ID.
 
   NOTE: This function does not check whether the bounce exists.

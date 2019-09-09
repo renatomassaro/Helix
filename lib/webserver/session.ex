@@ -40,7 +40,17 @@ defmodule Helix.Webserver.Session do
     |> Map.drop([:servers, :account])
   end
 
-  def endpoint_requires_auth?(_, [_, "register"]),
+  def endpoint_requires_auth?(_, [_, "account", "register"]),
+    do: false
+  def endpoint_requires_auth?(_, [_, "account", "check-username"]),
+    do: false
+  def endpoint_requires_auth?(_, [_, "account", "check-email"]),
+    do: false
+  def endpoint_requires_auth?(_, [_, "account", "verify"]),
+    do: false
+  def endpoint_requires_auth?("GET", [_, "document", "tos"]),
+    do: false
+  def endpoint_requires_auth?("GET", [_, "document", "pp"]),
     do: false
   def endpoint_requires_auth?(_, [_, "login"]),
     do: false
@@ -49,6 +59,12 @@ defmodule Helix.Webserver.Session do
 
   def is_sync_request?("POST", [_, "sync"]),
     do: true
+  def is_sync_request?("GET", [_, "account", "check-verify"]),
+    do: true
+  def is_sync_request?("POST", [_, "document", "tos", "sign"]),
+    do: true
+  def is_sync_request?("POST", [_, "document", "pp", "sign"]),
+    do: true
   def is_sync_request?(_, _),
     do: false
 
@@ -56,6 +72,9 @@ defmodule Helix.Webserver.Session do
     do: get_identifier_tuple({:server, get_server_id(server_cid)}, conn)
   def get_identifier_tuple([_, "gateway", gateway_id | _], conn),
     do: get_identifier_tuple({:gateway, get_server_id(gateway_id)}, conn)
+  def get_identifier_tuple([_, "endpoint", endpoint_nip, "login"], conn) do
+    {:ok, {get_session_id(conn)}}
+  end
   def get_identifier_tuple([_, "endpoint", endpoint_nip | _], conn),
     do: get_identifier_tuple({:endpoint, get_server_id(endpoint_nip)}, conn)
   def get_identifier_tuple({:server, {:ok, _, server_id}}, conn),
@@ -113,6 +132,9 @@ defmodule Helix.Webserver.Session do
         {:error, :nxnip}
     end
   end
+
+  defp get_server_id({:error, reason}),
+    do: {:error, reason}
 
   defp get_server_id(server_cid) do
     server_cid

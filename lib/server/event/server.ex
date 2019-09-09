@@ -27,12 +27,14 @@ defmodule Helix.Server.Event.Server do
       :local
       | :remote
 
-    @spec new(Server.t, Entity.t, join_type) ::
+    @spec new(Server.idt, Entity.idt, join_type) ::
       t
-    def new(server = %Server{}, entity = %Entity{}, type) do
+    def new(server = %Server{}, entity = %Entity{}, type),
+      do: new(server.server_id, entity.entity_id, type)
+    def new(server_id = %Server.ID{}, entity_id = %Entity.ID{}, type) do
       %__MODULE__{
-        server_id: server.server_id,
-        entity_id: entity.entity_id,
+        server_id: server_id,
+        entity_id: entity_id,
         join_type: type
       }
     end

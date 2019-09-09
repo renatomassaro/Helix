@@ -5,6 +5,7 @@ defmodule Helix.Core.Listener.Model.Listener do
   import Ecto.Changeset
 
   alias Ecto.Changeset
+  alias Ecto.UUID
   alias HELL.HETypes
   alias HELL.MapUtils
 
@@ -39,7 +40,7 @@ defmodule Helix.Core.Listener.Model.Listener do
 
   @typedoc """
   Listener stores the event as a MD5 hash, in order to make search more
-  efficient (specially because all events start with `Elixir.Helix`). The role
+  efficient (especially because all events start with `Elixir.Helix`). The role
   of hashing an event, or even converting it to a string, is internal to the
   Listener service, and users of the Listener API should not care about this
   implementation detail.
@@ -74,15 +75,14 @@ defmodule Helix.Core.Listener.Model.Listener do
   @type creation_params :: term
 
   @creation_fields [:object_id, :event, :callback, :meta]
-  @required_fields [:object_id, :event, :callback]
+  @required_fields [:listener_id, :object_id, :event, :callback]
 
   @primary_key false
-  @ecto_autogenerate {:listener_id, {Ecto.UUID, :generate, []}}
   schema "listeners" do
-    field :listener_id, Ecto.UUID,
+    field :listener_id, UUID,
       primary_key: true
     field :object_id, :string
-    field :event, Ecto.UUID
+    field :event, UUID
     field :callback, {:array, :string}
     field :meta, :map
   end
@@ -92,6 +92,7 @@ defmodule Helix.Core.Listener.Model.Listener do
   def create_changeset(params) do
     %__MODULE__{}
     |> cast(params, @creation_fields)
+    |> put_defaults()
     |> validate_required(@required_fields)
   end
 
@@ -115,7 +116,12 @@ defmodule Helix.Core.Listener.Model.Listener do
     }
   end
 
-  defmodule Query do
+  @spec put_defaults(Changeset.t) ::
+    Changeset.t
+  defp put_defaults(changeset),
+    do: put_change(changeset, :listener_id, UUID.generate())
+
+ defmodule Query do
 
     import Ecto.Query
 

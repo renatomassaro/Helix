@@ -151,10 +151,14 @@ defmodule Helix.Session.Model.Session do
       entity_id: Entity.ID.cast!(server["entity_id"])
     }
 
+    network_id = Network.ID.cast!(server["network_id"])
+
+    # TODO: Why repeat `endpoint`?
     %{
       gateway: gateway_data,
       endpoint: gateway_data,
-      access: :local
+      access: :local,
+      network_id: network_id
     }
   end
 
@@ -185,6 +189,8 @@ defmodule Helix.Session.Model.Session do
   defp get_bounce_id(nil),
     do: nil
   defp get_bounce_id(bounce_id = %Bounce.ID{}),
+    do: bounce_id
+  defp get_bounce_id(bounce_id) when is_binary(bounce_id),
     do: Bounce.ID.cast!(bounce_id)
 
   query do

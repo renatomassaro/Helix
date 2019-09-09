@@ -1,6 +1,7 @@
 defmodule Helix.Webserver.Router do
   use Helix.Webserver, :router
 
+  # TODO: Cors should be added on error pages as well (4xx, 5xx)
   import Helix.Webserver.Router.Macros
 
   pipeline :api do
@@ -23,6 +24,31 @@ defmodule Helix.Webserver.Router do
     route(:get, "/subscribe", Helix.Session.Request.Subscribe)
     route(:get, "/ping", Helix.Session.Request.Ping)
     route(:post, "/logout", Helix.Account.Request.Logout)
+
+    scope "/account" do
+      route(:post, "/register", Helix.Account.Request.Register)
+      route(:post, "/check-username", Helix.Account.Request.CheckUsername)
+      route(:post, "/check-email", Helix.Account.Request.CheckEmail)
+      route(:post, "/verify", Helix.Account.Request.Verify)
+      route(:get, "/check-verify", Helix.Account.Request.CheckVerify)
+    end
+
+    route(:post, "/document/tos/sign", Helix.Account.Request.Document.Sign)
+    route(:post, "/document/pp/sign", Helix.Account.Request.Document.Sign)
+    route(:get, "/document/tos", Helix.Account.Request.Document.Fetch)
+    route(:get, "/document/pp", Helix.Account.Request.Document.Fetch)
+
+    # scope "/public" do
+    #   route(:get, "/documents/tos", Helix.Account.Request.GetDocument)
+    #   route(:get, "/documents/pp", Helix.Account.Request.GetDocument)
+    #   route(:post, "/documents/tos/sign", Helix.Account.Request.SignDocument)
+    #   route(:post, "/documents/pp/sign", Helix.Account.Request.SignDocument)
+    # end
+
+    # scope "/notification" do
+    #   route(:post "/read/all", TODO)
+    #   route(:post "/read/$id")
+    # end
 
     scope "/bounce" do
       route(:post, "/", Helix.Network.Request.Bounce.Create)
@@ -76,18 +102,25 @@ defmodule Helix.Webserver.Router do
         end
       end
     end
-  end
 
-  scope "/endpoint/:endpoint_nip" do
-    scope "/file" do
-      scope "/:file_id" do
-        route(:post, "/download", Helix.Software.Request.File.Download)
-        route(:post, "/upload", Helix.Software.Request.File.Upload)
+    scope "/endpoint/:endpoint_nip" do
+      route(:post, "/login", Helix.Server.Request.Server.Login)
+
+      scope "/file" do
+        scope "/:file_id" do
+          route(:post, "/download", Helix.Software.Request.File.Download)
+          route(:post, "/upload", Helix.Software.Request.File.Upload)
+        end
+      end
+
+      scope "/pftp/file/:file_id" do
+        route(:post, "/download", Helix.Software.Request.PFTP.File.Download)
       end
     end
 
-    scope "/pftp/file/:file_id" do
-      route(:post, "/download", Helix.Software.Request.PFTP.File.Download)
+    scope "/storyline" do
+      route(:post, "/reply", Helix.Story.Request.Email.Reply)
+      route(:post, "/restart", Helix.Story.Request.Restart)
     end
   end
 end

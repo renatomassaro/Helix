@@ -10,6 +10,7 @@ defmodule Helix.Account.Model.Account do
   alias Comeonin.Bcrypt
   alias Ecto.Changeset
   alias Helix.Entity.Model.Entity
+  alias Helix.Account.Model.Document
 
   @type email :: String.t
   @type username :: String.t
@@ -32,11 +33,13 @@ defmodule Helix.Account.Model.Account do
   @type update_params :: %{
     optional(:email) => email,
     optional(:password) => password,
-    optional(:confirmed) => boolean
+    optional(:verified) => boolean
   }
 
-  @creation_fields ~w/email username password/a
-  @update_fields ~w/email password confirmed/a
+  @type changeset :: %Ecto.Changeset{data: %__MODULE__{}}
+
+  @creation_fields [:email, :username, :password]
+  @update_fields [:email, :password, :verified, :tos_revision, :pp_revision]
 
   @derive {Poison.Encoder, only: [:email, :username, :account_id]}
   schema "accounts" do
@@ -48,14 +51,18 @@ defmodule Helix.Account.Model.Account do
     field :display_name, :string
     field :password, :string
 
-    field :confirmed, :boolean,
+    field :verified, :boolean,
       default: false
+    field :tos_revision, :integer,
+      default: 0
+    field :pp_revision, :integer,
+      default: 0
 
     timestamps()
   end
 
   @spec create_changeset(creation_params) ::
-    Changeset.t
+    changeset
   def create_changeset(params) do
     %__MODULE__{}
     |> cast(params, @creation_fields)
@@ -64,14 +71,50 @@ defmodule Helix.Account.Model.Account do
     |> put_pk(%{}, :account)
   end
 
-  @spec update_changeset(t | Changeset.t, update_params) ::
-    Changeset.t
+  @spec update_changeset(t | changeset, update_params) ::
+    changeset
   def update_changeset(schema, params) do
     schema
     |> cast(params, @update_fields)
     |> generic_validations()
     |> prepare_changes()
   end
+
+  @spec mark_as_verified(t | changeset) ::
+    changeset
+  def mark_as_verified(account) do
+    account
+    |> update_changeset(%{verified: true})
+  end
+
+  @spec mark_as_signed(t, Document.t) ::
+    changeset
+  def mark_as_signed(account, document) do
+    current_signed_revision = get_signed_revision_id(account, document)
+    field = get_document_field(document)
+    changeset = change(account)
+
+    if current_signed_revision > document.revision_id do
+      add_error(changeset, field, "signing_stale_document")
+    else
+      update_changeset(changeset, %{field => document.revision_id})
+    end
+  end
+
+  def get_signed_revision_id(account, %{document_id: document_id}),
+    do: get_signed_revision_id(account, document_id)
+  def get_signed_revision_id(account, document_id) when is_atom(document_id) do
+    field = get_document_field(document_id)
+
+    Map.fetch!(account, field)
+  end
+
+  defp get_document_field(%{document_id: document_id}),
+    do: get_document_field(document_id)
+  defp get_document_field(:tos),
+    do: :tos_revision
+  defp get_document_field(:pp),
+    do: :pp_revision
 
   @spec check_password(t, password) ::
     boolean
@@ -105,7 +148,7 @@ defmodule Helix.Account.Model.Account do
   defp generic_validations(changeset) do
     changeset
     |> validate_required([:email, :username, :password])
-    |> validate_length(:password, min: 8)
+    |> validate_length(:password, min: 6)
     |> validate_change(:email, &validate_email/2)
     |> validate_change(:username, &validate_username/2)
     |> unique_constraint(:email)

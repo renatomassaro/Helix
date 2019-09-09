@@ -1,19 +1,17 @@
 defmodule Helix.Account.Request.Login do
 
-  import Helix.Webserver.Request
+  use Helix.Webserver.Request
 
-  alias Helix.Core.Validator
   alias Helix.Session.Action.Session, as: SessionAction
   alias Helix.Webserver.CSRF, as: CSRFWeb
+  alias Helix.Account.Model.Account
   alias Helix.Account.Query.Account, as: AccountQuery
 
   def check_params(request, _session) do
-    request = %{request| unsafe: %{"username" => "asdf", "password" => "asdfasdf"}}
     with \
-      {:ok, username} <-
-        Validator.validate_input(request.unsafe["username"], :username),
+      {:ok, username} <- validate_input(request.unsafe["username"], :username),
       {:ok, password} <-
-        Validator.validate_input(request.unsafe["password"], :password)
+        validate_input(request.unsafe["password"], :account_password)
     do
       params = %{username: username, password: password}
       reply_ok(request, params: params)
@@ -50,7 +48,23 @@ defmodule Helix.Account.Request.Login do
   def render_response(request, session) do
     account_id = request.meta.account.account_id
     csrf_token = request.meta.csrf_token
+    setup_status = get_setup_status(request.meta.account)
 
-    respond_ok(request, %{account_id: account_id, csrf_token: csrf_token})
+    data = %{
+      account_id: account_id,
+      csrf_token: csrf_token,
+      setup_status: setup_status
+    }
+
+    respond_ok(request, data)
   end
+
+  defp get_setup_status(%Account{verified: false}),
+    do: :unverified
+  defp get_setup_status(%Account{tos_revision: 0}),
+    do: :missing_signature_tos
+  defp get_setup_status(%Account{pp_revision: 0}),
+    do: :missing_signature_pp
+  defp get_setup_status(_),
+    do: :ok
 end

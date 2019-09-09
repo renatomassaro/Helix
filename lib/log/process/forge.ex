@@ -135,6 +135,7 @@ process Helix.Log.Process.Forge do
 
     def cpu(f, %{action: :edit}) do
       f.forger.version.log_edit * (1 + f.log.revisions.from_entity) + 5000
+      |> Kernel.*(20)
     end
 
     def cpu(f, %{action: :create}) do
@@ -146,8 +147,8 @@ process Helix.Log.Process.Forge do
 
     def static do
       %{
-        paused: %{ram: 100},
-        running: %{ram: 200}
+        paused: %{ram: 10},
+        running: %{ram: 20}
       }
     end
   end

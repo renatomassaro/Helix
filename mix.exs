@@ -1,10 +1,12 @@
 defmodule Helix.Mixfile do
   use Mix.Project
 
+  @version "2.0.0"
+
   def project do
     [
       app: :helix,
-      version: "0.0.1",
+      version: @version,
       elixir: "~> 1.7",
 
       elixirc_options: elixirc_options(Mix.env),
@@ -65,8 +67,9 @@ defmodule Helix.Mixfile do
 
       {:ecto_sql, "~> 3.0.0"},
       {:postgrex, "~> 0.14.0"},
-      {:ecto_enum, "~> 1.0"},
+      {:ecto_enum, "~> 1.2"},
 
+      # TODO
       {:helf, path: "../helf"},
       {:hevent, path: "../hevent"},
       {:poison, "~> 3.0.0"},
@@ -133,7 +136,7 @@ defmodule Helix.Mixfile do
 
   defp elixirc_options(:prod) do
     # On prod, don't compile unless no warning is issued
-    [warnings_as_errors: true]
+    [warnings_as_errors: false]
   end
   defp elixirc_options(_) do
     # On dev and test, by default, allow to compile even with warnings,
@@ -143,7 +146,7 @@ defmodule Helix.Mixfile do
     [warnings_as_errors: warnings_as_errors?]
   end
 
-  defp elixirc_paths(:test),
+  defp elixirc_paths(_),
     do: ["lib", "test/support"]
   defp elixirc_paths(_),
     do: ["lib"]

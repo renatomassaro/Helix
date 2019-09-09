@@ -4,26 +4,79 @@ defmodule Helix.Story.Mission.Tutorial do
 
   contact :friend
 
-  step SetupPc do
+  step Welcome do
 
-    email "welcome",
-      replies: "back_thanks"
+    @messages ["c_welcome1",
+               "p_welcome1",
+               "c_welcome2",
+               "c_welcome3",
+               "c_welcome4",
+               "p_welcome2",
+               "c_welcome5",
+               "p_welcome3",
+               "c_welcome6",
+               "p_welcome4"]
 
-    on_reply "back_thanks",
-      send: "watchiadoing"
+    @checkpoints %{
+      "c_welcome1" => {nil}
+    }
 
-    email "watchiadoing",
-      replies: "hell_yeah"
+    email "c_welcome1",
+      replies: "p_welcome1",
+      progress: 0
 
-    on_reply "hell_yeah",
-      do: :complete
+    reply "p_welcome1",
+      progress: 4
+
+    on_reply "p_welcome1",
+      send: "c_welcome2",
+      send_opts: [sleep: 2]
+
+    email "c_welcome2",
+      progress: 8
+
+    on_email "c_welcome2",
+      send: "c_welcome3",
+      send_opts: [sleep: 2]
+
+    email "c_welcome3",
+      progress: 12
+
+    on_email "c_welcome3",
+      send: "c_welcome4",
+      send_opts: [sleep: 3]
+
+    email "c_welcome4",
+      replies: "p_welcome2",
+      progress: 16
+
+    reply "p_welcome2",
+      progress: 20
+
+    on_reply "p_welcome2",
+      send: "c_welcome5",
+      send_opts: [sleep: 3]
+
+    email "c_welcome5",
+      replies: "p_welcome3",
+      progress: 24
+
+    reply "p_welcome3",
+      progress: 28
+
+    # on_reply "welcome_p3",
+    #   do: :complete
 
     empty_setup()
 
     def start(step) do
-      e1 = send_email step, "welcome"
+      e1 = send_email step, "c_welcome1"
 
       {:ok, step, e1, []}
+    end
+
+    def restart(step, _reason, _checkpoint) do
+      {:ok, step, %{}, []}
     end
 
     def complete(step) do
@@ -45,6 +98,9 @@ defmodule Helix.Story.Mission.Tutorial do
 
     alias Helix.Software.Make.File, as: MakeFile
     alias Helix.Software.Make.PFTP, as: MakePFTP
+
+    @messages []
+    @checkpoints %{}
 
     email "download_cracker1"
 
@@ -119,6 +175,7 @@ defmodule Helix.Story.Mission.Tutorial do
         # Reply `downloaded` when the cracker has been downloaded
         story_listen cracker.file_id, FileDownloadedEvent, reply: "downloaded"
 
+        # Restart the step if the file gets deleted
         story_listen cracker.file_id, FileDeletedEvent, :on_file_deleted
 
       end
@@ -179,6 +236,9 @@ defmodule Helix.Story.Mission.Tutorial do
       as: ServerPasswordAcquiredEvent
 
     alias Helix.Software.Make.File, as: MakeFile
+
+    @messages []
+    @checkpoints %{}
 
     email "nasty_virus1"
 

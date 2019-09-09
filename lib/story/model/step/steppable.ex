@@ -233,6 +233,14 @@ defprotocol Helix.Story.Model.Steppable do
   """
   def restart(step, reason, checkpoint)
 
+  @spec checkpoint_find(Step.t, Step.message_id) ::
+    {true, Step.checkpoint}
+    | false
+  @doc """
+  Based on `@messages` and `@checkpoints`, find the most recent checkpoint.
+  """
+  def checkpoint_find(step, last_message_id)
+
   @spec next_step(Step.t) ::
     Step.step_name
   @doc """
@@ -275,6 +283,15 @@ defprotocol Helix.Story.Model.Steppable do
   Must not be implemented nor called directly. Use `Step.get_emails/1`.
   """
   def get_emails(step)
+
+  @spec get_replies(Step.t) ::
+    Step.replies
+  @doc """
+  Returns all registered replies for that step.
+
+  Must not be implemented nor called directly. Use `Step.get_replies/1`.
+  """
+  def get_replies(step)
 
   @spec get_replies_of(Step.t, Step.email_id) ::
     [Step.reply_id]

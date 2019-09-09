@@ -9,7 +9,10 @@ defmodule Helix.Account.Action.Flow.Account do
   alias Helix.Server.Action.Flow.Server, as: ServerFlow
   alias Helix.Server.Model.Server
   alias Helix.Account.Action.Account, as: AccountAction
+  alias Helix.Account.Action.Email, as: EmailAction
   alias Helix.Account.Model.Account
+  alias Helix.Account.Model.Document
+  alias Helix.Account.Query.Email, as: EmailQuery
 
   @spec setup_account(Account.t, Event.relay) ::
     {:ok, %{entity: Entity.t, server: Server.t}}
@@ -54,6 +57,36 @@ defmodule Helix.Account.Action.Flow.Account do
       with \
         {:ok, account, events} <-
           AccountAction.create(email, username, password),
+        on_success(fn -> Event.emit(events) end)
+      do
+        {:ok, account}
+      end
+    end
+  end
+
+  def verify(key) do
+    flowing do
+      with \
+        email_verification = %_{} <- EmailQuery.fetch_verification_by_key(key),
+        {:ok, account, events} <- AccountAction.verify(email_verification),
+        on_success(fn -> Event.emit(events) end)
+      do
+        {:ok, account}
+      else
+        nil ->
+          {:error, :wrong_key}
+      end
+    end
+  end
+
+  @spec sign_document(Account.t, Document.t, Document.Signature.info) ::
+    {:ok, Account.t}
+    | {:error, :internal}
+  def sign_document(account, document, info) do
+    flowing do
+      with \
+        {:ok, account, events} <-
+          AccountAction.sign_document(account, document, info),
         on_success(fn -> Event.emit(events) end)
       do
         {:ok, account}

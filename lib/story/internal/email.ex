@@ -133,7 +133,8 @@ defmodule Helix.Story.Internal.Email do
     |> Story.Email.Query.by_entity()
     |> Story.Email.Query.by_contact(contact_id)
     |> Story.Email.Query.append_email(email)
-    |> Repo.update_all([], returning: true)
+    |> Story.Email.Select.email()
+    |> Repo.update_all([])
   end
 
   @spec update(Story.Email.changeset) ::

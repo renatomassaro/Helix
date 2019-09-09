@@ -26,14 +26,16 @@ defmodule Helix.Story.Model.Step do
       contact: contact | nil
     }
 
-  @type email_id :: String.t
-  @type reply_id :: String.t
+  @type message_id :: String.t
+  @type email_id :: message_id
+  @type reply_id :: message_id
 
   @type message ::
     %{
       id: email_id,
       replies: [reply_id],
-      locked: [reply_id]
+      locked: [reply_id],
+      progress: integer
     }
 
   @type emails :: %{email_id => message}
@@ -46,6 +48,8 @@ defmodule Helix.Story.Model.Step do
   @type step_name :: Constant.t
   @type contact :: Constant.t
   @type contact_id :: contact
+
+  @type checkpoint :: {message_id, checkpoint_fix :: nil | function}
 
   @typedoc """
   The `callback_action` type lists all possible actions that may be applied to
@@ -103,7 +107,7 @@ defmodule Helix.Story.Model.Step do
   Returns the name of the first mission
   """
   def first_step_name,
-    do: :tutorial@setup_pc
+    do: :tutorial@welcome
 
   @spec get_name(step_module :: Constant.t) ::
     step_name
@@ -147,6 +151,46 @@ defmodule Helix.Story.Model.Step do
     step
     |> get_emails()
     |> Enum.any?(fn {id, _} -> id == email_id end)
+  end
+
+  @spec get_email(t, email_id) ::
+    message
+    | nil
+  def get_email(step, email_id) do
+    step
+    |> get_emails()
+    |> Enum.find(fn {id, _} -> id == email_id end)
+    |> case do
+         {_id, email} ->
+           email
+
+         nil ->
+           nil
+       end
+  end
+
+  @spec get_replies(t) ::
+    replies
+  @doc """
+  Returns a list of all available replies
+  """
+  def get_replies(step),
+    do: Steppable.get_replies(step)
+
+  @spec get_reply(t, reply_id) ::
+    message
+    | nil
+  def get_reply(step, reply_id) do
+    step
+    |> get_replies()
+    |> Enum.find(fn {id, _} -> id == reply_id end)
+    |> case do
+         {_id, reply} ->
+           reply
+
+         nil ->
+           nil
+       end
   end
 
   @spec get_replies_of(t, email_id) ::

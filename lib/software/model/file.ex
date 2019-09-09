@@ -161,6 +161,11 @@ defmodule Helix.Software.Model.File do
     |> validate_number(:crypto_version, greater_than: 0)
   end
 
+  @spec get_extension(t) ::
+    Software.extension
+  def get_extension(%__MODULE__{software_type: type}),
+    do: Software.Type.get(type) |> Map.fetch!(:extension)
+
   @spec validate_changeset(changeset, map) ::
     changeset
   defp validate_changeset(struct, params) do

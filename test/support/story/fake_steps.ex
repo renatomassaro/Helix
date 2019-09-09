@@ -42,6 +42,9 @@ defmodule Helix.Story.Mission.FakeSteps do
 
   step TestMeta do
 
+    @messages []
+    @checkpoints %{}
+
     alias Helix.Entity.Model.Entity
 
     empty_setup()
@@ -71,6 +74,9 @@ defmodule Helix.Story.Mission.FakeSteps do
 
   step TestSimple do
 
+    @messages []
+    @checkpoints %{}
+
     empty_setup()
 
     def start(step),
@@ -83,6 +89,9 @@ defmodule Helix.Story.Mission.FakeSteps do
   end
 
   step TestOne do
+
+    @messages []
+    @checkpoints %{}
 
     empty_setup()
 
@@ -100,6 +109,9 @@ defmodule Helix.Story.Mission.FakeSteps do
 
   step TestTwo do
 
+    @messages []
+    @checkpoints %{}
+
     empty_setup()
 
     def start(step),
@@ -115,6 +127,9 @@ defmodule Helix.Story.Mission.FakeSteps do
   end
 
   step TestCounter do
+
+    @messages []
+    @checkpoints %{}
 
     empty_setup()
 
@@ -133,6 +148,9 @@ defmodule Helix.Story.Mission.FakeSteps do
   step TestMsg do
 
     require Logger
+
+    @messages []
+    @checkpoints %{}
 
     email "e1",
       replies: ["reply_to_e1"],
@@ -168,6 +186,9 @@ defmodule Helix.Story.Mission.FakeSteps do
   end
 
   step TestMsgFlow do
+
+    @messages []
+    @checkpoints %{}
 
     email "e1",
       replies: ["reply_to_e1"]
@@ -209,6 +230,9 @@ defmodule Helix.Story.Mission.FakeContactOne do
 
   step TestSimple do
 
+    @messages []
+    @checkpoints %{}
+
     empty_setup()
 
     def start(step),
@@ -229,6 +253,9 @@ defmodule Helix.Story.Mission.FakeContactTwo do
 
   step TestSimple do
 
+    @messages []
+    @checkpoints %{}
+
     empty_setup()
 
     def start(step),
@@ -236,6 +263,74 @@ defmodule Helix.Story.Mission.FakeContactTwo do
 
     def complete(step),
       do: {:ok, step, []}
+
+    next_step __MODULE__
+  end
+end
+
+defmodule Helix.Story.Mission.FakeRestart do
+
+  import Helix.Story.Model.Step.Macros
+
+  contact :contact_restart
+
+  step TestRestart do
+
+    @messages ["c_msg1",
+               "p_msg1",
+               "c_msg2",
+               "p_msg2",
+               "p_arc1_msg2",
+               "c_arc1_msg2",
+               "c_msg3",
+               "p_msg3"]
+
+    @checkpoints %{
+      "c_msg1" => {nil},
+      "c_msg3" => {nil}
+    }
+
+    email "c_msg1",
+      replies: "p_msg1"
+
+    on_reply "p_msg1",
+      send: "c_msg2"
+
+    email "c_msg2",
+      replies: ["p_msg2", "p_arc1_msg2"]
+
+    on_reply "p_msg2",
+      send: "c_msg_3"
+
+    on_reply "p_arc1_msg2",
+      send: "c_arc1_msg2"
+
+    email "c_arc1_msg2",
+      replies: ["p_msg2"]
+
+    email "c_msg3",
+      replies: ["p_msg3"]
+
+    on_reply "p_msg3",
+      do: :complete
+
+    def setup(step) do
+    end
+
+    def start(step) do
+      e1 = send_email step, "c_msg1"
+      step = %{step| meta: %{restarted?: false}}
+
+      {:ok, step, e1, []}
+    end
+
+    def complete(step) do
+      {:ok, step, []}
+    end
+
+    def restart(step, reason, checkpoint) do
+      {:ok, %{step| meta: %{restarted?: true}}, %{}, []}
+    end
 
     next_step __MODULE__
   end

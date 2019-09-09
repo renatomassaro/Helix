@@ -57,7 +57,15 @@ defmodule Helix.Process.Event.Handler.TOP do
         |> ProcessCreatedEvent.new()
         |> Event.emit(from: event)
 
+      # # Untested dangerous changes HERE!!!!!!!!!
+      # {true, true} ->
+      #   event
+      #   |> ProcessCreatedEvent.new()
+      #   |> Event.emit(from: event)
+
       {false, _} ->
+        IO.puts "@@@@@@@@@@@@@@@@@@@@@@@"
+        IO.puts "Process was not created"
         # TODO
         :todo
         # event
@@ -175,8 +183,8 @@ defmodule Helix.Process.Event.Handler.TOP do
 
   Imagine, however, that `ProcessSignaledEvent` takes really long to arrive. It
   could happen that `FileDeletedEvent` arrives first. Now, it's the TOPHandler's
-  role to listen to `FileDeletedEvent`s and emit a SIG_TGT_FILE_DELETED on all processes
-  that target that file, including our recently completed process.
+  role to listen to `FileDeletedEvent`s and emit a SIG_TGT_FILE_DELETED on all
+  processes that target that file, including our recently completed process.
 
   This would not create an infinite loop, but it would affect the expected
   behavior of TOP, FileDelete completion, or both. It is quite rare to happen

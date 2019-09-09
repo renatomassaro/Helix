@@ -32,10 +32,10 @@ defmodule Helix.Universe.Bank.Model.BankToken do
   # so the token exists for the duration of the connection *plus* the TTL.
   @token_ttl 60 * 5  # 5 min
 
-  @creation_fields ~w/atm_id account_number connection_id/a
+  @creation_fields [:atm_id, :account_number, :connection_id]
+  @required_fields [:token_id, :atm_id, :account_number, :connection_id]
 
   @primary_key false
-  @ecto_autogenerate {:token_id, {UUID, :autogenerate, []}}
   schema "bank_tokens" do
     field :token_id, UUID,
       primary_key: true
@@ -50,14 +50,8 @@ defmodule Helix.Universe.Bank.Model.BankToken do
   def create_changeset(params) do
     %__MODULE__{}
     |> cast(params, @creation_fields)
+    |> put_defaults()
     |> generic_validations()
-  end
-
-  @spec generic_validations(Changeset.t) ::
-    Changeset.t
-  defp generic_validations(changeset) do
-    changeset
-    |> validate_required(@creation_fields)
   end
 
   @spec set_expiration_date(t) ::
@@ -68,6 +62,18 @@ defmodule Helix.Universe.Bank.Model.BankToken do
     token
     |> change()
     |> put_change(:expiration_date, expiration_date)
+  end
+
+  @spec put_defaults(Changeset.t) ::
+    Changeset.t
+  defp put_defaults(changeset),
+    do: put_change(changeset, :token_id, UUID.generate())
+
+  @spec generic_validations(Changeset.t) ::
+    Changeset.t
+  defp generic_validations(changeset) do
+    changeset
+    |> validate_required(@creation_fields)
   end
 
   defmodule Query do

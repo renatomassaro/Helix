@@ -3,7 +3,7 @@ defmodule Helix.Event do
   import HELL.Macros.Docp
 
   alias Hevent
-  alias Helix.Websocket.Request.Relay, as: RequestRelay
+  alias Helix.Webserver.Request, as: RequestWeb
   alias Helix.Event.Meta, as: EventMeta
   alias Helix.Event.State.Timer, as: EventTimer
 
@@ -88,7 +88,7 @@ defmodule Helix.Event do
   """
   defp inherit(event, nil),
     do: event
-  defp inherit(event, relay = %RequestRelay{}),
+  defp inherit(event, relay = %RequestWeb.Relay{}),
     do: set_request_id(event, relay.request_id)
   defp inherit(event, source) do
     # Relay the `process_id`
@@ -96,6 +96,7 @@ defmodule Helix.Event do
       case get_process_id(source) do
         nil ->
           event
+
         process_id ->
           set_process_id(event, process_id)
       end

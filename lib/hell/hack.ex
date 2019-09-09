@@ -40,6 +40,7 @@ defmodule HELL.Hack.Experience do
         {:next_step, 1},
         {:get_contact, 1},
         {:get_emails, 1},
+        {:get_replies, 1},
         {:get_replies_of, 2},
         {:format_meta, 1},
       ]

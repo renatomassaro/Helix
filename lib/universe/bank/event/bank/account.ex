@@ -41,7 +41,7 @@ defmodule Helix.Universe.Bank.Event.Bank.Account do
       event_name :bank_account_updated
 
       @doc false
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data =
           %{
             atm_id: to_string(event.account.atm_id),

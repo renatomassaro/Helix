@@ -4,6 +4,7 @@ defmodule Helix.Account.Action.Account do
   alias Helix.Account.Internal.Account, as: AccountInternal
   alias Helix.Account.Model.Account
   alias Helix.Account.Model.AccountSession
+  alias Helix.Account.Model.Document
 
   alias Helix.Account.Event.Account.Created, as: AccountCreatedEvent
   alias Helix.Account.Event.Account.Verified, as: AccountVerifiedEvent
@@ -31,12 +32,8 @@ defmodule Helix.Account.Action.Account do
 
     case AccountInternal.create(params) do
       {:ok, account} ->
-        # TODO: Verification system isn't implemented, so we automatically mark
-        # the account as created and verified.
-        e1 = AccountCreatedEvent.new(account)
-        e2 = AccountVerifiedEvent.new(account)
+        {:ok, account, [AccountCreatedEvent.new(account)]}
 
-        {:ok, account, [e1, e2]}
       error ->
         error
     end
@@ -68,6 +65,30 @@ defmodule Helix.Account.Action.Account do
         {:error, :notfound}
       _ ->
         {:error, :internalerror}
+    end
+  end
+
+  def verify(email_verification = %{account: account}) do
+    case AccountInternal.verify(account, email_verification) do
+      {:ok, new_account} ->
+        {:ok, new_account, [AccountVerifiedEvent.new(new_account)]}
+
+      {:error, _} ->
+        {:error, :internal}
+    end
+  end
+
+
+  @spec sign_document(Account.t, Document.t, Document.Signature.info) ::
+    {:ok, Account.t}
+    | {:error, :internal}
+  def sign_document(account = %Account{}, document = %Document{}, info) do
+    case AccountInternal.sign_document(account, document, info) do
+      {:ok, new_account} ->
+        {:ok, new_account, []}
+
+      {:error, _} ->
+        {:error, :internal}
     end
   end
 end

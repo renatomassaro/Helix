@@ -12,9 +12,11 @@ defmodule Helix.Webserver.Plugs.Entrypoint do
     do: opts
 
   def call(conn, _opts) do
+    # :timer.sleep(2000)
     # TODO: Check req-hearders for `content-type` json. Deny otherwise.
     conn
     |> put_resp_header("content-type", "application/json; charset=utf-8")
+    |> put_resp_header("content-security-policy", "default-src 'none'")
     |> put_url_params(conn.path_info)
     |> put_client_ip()
     |> fetch_cookies()

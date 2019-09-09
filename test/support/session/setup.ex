@@ -10,13 +10,16 @@ defmodule Helix.Test.Session.Setup do
   alias Helix.Test.Account.Setup, as: AccountSetup
   alias Helix.Test.Network.Helper, as: NetworkHelper
   alias Helix.Test.Network.Setup, as: NetworkSetup
+  alias Helix.Test.Webserver.Request.Helper, as: RequestHelper
 
   @internet_id NetworkHelper.internet_id()
   @relay nil
 
   @doc """
   """
-  def create(local: local_opts, remote: remote_opts) do
+  def create(local: local_opts, remote: remote_opts),
+    do: create(local: local_opts, remote: remote_opts, meta: [])
+  def create(local: local_opts, remote: remote_opts, meta: meta_opts) do
     local_config = create_config(local_opts, true)
     remote_config = create_config(remote_opts, false)
 
@@ -47,24 +50,37 @@ defmodule Helix.Test.Session.Setup do
     {:ok, unsynced_session} =
       SessionAction.create_unsynced(local_config.account.account_id)
 
-    # Force fetch so it goes through the internal formatting process
-    unsynced_session = SessionQuery.fetch_unsynced(unsynced_session.session_id)
+    if meta_opts[:skip_sync] do
+      context =
+        unsynced_session
+        |> Map.from_struct()
+        |> Map.merge(%{resync: false})
 
-    # Synchronize the session
-    SyncRequest.handle_request(
-      mock_request(params: %{client: :web1}), %{context: unsynced_session}
-    )
+      %{
+        session: unsynced_session,
+        context: context,
+        local: local_config,
+        remote: remote_config,
+        bounce: bounce
+      }
+    else
+      # Force fetch so it goes through the internal formatting process
+      unsynced_session = SessionQuery.fetch_unsynced(unsynced_session.session_id)
 
-    session = SessionQuery.fetch(unsynced_session.session_id)
-    context = get_context(session, local_config, remote_config)
+      # Synchronize the session
+      {:ok, _} = sync_request(%{context: unsynced_session})
 
-    %{
-      session: session,
-      context: context,
-      local: local_config,
-      remote: remote_config,
-      bounce: bounce
-    }
+      session = SessionQuery.fetch(unsynced_session.session_id)
+      context = get_context(session, local_config, remote_config)
+
+      %{
+        session: session,
+        context: context,
+        local: local_config,
+        remote: remote_config,
+        bounce: bounce
+      }
+    end
   end
 
   def create(local: local_opts),
@@ -109,6 +125,20 @@ defmodule Helix.Test.Session.Setup do
   def create_remote!(opts \\ []),
     do: create_remote(opts) |> Map.fetch!(:session)
 
+  def create_unsynced(opts \\ []) do
+    {account, account_id} =
+      if opts[:account_id] do
+        {nil, opts[:account_id]}
+      else
+        account = AccountSetup.account!()
+        {account, account.account_id}
+      end
+
+    {:ok, unsynced_session} = SessionAction.create_unsynced(account_id)
+
+    {unsynced_session, %{account: account}}
+  end
+
   defp create_config(nil, _),
     do: nil
   defp create_config(opts, local?) do
@@ -151,15 +181,8 @@ defmodule Helix.Test.Session.Setup do
   defp get_context(session, _, remote_config),
     do: session.servers[remote_config.endpoint.server_id |> to_string()]
 
-  # TODO: Belongs elsewhere
-  defp mock_request(opts) do
-    %{
-      meta: opts[:meta] || %{},
-      params: opts[:params] || %{},
-      response: opts[:response] || %{},
-      status: opts[:status] || nil,
-      relay: opts[:relay] || nil,
-      __special__: []
-    }
+  defp sync_request(session) do
+    request = RequestHelper.mock_request(unsafe: %{"client" => "web1"})
+    RequestHelper.execute_until(SyncRequest, :handle_request, request, session)
   end
 end

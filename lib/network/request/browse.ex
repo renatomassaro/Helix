@@ -52,7 +52,7 @@ defmodule Helix.Network.Request.Browse do
 
     network_id =
       if session.context.access == :local do
-        @internet_id
+        session.context.network_id
       else
         session.context.tunnel.network_id
       end

@@ -125,14 +125,24 @@ defmodule Helix.Story.Event.Handler.Story do
   If the request is to restart a step, we'll call `Steppable.restart/3`, and
   then handle the restart with `restart_step/1`.
   """
-  defp handle_action({:restart, reason, checkpoint}, step, _story_step) do
-    with \
-      {:ok, step, meta, events} <- Steppable.restart(step, reason, checkpoint),
-      emit(events, from: step.event),
+  defp handle_action(
+    {:restart, reason, {checkpoint_id, checkpoint_fix}}, step, story_step)
+  do
+    checkpoint_fix_result =
+      if is_nil(checkpoint_fix) do
+        {:ok, step, []}
+      else
+        checkpoint_fix.(step, story_step, reason)
+      end
 
-      :ok <- restart_step(step, reason, checkpoint, meta)
+    with \
+      {:ok, step, events} <- checkpoint_fix_result,
+      emit(events, from: step.event),
+      {:ok, step, meta, events} <-
+        Steppable.restart(step, reason, checkpoint_id),
+      emit(events, from: step.event)
     do
-      :ok
+      restart_step(step, reason, checkpoint_id, meta)
     end
   end
 

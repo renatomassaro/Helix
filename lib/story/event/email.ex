@@ -50,12 +50,22 @@ defmodule Helix.Story.Event.Email do
           |> Step.get_replies_of(event.email.id)
           |> Enum.map(&to_string/1)
 
+        progress =
+          case Step.get_email(event.step, event.email.id) do
+            reply = %{} ->
+              reply.progress
+
+            nil ->
+              nil
+          end
+
         data = %{
           step: to_string(event.step.name),
           contact_id: contact_id,
           replies: replies,
           email_id: event.email.id,
           meta: event.email.meta,
+          progress: progress,
           timestamp: ClientUtils.to_timestamp(event.email.timestamp)
         }
 

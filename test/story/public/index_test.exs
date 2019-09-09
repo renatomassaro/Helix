@@ -50,6 +50,7 @@ defmodule Helix.Story.Public.IndexTest do
       assert contact_data.name == reply_step.step_name
       assert contact_data.meta == reply_step.meta
       assert contact_data.replies == reply_step.allowed_replies
+      assert contact_data.progress
     end
   end
 

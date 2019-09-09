@@ -277,7 +277,8 @@ defmodule Helix.Test.Story.Setup do
         id: id,
         meta: meta,
         sender: sender,
-        timestamp: timestamp
+        timestamp: timestamp,
+        progress: 19
       }
 
     {email, %{}}

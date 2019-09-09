@@ -23,14 +23,10 @@ defmodule Helix.Event.Trigger.Publishable do
 
   # Entrypoint for Hevent's trigger handler
   def flow(event) do
-    event = add_event_identifier(event)
-
     domains =
       event
       |> Trigger.get_data(:whom_to_publish, @trigger)
       |> channel_mapper()
-
-    event_payload = get_event_payload(event)
 
     case get_event_payload(event) do
       {dispatch_type, payload} ->
@@ -47,6 +43,9 @@ defmodule Helix.Event.Trigger.Publishable do
         {:ok, data} ->
           payload = render_event_payload(event, data)
           {:static, payload}
+
+        :dynamic ->
+          {:dynamic, event}
 
         noreply ->
           noreply
@@ -74,23 +73,6 @@ defmodule Helix.Event.Trigger.Publishable do
       meta: Event.Meta.render(event)
     }
   end
-
-  # def generate_event(event, socket) do
-  #   case Trigger.get_data([event, socket], :generate_payload, @trigger) do
-  #     {:ok, data} ->
-  #       payload =
-  #         %{
-  #           data: data,
-  #           event: Trigger.get_data(event, :event_name, @trigger),
-  #           meta: Event.Meta.render(event)
-  #         }
-
-  #       {:ok, payload}
-
-  #     noreply ->
-  #       noreply
-  #   end
-  # end
 
   defp channel_mapper(whom_to_publish, acc \\ [])
   defp channel_mapper(:everyone, _),
@@ -127,16 +109,4 @@ defmodule Helix.Event.Trigger.Publishable do
 
   defp channel_mapper(empty_map = %{}, acc) when map_size(empty_map) == 0,
     do: acc
-
-  @spec add_event_identifier(Event.t) ::
-    Event.t
-  docp """
-  Adds the event unique identifier.
-
-  Keep in mind that this unique identifier is for the *event*, i.e. the fact
-  that something happened. If this event gets broadcasted to multiple players,
-  each one of them will share the same event identifier.
-  """
-  defp add_event_identifier(event),
-    do: Event.set_event_id(event, Event.generate_id())
 end

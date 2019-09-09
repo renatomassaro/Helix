@@ -10,6 +10,7 @@ defmodule Helix.Story.Action.Story do
   alias Helix.Story.Event.Reply.Sent, as: ReplySentEvent
   alias Helix.Story.Event.Step.Proceeded, as: StepProceededEvent
   alias Helix.Story.Event.Step.Restarted, as: StepRestartedEvent
+  alias Helix.Story.Event.Step.ActionRequested, as: ActionRequestedEvent
 
   @spec proceed_step(first_step :: Step.t) ::
     {:ok, Story.Step.t}
@@ -137,6 +138,16 @@ defmodule Helix.Story.Action.Story do
           Repo.rollback(error)
       end
     end)
+  end
+
+  def restart(step, checkpoint) do
+    reason = :user_requested
+    event =
+      ActionRequestedEvent.new(
+        {:restart, reason, checkpoint}, step.entity_id, step.contact
+      )
+
+    {:ok, event}
   end
 
   @spec rollback_emails(Step.t, Step.email_id, Step.email_meta) ::

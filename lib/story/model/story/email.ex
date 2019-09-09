@@ -179,4 +179,12 @@ defmodule Helix.Story.Model.Story.Email do
     def append_email(query, email),
       do: update(query, [s], [push: [emails: ^email]])
   end
+
+  select do
+
+    @spec email(Queryable.t) ::
+      Queryable.t
+    def email(query),
+      do: select(query, [s], s)
+  end
 end

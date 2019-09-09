@@ -6,6 +6,7 @@ defmodule Helix.Story.Action.Flow.StoryTest do
 
   alias Helix.Story.Action.Flow.Story, as: StoryFlow
   alias Helix.Story.Query.Story, as: StoryQuery
+  alias Helix.Story.Model.Steppable
 
   alias Helix.Test.Entity.Helper, as: EntityHelper
   alias Helix.Test.Story.Helper, as: StoryHelper
@@ -56,6 +57,38 @@ defmodule Helix.Story.Action.Flow.StoryTest do
           StoryHelper.contact_id(),
           "reply_id"
         )
+    end
+  end
+
+  describe "restart/2" do
+    test "restarts the step" do
+      {story_step, %{entity_id: entity_id}} =
+        StorySetup.story_step(name: :fake_restart@test_restart, meta: %{})
+
+      # We'll reply to the first message
+      StoryHelper.reply(story_step)
+
+      # There were 3 messages exchanges; last one is "c_msg2"
+      [%{object: step, entry: story_step}] = StoryQuery.get_steps(entity_id)
+      assert length(story_step.emails_sent) == 3
+      assert List.last(story_step.emails_sent) == "c_msg2"
+
+      # Hasn't been restarted yet
+      refute story_step.meta["restarted?"]
+
+      {true, checkpoint} = Steppable.checkpoint_find(step, "c_msg2")
+
+      # Let's get it restarted in here
+      assert :ok == StoryFlow.restart(step, checkpoint)
+
+      [%{entry: story_step}] = StoryQuery.get_steps(entity_id)
+
+      # Removed previously sent emails
+      assert story_step.emails_sent == ["c_msg1"]
+      assert story_step.allowed_replies == ["p_msg1"]
+
+      # Updated meta
+      assert story_step.meta["restarted?"]
     end
   end
 end

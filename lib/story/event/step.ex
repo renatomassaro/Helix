@@ -37,7 +37,7 @@ defmodule Helix.Story.Event.Step do
 
       event_name :story_step_proceeded
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         data = %{
           previous_step: to_string(event.previous_step.name),
           next_step: to_string(event.next_step.name)
@@ -95,7 +95,7 @@ defmodule Helix.Story.Event.Step do
 
       event_name :story_step_restarted
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         allowed_replies =
           event.step
           |> Step.get_replies_of(event.checkpoint)

@@ -45,25 +45,29 @@ defmodule Helix.Server.Event.Motherboard do
 
       event_name :motherboard_updated
 
-      @doc """
-      The player (server channel with `local` access) receives the full hardware
-      index, while any remote connection receives only remote data (like total
-      hardware resources).
-      """
-      def generate_payload(event, %{assigns: %{meta: %{access: :local}}}) do
-        data = HardwareIndex.render_index(event.index_cache)
-
-        {:ok, data}
+      def generate_payload(event, _session) do
+        {:ok, %{to: :do}}
       end
 
-      def generate_payload(event, %{assigns: %{meta: %{access: :remote}}}) do
-        data =
-          event.index_cache
-          |> HardwareIndex.render_index()
-          |> Map.replace!(:motherboard, nil)
+      # @doc """
+      # The player (server channel with `local` access) receives the full hardware
+      # index, while any remote connection receives only remote data (like total
+      # hardware resources).
+      # """
+      # def generate_payload(event, %{assigns: %{meta: %{access: :local}}}) do
+      #   data = HardwareIndex.render_index(event.index_cache)
 
-        {:ok, data}
-      end
+      #   {:ok, data}
+      # end
+
+      # def generate_payload(event, %{assigns: %{meta: %{access: :remote}}}) do
+      #   data =
+      #     event.index_cache
+      #     |> HardwareIndex.render_index()
+      #     |> Map.replace!(:motherboard, nil)
+
+      #   {:ok, data}
+      # end
 
       def whom_to_publish(event),
         do: %{server: event.server.server_id}
@@ -105,17 +109,20 @@ defmodule Helix.Server.Event.Motherboard do
 
       event_name :motherboard_update_failed
 
-      @doc """
-      Only the player receives the publication (server channel with `local`
-      access)
-      """
-      def generate_payload(event, %{assigns: %{meta: %{access: :local}}}) do
-        data = %{reason: event.reason}
-
-        {:ok, data}
+      def generate_payload(_, _) do
+        {:ok, %{to: :do}}
       end
-      def generate_payload(_, _),
-        do: :noreply
+      # @doc """
+      # Only the player receives the publication (server channel with `local`
+      # access)
+      # """
+      # def generate_payload(event, %{assigns: %{meta: %{access: :local}}}) do
+      #   data = %{reason: event.reason}
+
+      #   {:ok, data}
+      # end
+      # def generate_payload(_, _),
+      #   do: :noreply
 
       def whom_to_publish(event),
         do: %{server: event.server_id}

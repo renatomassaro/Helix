@@ -56,7 +56,7 @@ defmodule Helix.Cache.Local do
   end
 
   defp populate(result, id, type) do
-    LocalCacheShard.dispatch(id, :put_, type, [id, result]) 
+    LocalCacheShard.dispatch(id, :put_, type, [id, result])
 
     result
   end

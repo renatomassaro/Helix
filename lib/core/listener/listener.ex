@@ -49,6 +49,7 @@ defmodule Helix.Core.Listener do
       ListenerAction.listen(
         object_id, event, {module, method}, meta, owner_id, subscriber
       )
+      |> IO.inspect()
     end)
   end
 

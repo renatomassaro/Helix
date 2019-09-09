@@ -4,6 +4,7 @@ defmodule Helix.Account.Public.Account do
   alias Helix.Entity.Query.Entity, as: EntityQuery
   alias Helix.Server.Public.Index, as: ServerIndex
   alias Helix.Story.Public.Index, as: StoryIndex
+  alias Helix.Account.Action.Flow.Account, as: AccountFlow
   alias Helix.Account.Public.Index, as: AccountIndex
 
   @type bootstrap ::
@@ -61,4 +62,13 @@ defmodule Helix.Account.Public.Account do
       storyline: StoryIndex.render_index(bootstrap.storyline)
     }
   end
+
+  def create(username, password, email),
+    do: AccountFlow.create(email, username, password)
+
+  def verify(verification_key),
+    do: AccountFlow.verify(verification_key)
+
+  def sign_document(account, document, info),
+    do: AccountFlow.sign_document(account, document, info)
 end

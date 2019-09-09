@@ -96,7 +96,8 @@ defmodule Helix.Process.Action.TOP do
 
         {:ok, processes, [event]}
 
-      {:error, :resources, _} ->
+      {:error, :resources, e} ->
+        IO.puts "ALLOCATION ERROR RESOURCES"
         {:error, :resources}
     end
   end

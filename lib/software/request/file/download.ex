@@ -11,7 +11,6 @@ defmodule Helix.Software.Request.File.Download do
 
   def check_params(request, session) do
     # Fetches the server's main storage if none were specified
-    IO.inspect(request)
     unsafe_storage_id =
       if Map.has_key?(request.unsafe, "storage_id") do
         request.unsafe["storage_id"]

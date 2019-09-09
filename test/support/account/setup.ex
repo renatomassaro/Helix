@@ -5,6 +5,7 @@ defmodule Helix.Test.Account.Setup do
   alias Helix.Account.Internal.Account, as: AccountInternal
   alias Helix.Account.Model.Account
   alias Helix.Account.Query.Account, as: AccountQuery
+  alias Helix.Account.Repo, as: AccountRepo
 
   alias HELL.TestHelper.Random
   alias Helix.Test.Server.Setup, as: ServerSetup
@@ -34,6 +35,61 @@ defmodule Helix.Test.Account.Setup do
     else
       {_, related = %{params: params}} = fake_account(opts)
       {:ok, account} = AccountInternal.create(params)
+
+      # account =
+      #   if opts[:tos_revision] do
+      #     rev_id = opts[:tos_revision]
+
+      #     account
+      #     |> Account.mark_as_signed(%{document_id: :tos, revision_id: rev_id})
+      #     |> AccountRepo.update!()
+      #   else
+      #     account
+      #   end
+
+      # account =
+      #   if opts[:pp_revision] do
+      #     rev_id = opts[:pp_revision]
+
+      #     account
+      #     |> Account.mark_as_signed(%{document_id: :pp, revision_id: rev_id})
+      #     |> AccountRepo.update!()
+      #   else
+      #     account
+      #   end
+
+      # Unless told otherwise, create an account that is syncable by default
+      # (i.e. email verified and signed both documents)
+      account =
+        if is_nil(opts[:skip_verification]) do
+          pp_id =
+            if opts[:pp_revision] do
+              opts[:pp_revision]
+            else
+              1
+            end
+
+          tos_id =
+            if opts[:tos_revision] do
+              opts[:tos_revision]
+            else
+              1
+            end
+
+          account
+          |> Account.mark_as_signed(%{document_id: :pp, revision_id: pp_id})
+          |> AccountRepo.update!()
+
+          account
+          |> Account.mark_as_signed(%{document_id: :tos, revision_id: tos_id})
+          |> AccountRepo.update!()
+
+          account
+          |> Account.mark_as_verified()
+          |> AccountRepo.update!()
+        else
+          account
+        end
 
       {account, related}
     end

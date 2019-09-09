@@ -19,6 +19,9 @@ defmodule Helix.Network.Public.Network do
   place.
   """
   def browse(network_id, address, origin_id) do
+    IO.puts "getting oprigin ip"
+    IO.inspect(network_id)
+    IO.inspect(origin_id)
     origin_ip = get_origin_ip(network_id, origin_id)
 
     with \

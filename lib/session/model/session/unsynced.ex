@@ -26,7 +26,7 @@ defmodule Helix.Session.Model.Session.Unsynced do
   @creation_fields [:session_id, :account_id]
   @required_fields [:session_id, :account_id, :expiration_date]
 
-  @expiration_ttl 60
+  @expiration_ttl 3600
 
   @primary_key false
   schema "sessions_unsynced" do

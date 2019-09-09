@@ -5,7 +5,8 @@ defmodule Helix.Webserver.Endpoint do
     origins: Application.get_env(:helix, Helix.Webserver.Endpoint)[:allowed_cors],
     allow_headers: ["content-type"],
     expose_headers: ["x-request-id"],
-    allow_credentials: true
+    allow_credentials: true,
+    max_age: 3600
 
   plug Plug.Logger
 

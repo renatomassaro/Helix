@@ -4,6 +4,8 @@ defmodule Helix.Core.Node.Manager do
   alias Helix.Core.Node
 
   @node_data Application.get_env(:helix, :node) |> Enum.into(%{})
+
+  # TODO: This is generated at compile time, so it's WRONG
   @random_node_identifier SecureRandom.random_bytes(2) |> Base.encode16()
 
   def get_node_name do

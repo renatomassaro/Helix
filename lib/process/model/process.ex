@@ -497,6 +497,9 @@ defmodule Helix.Process.Model.Process do
     field :percentage, :float,
       virtual: true,
       default: 0.0
+    field :percentage_rate, :float,
+      virtual: true,
+      default: 0.0
 
     # Estimated completion date for the process.
     field :completion_date, :utc_datetime_usec,
@@ -667,18 +670,29 @@ defmodule Helix.Process.Model.Process do
 
     percentage = estimate_percentage(simulated_process)
 
+    percentage_rate =
+      case time_left do
+        :infinity ->
+          nil
+
+        -1 ->
+          nil
+
+        _ ->
+          (100 - (percentage * 100)) / time_left
+      end
+
     completion_date =
       if time_left == :infinity do
         nil
       else
-        previous_update = get_last_update(process)
-
         ms_left =
           time_left
           |> Kernel.*(1000)  # From second to millisecond
           |> trunc()
 
-        previous_update
+        # previous_update
+        DateTime.utc_now()
         |> DateTime.to_unix(:millisecond)
         |> Kernel.+(ms_left)
         |> DateTime.from_unix!(:millisecond)
@@ -688,6 +702,7 @@ defmodule Helix.Process.Model.Process do
     |> Map.replace!(:completion_date, completion_date)
     |> Map.replace!(:time_left, time_left)
     |> Map.replace!(:percentage, percentage)
+    |> Map.replace!(:percentage_rate, percentage_rate)
   end
 
   docp """

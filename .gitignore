@@ -6,6 +6,10 @@
 /docs/all.json
 helix.log
 
+priv/apidoc
+
+.iex.exs
+
 # Erlang
 erl_crash.dump
 *.ez

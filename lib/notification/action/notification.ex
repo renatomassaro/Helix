@@ -45,6 +45,7 @@ defmodule Helix.Notification.Action.Notification do
     end
   end
 
+  # TODO: Missing identifier (e.g. when `class` = `server`)
   @spec mark_as_read(Notification.class, Account.id) ::
     {:ok, [NotificationReadEvent.t_all]}
   def mark_as_read(class, account_id = %Account.ID{}) do

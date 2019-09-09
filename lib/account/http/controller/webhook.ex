@@ -63,7 +63,7 @@ defmodule Helix.Account.HTTP.Controller.Webhook do
             email: String.downcase(email),
             username: String.downcase(username),
             display_name: username,
-            confirmed: true
+            verified: true
           }
           account = Repo.insert!(account)
           e1 = AccountCreatedEvent.new(account)

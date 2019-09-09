@@ -80,7 +80,8 @@ defmodule Helix.Process.Viewable.Default do
 
     %{
       name: file_name,
-      version: nil
+      version: nil,
+      extension: File.get_extension(file)
     }
   end
 
@@ -96,6 +97,7 @@ defmodule Helix.Process.Viewable.Default do
 
     %{
       percentage: process.percentage,
+      percentage_rate: process.percentage_rate,
       completion_date: completion_date,
       creation_date: ClientUtils.to_timestamp(process.creation_time)
     }

@@ -41,7 +41,7 @@ defmodule Helix.Test.Webserver.Request.Helper do
     if opts[:params],
       do: raise "`:params` is invalid. Use either `:unsafe` or `:req_params`"
     if opts[:url],
-        do: raise "Surely you meant `url_params`?"
+      do: raise "Surely you meant `url_params`?"
 
     unsafe_params =
       Map.merge(
@@ -56,6 +56,7 @@ defmodule Helix.Test.Webserver.Request.Helper do
       response: %{},
       status: nil,
       relay: nil,
+      conn: Keyword.get(opts, :fake_conn, %{}),
       __special__: []
     }
   end

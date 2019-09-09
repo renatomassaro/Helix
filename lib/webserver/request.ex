@@ -1,5 +1,7 @@
 defmodule Helix.Webserver.Request do
 
+  alias HELL.Utils
+
   defmacro __using__(_) do
     quote do
 
@@ -17,13 +19,23 @@ defmodule Helix.Webserver.Request do
        response: Map.merge(request.response, opts[:response] || %{}),
        status: opts[:status] || request.status,
        relay: request.relay,
+       conn: request.conn,
        __special__: request.__special__
      }
     }
   end
 
-  def reply_error(request, status, reason),
+  def reply_error(request, status, reason) when is_atom(reason),
     do: {:error, Map.replace!(request, :status, status), reason}
+
+  def reply_error(request, status, {rea, son}) do
+    reason =
+      rea
+      |> Utils.concat_atom(:_)
+      |> Utils.concat_atom(son)
+
+    reply_error(request, status, reason)
+  end
 
   def put_special(request, special),
     do: Map.put(request, :__special__, [special | request.__special__])

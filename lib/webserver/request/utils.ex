@@ -3,6 +3,7 @@ defmodule Helix.Webserver.Request.Utils do
   Utils for `Helix.Webserver.Request`
   """
 
+  alias Plug.Conn
   alias HELL.IPv4
   alias Helix.Core.Validator
   alias Helix.Network.Model.Bounce
@@ -103,6 +104,19 @@ defmodule Helix.Webserver.Request.Utils do
     end
   end
 
+  @spec input_optional(map, binary | atom, default :: term) ::
+    term
+  @doc """
+  Returns the given value or an optional one (`default`).
+  """
+  def input_optional(request, key, default \\ nil) do
+    if Map.has_key?(request.unsafe, key) do
+      request.unsafe[key]
+    else
+      default
+    end
+  end
+
   @spec cast_list_of_ids([unsafe_ids :: term] | nil, function) ::
     {:ok, [casted_ids :: term]}
     | {:bad_id, unsafe_id :: term}
@@ -129,7 +143,13 @@ defmodule Helix.Webserver.Request.Utils do
   end
 
   @spec ensure_type(:binary, String.t) :: {:ok, String.t}
-  @spec ensure_type(:binary, list | integer | map) :: :error
+  @spec ensure_type(:binary, list | integer | map | boolean) :: :error
+  @spec ensure_type(:bool, boolean) :: {:ok, boolean}
+  @spec ensure_type(:bool, String.t | list | integer | map) :: :error
+  @spec ensure_type(:integer, term) ::
+    {:ok, boolean}
+    | :error
+
   @doc """
   Ensures that the given `input` belongs to the underlying type.
   """
@@ -137,6 +157,27 @@ defmodule Helix.Webserver.Request.Utils do
     do: {:ok, input}
   def ensure_type(:binary, _),
     do: :error
+  def ensure_type(:bool, input) when is_boolean(input),
+    do: {:ok, input}
+  def ensure_type(:bool, _),
+    do: :error
+  def ensure_type(:integer, input) when is_integer(input),
+    do: {:ok, input}
+  def ensure_type(:integer, input) when not is_binary(input),
+    do: :error
+  def ensure_type(:integer, input) do
+    case Integer.parse(input) do
+      {number, ""} ->
+        {:ok, number}
+
+      {_, _} ->
+        # It's a float
+        :error
+
+      :error ->
+        :error
+    end
+  end
 
   def parse_nip(nip) when is_binary(nip) do
     case SessionWeb.parse_server_cid(nip) do
@@ -147,4 +188,23 @@ defmodule Helix.Webserver.Request.Utils do
         :error
     end
   end
+
+  @doc """
+  Retrieve the request's UserAgent
+  """
+  def fetch_user_agent(%{conn: conn = %Conn{}}) do
+    case Conn.get_req_header(conn, "user-agent") do
+      [user_agent] ->
+        user_agent
+
+      [] ->
+        ""
+    end
+  end
+
+  @doc """
+  Retrieve the request's client IP (as defined by EntrypointPlug)
+  """
+  def fetch_client_ip(%{conn: conn = %Conn{}}),
+    do: conn.assigns.client_ip
 end

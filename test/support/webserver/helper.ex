@@ -135,6 +135,60 @@ defmodule Helix.Test.Webserver.Helper do
     do: {"DELETE", bounce_scope(bounce_id), Helix.Network.Request.Bounce.Remove}
 
   ##############################################################################
+  # Account scope ("/account/*")
+  ##############################################################################
+
+  # POST /account/check-username
+  def path(:account_check_username, _) do
+    {
+      "POST",
+      account_scope("check-username"),
+      Helix.Account.Request.CheckUsername
+    }
+  end
+
+  # POST /account/check-email
+  def path(:account_check_email, _),
+    do: {"POST", account_scope("check-email"), Helix.Account.Request.CheckEmail}
+
+  # POST /account/register
+  def path(:account_register, _),
+    do: {"POST", account_scope("register"), Helix.Account.Request.Register}
+
+  ##############################################################################
+  # Document scope ("/document/*")
+  ##############################################################################
+
+  def path(:document_fetch_tos, _),
+    do: {"GET", document_scope("tos"), Helix.Account.Request.Document.Fetch}
+
+  def path(:document_fetch_pp, _),
+    do: {"GET", document_scope("pp"), Helix.Account.Request.Document.Fetch}
+
+  def path(:document_sign_tos, _) do
+    {
+      "POST",
+      [document_scope("tos"), "sign"],
+      Helix.Account.Request.Document.Sign
+    }
+  end
+
+  def path(:document_sign_pp, _) do
+    {
+      "POST",
+      [document_scope("pp"), "sign"],
+      Helix.Account.Request.Document.Sign
+    }
+  end
+
+  ##############################################################################
+  # Storyline scope ("/story/*")
+  ##############################################################################
+
+  def path(:story_restart, _),
+    do: {"POST", [story_scope("restart")], Helix.Story.Request.Restart}
+
+  ##############################################################################
   # Main scope ("/")
   ##############################################################################
 
@@ -166,6 +220,15 @@ defmodule Helix.Test.Webserver.Helper do
 
   defp main_scope,
     do: [path_version()]
+
+  defp account_scope(path),
+    do: [main_scope(), "account", path]
+
+  defp story_scope(path),
+    do: [main_scope(), "story", path]
+
+  defp document_scope(path),
+    do: [main_scope(), "document", path]
 
   defp bounce_scope(bounce_id = %Bounce.ID{}),
     do: [main_scope(), "bounce", str_helix_id(bounce_id)]

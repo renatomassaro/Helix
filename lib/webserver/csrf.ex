@@ -18,11 +18,23 @@ defmodule Helix.Webserver.CSRF do
     |> :hairnet.verify_and_decrypt_token(@private_key, @token_ttl)
   end
 
+  def requires_csrf?("POST", [_, "account", "register"]),
+    do: false
+  def requires_csrf?("POST", [_, "account", "check-username"]),
+    do: false
+  def requires_csrf?("POST", [_, "account", "check-email"]),
+    do: false
   def requires_csrf?("POST", [_, "login"]),
+    do: false
+  def requires_csrf?("POST", [_, "account", "verify"]),
     do: false
   def requires_csrf?("GET", [_, "check-session"]),
     do: false
   def requires_csrf?("GET", [_, "ping"]),
+    do: false
+
+  # Mostly untested. Once tested, remove the above `get` clauses.
+  def requires_csrf?("GET", _),
     do: false
   def requires_csrf?(_, _),
     do: true

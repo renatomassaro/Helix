@@ -68,7 +68,7 @@ defmodule Helix.Test.Webserver.SSEClient do
     {:noreply, wait_for(events, new_state)}
   end
 
-  def handle_cast({:event, %{event: event}}, state),
+  def handle_cast({:event, %{payload: event}}, state),
     do: {:noreply, %{state| events: [event | state.events]}}
 
   def handle_cast({:ping, count}, state) do

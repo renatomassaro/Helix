@@ -83,6 +83,10 @@ defmodule Helix.Story.Model.Step.Macros do
           def get_emails(_),
             do: @emails
 
+          @doc false
+          def get_replies(_),
+            do: @replies
+
           @spec get_replies_of(Step.t, Step.email_id | Step.reply_id) ::
             [Step.reply_id]
           @doc """
@@ -102,6 +106,39 @@ defmodule Helix.Story.Model.Step.Macros do
 
               true ->
                 []
+            end
+          end
+
+          def checkpoint_find(step, last_message_id, recur_data \\ nil) do
+            {elements, iters} =
+              if is_nil(recur_data) do
+                index = Enum.find_index(@messages, &(last_message_id == &1))
+                {Enum.take(@messages, index), 0}
+              else
+                recur_data
+              end
+
+            with false <- is_checkpoint?(last_message_id) do
+              next_message_id =
+                elements
+                |> Enum.reverse()
+                |> Enum.drop(iters)
+                |> List.first()
+
+              checkpoint_find(step, next_message_id, {elements, iters + 1})
+            end
+          end
+
+          @spec is_checkpoint?(Step.message_id) ::
+            {true, Step.checkpoint}
+            | false
+          defp is_checkpoint?(message_id) do
+            case Map.get(@checkpoints, message_id) do
+              {checkpoint_fn} ->
+                {true, {message_id, checkpoint_fn}}
+
+              nil ->
+                false
             end
           end
 
@@ -773,7 +810,8 @@ defmodule Helix.Story.Model.Step.Macros do
     metadata = %{
       id: email_id,
       replies: Utils.ensure_list(opts[:replies]),
-      locked: Utils.ensure_list(opts[:locked])
+      locked: Utils.ensure_list(opts[:locked]),
+      progress: opts[:progress] || 0
     }
 
     Map.put(%{}, email_id, metadata)
@@ -836,7 +874,8 @@ defmodule Helix.Story.Model.Step.Macros do
     metadata = %{
       id: reply_id,
       replies: Utils.ensure_list(opts[:replies]),
-      locked: Utils.ensure_list(opts[:locked])
+      locked: Utils.ensure_list(opts[:locked]),
+      progress: opts[:progress] || 0
     }
 
     Map.put(%{}, reply_id, metadata)

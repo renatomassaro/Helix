@@ -110,7 +110,7 @@ process Helix.Software.Process.Cracker.Bruteforce do
     BruteforceProcess only uses CPU.
     """
     def cpu(f, %{hasher: nil}),
-      do: 10_000 - 100 * f.cracker.version.bruteforce
+      do: 5_000 - 100 * f.cracker.version.bruteforce
 
     def cpu(f, %{hasher: %File{}}),
       do: f.cracker.version.bruteforce * f.hasher.version.password

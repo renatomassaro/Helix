@@ -9,14 +9,15 @@ defmodule Helix.Test.Story.Vars do
       friend: "friend"
     },
     tutorial: %{
-      setup: %{
+      welcome: %{
         contact: "friend",
-        name: "setup_pc",
+        name: "welcome",
         next: "download_cracker",
-        msg1: "welcome",
-        msg2: "back_thanks",
-        msg3: "watchiadoing",
-        msg4: "hell_yeah",
+        msg1: "c_welcome1",
+        msg2: "p_welcome1",
+        msg3: "c_welcome2",
+        msg4: "c_welcome3",
+        msg5: "c_welcome4",
       },
       dl_crc: %{
         contact: "friend",

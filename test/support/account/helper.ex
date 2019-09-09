@@ -7,6 +7,8 @@ defmodule Helix.Test.Account.Helper do
   alias Helix.Account.Query.Account, as: AccountQuery
   alias Helix.Account.Repo, as: AccountRepo
 
+  alias HELL.TestHelper.Random
+
   @doc """
   Fetches all accounts
   """
@@ -30,4 +32,11 @@ defmodule Helix.Test.Account.Helper do
   """
   def cast_from_entity(entity_id),
     do: Account.cast_from_entity(entity_id)
+
+  defdelegate username,
+    to: Random
+  defdelegate password,
+    to: Random
+  defdelegate email,
+    to: Random
 end

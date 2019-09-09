@@ -41,11 +41,11 @@ defmodule Helix.Event.Trigger.Listenable do
     method = String.to_atom(method)
 
     params =
-    if meta do
-      [event, meta]
-    else
-      [event]
-    end
+      if meta do
+        [event, meta]
+      else
+        [event]
+      end
 
     {:ok, events} = apply(module, method, params)
 

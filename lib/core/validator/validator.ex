@@ -14,7 +14,9 @@ defmodule Helix.Core.Validator do
     String.t
     | Notification.Validator.validated_inputs
 
+  @regex_alphabet ~r/[a-zA-Z0-9]/
   @regex_hostname ~r/^[a-zA-Z0-9-_.@#]{1,20}$/
+  @regex_username ~r/^[a-zA-Z0-9-_]{3,15}$/
 
   @spec validate_input(input :: String.t, input_type, opts :: term) ::
     {:ok, validated_inputs}
@@ -32,8 +34,17 @@ defmodule Helix.Core.Validator do
   def validate_input(input, :username, _),
     do: validate_username(input)
 
-  def validate_input(input, :password, _),
-    do: validate_password(input)
+  def validate_input(input, :account_password, _),
+    do: validate_account_password(input)
+
+  def validate_input(input, :server_password, _),
+    do: validate_server_password(input)
+
+  def validate_input(input, :email, _),
+    do: validate_email(input)
+
+  def validate_input(input, :verification_key, _),
+    do: validate_verification_key(input)
 
   def validate_input(input, :hostname, _),
     do: validate_hostname(input)
@@ -55,21 +66,48 @@ defmodule Helix.Core.Validator do
 
   # Implementations
 
-  defp validate_hostname(v) when not is_binary(v),
-    do: :error
-  defp validate_hostname(v) do
-    if Regex.match?(@regex_hostname, v) do
-      {:ok, v}
-    else
+  defp validate_hostname(v),
+    do: check_regex(v, @regex_hostname)
+
+  defp validate_username(v),
+    do: check_regex(v, @regex_username)
+
+  defp validate_server_password(v),
+    do: check_regex(v, @regex_hostname)
+
+  defp validate_account_password(v) do
+    if String.length(v) < 6 do
       :error
+    else
+      {:ok, v}
     end
   end
 
-  defp validate_username(input),
-    do: validate_hostname(input)  # TODO
+  defp validate_email(v) do
+    with \
+      true <- String.length(v) >= 3,
+      true <- String.contains?(v, "@")
+    do
+      {:ok, v}
+    else
+      _ ->
+        :error
+    end
+  end
 
-  defp validate_password(input),
-    do: validate_hostname(input)  # TODO
+  defp validate_verification_key(v) when not is_binary(v),
+    do: :error
+  defp validate_verification_key(v) do
+    with \
+      true <- String.length(v) == 6,
+      true <- Regex.match?(@regex_alphabet, v)
+    do
+      {:ok, v}
+    else
+      _ ->
+        :error
+    end
+  end
 
   defp validate_bounce_name(v),
     do: validate_hostname(v)  # TODO
@@ -86,6 +124,18 @@ defmodule Helix.Core.Validator do
 
   defp validate_ipv4(v) do
     if IPv4.valid?(v) do
+      {:ok, v}
+    else
+      :error
+    end
+  end
+
+  # Utils
+
+  defp check_regex(v, _) when not is_binary(v),
+    do: :error
+  defp check_regex(v, regex) do
+    if Regex.match?(regex, v) do
       {:ok, v}
     else
       :error

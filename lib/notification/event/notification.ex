@@ -37,7 +37,7 @@ defmodule Helix.Notification.Event.Notification do
 
       event_name :notification_added
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         class = Notification.get_class(event.notification)
         code = event.notification.code
         notification_data = event.notification.data
@@ -154,7 +154,7 @@ defmodule Helix.Notification.Event.Notification do
 
       event_name :notification_read
 
-      def generate_payload(event, _socket) do
+      def generate_payload(event) do
         notification_id =
           event.notification_id
           && to_string(event.notification_id)

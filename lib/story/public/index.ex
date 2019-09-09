@@ -56,13 +56,28 @@ defmodule Helix.Story.Public.Index do
     emails = StoryQuery.get_emails(entity_id)
 
     steps
-    |> Enum.reduce(%{}, fn %{entry: story_step}, acc ->
+    |> Enum.reduce(%{}, fn %{entry: story_step, object: step}, acc ->
+      contact_emails = index_emails(emails, story_step)
+      last_message = List.last(contact_emails)
+
+      progress =
+        if not is_nil(last_message) do
+          if last_message.sender == :contact do
+            Step.get_email(step, last_message.id)[:progress] || 0
+          else
+            Step.get_reply(step, last_message.id)[:progress] || 0
+          end
+        else
+          0
+        end
+
       idx =
         %{
-          emails: index_emails(emails, story_step),
+          emails: contact_emails,
           replies: story_step.allowed_replies,
           name: story_step.step_name,
-          meta: story_step.meta
+          meta: story_step.meta,
+          progress: progress
         }
 
       acc
@@ -80,7 +95,8 @@ defmodule Helix.Story.Public.Index do
           emails: render_emails(entry.emails),
           replies: entry.replies,
           name: to_string(entry.name),
-          meta: entry.meta
+          meta: entry.meta,
+          progress: entry.progress
         }
 
       acc

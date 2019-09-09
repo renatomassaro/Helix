@@ -66,4 +66,24 @@ defmodule Helix.Story.Action.Flow.Story do
       end
     end
   end
+
+  @spec restart(Step.t, Step.checkpoint) ::
+    :ok
+  @doc """
+  Restarts the `step`, going back to the given `checkpoint`.
+
+  NOTE: TODO: There is a known bug where the user can restart a step while there
+  is a message pending arrival (through the `send_opts: [sleep: X]` thing). This
+  is currently unhandled.
+  """
+  def restart(step, checkpoint) do
+    flowing do
+      with \
+        {:ok, events} <- StoryAction.restart(step, checkpoint),
+        on_success(fn -> Event.emit(events) end)
+      do
+        :ok
+      end
+    end
+  end
 end
